@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Кто хочет стать искусствоведом</title>
+        <link rel="stylesheet" href="style.css">
+    </head>
+
+    <body>
+        <main class="main">
+            <header class="header">
+                <!-- Header is deactivated in style.css -->
+                <a href="#" class="logo">Квест</a>
+
+                <nav class="navbar">
+                    <a href="#">Дом</a>
+                
+                </nav>
+            </header>
+
+            <div class="container">
+                <section class="quiz-section">
+                    <div class="x-close-btn"></div>
+
+                    <div class="quiz-box">
+                        
+
+                        <!-- Модальное окно для картинки -->
+                        <div id="imageModal" class="modal">
+                            <span id="closeModalBtn" class="cloose-btn">&times;</span>
+                            <img id="modalImage" src="images/qst1.jpg" >
+                        </div>
+                        <h1 id="quiz-header1" class="quiz-header1">Кто хочет стать искусствоведом</h1>
+                        <div class="quiz-header" id="quiz-header">   
+                            <span class="header-score"></span>
+                        </div>
+
+                        <div class="question-text" id="question-text"></div>
+                        <button id="hint-btn" class="hint-btn">Показать подсказку</button> <!-- Кнопка подсказки -->
+                        <div id="hint-text" class="hint-text"></div>
+                        <div class="option-list"></div>
+
+                        <div class="quiz-footer" id="quiz-footer">
+                            <span class="questions-total"></span>
+                            <button id="explanationBtn" class="explanation-btn">Пояснение</button>
+                            <button class="next-btn">Следующий</button>
+                        </div>
+                        
+                        <!-- Экран с пояснением -->
+                        <div id="explanationModal" class="explanation-modal">
+                            <div class="explanation-content">
+                                <img id="explanationImage" src="" alt="Картина">
+                                <p id="explanationText"></p>
+                                <button id="closeExplanationBtn" class="close-explanation-btn">Вернуться</button>
+                            </div>
+                        </div>
+                        
+                    </div>
+                    
+
+                    <div class="result-box">
+                        <h2>Результаты квеста</h2>
+                        <div class="percent-container">
+                            <div class="circular-progress">
+                                <span class="progress-value"></span>
+                            </div>
+
+                            <span class="score-text"></span>
+                        </div>
+
+                        <div class="buttons">
+                            <button class="homepage-btn">Главная Страница</button>
+                            <button class="try-again-btn">Попробовать еще раз</button>
+                            <button class="contacts-btn">Контакты</button> <!-- Новая кнопка -->                        
+                        </div>
+                        <div class="contacts-info">
+                            <p class="contact-message">Свои предложения и пожелания по работе сайта можете отправить сюда:</p>
+                            <div class="contacts-info1">
+                                <a href="https://vk.com/leavrud_l" target="_blank" class="contact-link">ВКонтакте</a>
+                                <a href="https://t.me/mortersis" target="_blank" class="contact-link">Телеграм</a>
+                                <a href="mailto:maksimcebakov1@gmail.com" class="contact-link">Email</a>
+                            </div>
+                        </div>
+
+                    </div>
+                </section>
+
+                <section class="home">
+                    <div class="home-content">
+                        <h1 class="named">Веб квест</h1>
+                        <p>Простой сайт с квизом из 10 вопросов сделанный для картинной галереи МОУ "Державинский лицей"</p>
+                        <p>Нажмите на кнопку снизу чтобы начать тест и проверить свои знания, а может и узнать много интересного</p>
+                        <button id="startBtn" class="start-btn">Начать квиз</button>
+                    </div>
+                </section>
+            </div>
+            
+        </main>
+
+        <div class="popup-info">
+            <h2>Гид по квизу</h2>
+            <span class="info">Нажмите <b>Продолжить</b> чтобы начать квест</span>
+            <span class="info">Нажмите <b>Вернуться</b> чтобы вернуться на главный экран</span>
+            <span class="info">Вы можете использовать <b>Подсказку</b>, но вам дадут вдвое меньше балов</span>
+            <span class="info">После ответа на вопрос вы можете нажать на <b>Пояснение</b> чтобы получить пояснение на вопрос</span>
+
+            <div class="btn-group">
+                <button class="info-btn exit-btn">Вернуться</button>
+                <a href="#" class="info-btn continue-btn">Продолжить</a>
+            </div>
+        </div>
+
+        <script src="questions.js"></script>
+        <script src="script.js"></script>
+    </body>
+</html>

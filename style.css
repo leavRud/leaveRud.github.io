@@ -1,0 +1,890 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Pacifico&family=Roboto:ital,wght@0,100..900;1,100..900&family=Unbounded:wght@200..900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Unbounded:wght@200..900&display=swap');
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Unbounded', sans-serif;
+}
+
+body {
+    color: #fff;
+    background: #09001d;
+    overflow: hidden;
+}
+
+.main {
+    background: url("images/background.jpg") center no-repeat;
+    min-height: 100vh;
+    background-size: cover;
+    transition: .3s ease;
+    pointer-events: auto;
+}
+
+.main.active {
+    filter: blur(15px);
+    pointer-events: none;
+}
+
+
+
+.header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    padding: 20px 10%;
+    background: transparent;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    z-index: 100;
+    /*hide header*/
+    opacity: 0;
+    overflow: auto;
+}
+
+.logo {
+    font-size: 32px;
+    color: #fff;
+    text-decoration: none;
+    font-weight: 700;
+    filter: drop-shadow(0 0 5px #09001d);
+}
+
+.navbar a {
+    font-size: 18px;
+    color: #fff;
+    text-decoration: none;
+    font-weight: 500;
+    margin-left: 15px;
+    transition: .3s ease;
+}
+
+.navbar a:hover {
+    color: #e05330;
+}
+
+/* ------ HOME ------ */
+
+.container {
+    display: flex;
+    height: 100vh;
+    width: 200%;
+}
+
+.home {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    left: -50%;
+    width: 100%;
+    height: 100vh;
+}
+
+.home-content {
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+    max-width: 600px;
+}
+.named{
+    font-family: 'Pacifico', sans-serif;
+}
+.home-content h1 {
+    font-size: 78px;
+    font-weight: 700;
+    margin-bottom: 20px;
+    text-shadow: 0 0 10px rgba(0, 0, 0, .3);
+}
+
+.home-content p {
+    font-size: 18px;
+    text-align: center;
+    text-shadow: 0 0 10px rgba(0, 0, 0, .3);
+    margin-bottom: 20px;
+}
+
+.home-content p:last-of-type {
+    margin-bottom: 35px;
+}
+
+.home-content .start-btn {
+    width: 190px;
+    height: 55px;
+    background: #fff;
+    border: 2px solid #fff;
+    outline: none;
+    border-radius: 6px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, .3);
+    font-size: 18px;
+    font-weight: 600;
+    color: #000;
+    mix-blend-mode: lighten;
+    cursor: pointer;
+    transition: .3s ease;
+}
+
+.home-content .start-btn:hover {
+    background: #000;
+    color: #fff;
+    box-shadow: none;
+}
+
+/* ------ POP-UP INFO ------ */
+
+.popup-info {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(.9);
+    width: 500px;
+    background: #fff;
+    border-radius: 6px;
+    padding: 20px 35px;
+    opacity: 0;
+    pointer-events: none;
+    transition: .3s ease;
+}
+
+.popup-info.active {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translate(-50%, -50%) scale(1);
+}
+
+.popup-info h2 {
+    text-align: center;
+    font-size: 50px;
+    color: #0A0911;
+    margin-bottom: 10px;
+}
+
+.popup-info .info {
+    display: inline-block;
+    font-size: 16px;
+    line-height: 1.5;
+    color: #333;
+    font-weight: 500;
+    margin: 4px 0;
+}
+
+.popup-info .btn-group {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 1px solid #999;
+    margin-top: 20px;
+    padding: 20px 0 10px;
+}
+
+.popup-info .btn-group .info-btn {
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    width: 140px;
+    height: 45px;
+    outline: none;
+    border-radius: 6px;
+    text-decoration: none;
+    font-size: 16px;
+    font-weight: 600;
+    box-shadow: 0 0 10px rgba(0, 0, 0, .1);
+    cursor: pointer;
+    transition: .3s ease;
+}
+
+.popup-info .btn-group .info-btn:nth-child(1) {
+    background: transparent;
+    border: 1px solid #5A3A6C;
+    color: #5A3A6C;
+}
+
+.popup-info .btn-group .info-btn:nth-child(1):hover {
+    background: #5A3A6C;
+    color: #fff;
+}
+
+.popup-info .btn-group .info-btn:nth-child(2) {
+    background: #e05330;
+    border: 1px solid #e05330;
+    color: #fff;
+}
+
+.popup-info .btn-group .info-btn:nth-child(2):hover {
+    background: #AD3A29;
+    color: #fff;
+}
+
+
+
+
+/* Кнопка открытия картинки */
+#openImageBtn {
+    width: 200px;
+    height: 50px;
+    background: #ca2b68;
+    border: none;
+    border-radius: 8px;
+    color: #fff;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 20px 0;
+}
+#openImageBtn:hover {
+    background: rgb(164, 36, 102);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+}
+
+#openImageBtn:active {
+    transform: translateY(0);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* Модальное окно */
+.modal {
+    display: none; /* Скрыто по умолчанию */
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    
+    justify-content: center;
+    align-items: center;
+}
+
+/* Картинка внутри модального окна */
+#modalImage {
+    max-width: 90%;
+    max-height: 90%;
+    border-radius: 10px;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+}
+
+/* Кнопка закрытия */
+.cloose-btn {
+    position: absolute;
+    top: 200px;
+    right: 30px;
+    font-size: 40px;
+    color: white;
+    cursor: pointer;
+    
+}
+
+.cloose-btn:hover {
+    color: #ff0000;
+}
+
+/* Размытие фона */
+.blur-background {
+    filter: blur(5px);
+}
+
+
+
+/* Стили для экрана с пояснением */
+.explanation-modal {
+    display: none; /* Скрыт по умолчанию */
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.9); /* Темный фон */
+    justify-content: center;
+    align-items: center;
+    z-index: 1000; /* Выше всех элементов */
+    animation: fadeIn 0.5s ease; /* Анимация появления */
+}
+
+/* Контент внутри экрана с пояснением */
+.explanation-content {
+    background: #fff;
+    padding: 20px;
+    border-radius: 10px;
+    text-align: center;
+    max-width: 90%;
+    max-height: 90%;
+    overflow-y: auto;
+    animation: slideIn 0.5s ease; /* Анимация появления */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+
+/* Картина внутри экрана с пояснением */
+#explanationImage {
+    max-width: 100%;
+    max-height: 70vh;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    align-self: center; /* Выравниваем изображение по центру */
+}
+/* Текст пояснения */
+#explanationText {
+    font-size: 18px;
+    color: #333;
+    margin-bottom: 20px;
+    text-align: center; /* Выравниваем текст по центру */
+}
+
+/* Кнопка "Вернуться" */
+.close-explanation-btn {
+    width: 150px;
+    height: 45px;
+    background: #e05330;
+    border: none;
+    border-radius: 6px;
+    color: #fff;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.3s ease;
+}
+
+.close-explanation-btn:hover {
+    background: #AD3A29;
+}
+
+/* Анимация появления */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+/* Анимация появления контента */
+@keyframes slideIn {
+    from {
+        transform: translateY(-50px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+/* Стили для кнопки "Пояснение" */
+.explanation-btn {
+    width: 150px;
+    height: 45px;
+    background: #5A3A6C; /* Фиолетовый цвет */
+    border: none;
+    border-radius: 6px;
+    color: #fff;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.3s ease, transform 0.2s ease;
+    margin-right: 10px; /* Отступ от кнопки "Следующий" */
+}
+.explanation-btn:disabled {
+    background: #5A3A6C80; /* Полупрозрачный фиолетовый */
+    cursor: not-allowed; /* Курсор "недоступно" */
+    opacity: 0.6; /* Тусклый вид */
+}
+
+
+.explanation-btn:hover {
+    background: #4A2A5C; /* Темный фиолетовый */
+    transform: translateY(-2px);
+}
+
+.explanation-btn:active {
+    transform: translateY(0);
+}
+
+
+/* ------ QUIZ ------ */
+
+.quiz-section {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    left: -50%;
+    width: 100%;
+    background: #5A3A6C;
+    transition: .8s ease-in-out;
+    transition-delay: .25s;
+    z-index: 100;
+    overflow-y: auto; /* Включаем прокрутку */
+    min-height: 100vh; /* Минимальная высота на весь экран */
+    
+}
+#quiz-header1 {
+    font-size: 24px; /* Уменьшите размер шрифта, если нужно */
+    text-align: center;
+    margin-bottom: 20px; /* Добавьте отступ снизу */
+    white-space: normal; /* Разрешаем перенос текста */
+    word-wrap: break-word; /* Разрешаем перенос длинных слов */
+}
+.quiz-section.active {
+    left: 0;
+    
+}
+
+.quiz-box {
+    display: flex;
+    flex-direction: column;
+    padding: 30px;
+    position: relative;
+    width: 500px;
+    background: transparent;
+    border: 2px solid #ffffff;
+    border-radius: 6px;
+    opacity: 0;
+    pointer-events: none;
+    transform: scale(.9);
+    transition: .3s ease;
+    transition-delay: 0s;
+    min-height: 400px; /* Минимальная высота */
+    overflow-y: auto; /* Включаем прокрутку */
+}
+
+.quiz-section .quiz-box.active {
+    opacity: 1;
+    pointer-events: auto;
+    transform: scale(1);
+    transition: 1s ease;
+    transition-delay: 1s;
+    
+
+}
+
+.quiz-box h1 {
+    font-size: 24px; /* Уменьшите размер шрифта, если нужно */
+    text-align: center;
+    margin-bottom: 20px; /* Добавьте отступ снизу */
+}
+
+.quiz-box .quiz-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 2px solid #ffffff;
+    margin-bottom: 30px;
+    
+}
+
+
+.quiz-header span {
+    font-size: 16px;
+    font-weight: 500;
+    
+}
+
+.quiz-header .header-score {
+    background: #e05330;
+    border-radius: 3px;
+    padding: 7px 12px;
+
+    overflow: auto; }
+
+.quiz-box .question-text {
+    font-size: 20px;
+    font-weight: 600;
+    margin-bottom: 6px;
+    
+}
+
+.option-list .option {
+    width: 100%;
+    padding: 12px;
+    background: transparent;
+    border: 2px solid rgba(255, 255, 255, .2);
+    border-radius: 4px;
+    font-size: 15px;
+    margin: 15px 0;
+    cursor: pointer;
+    transition: .3s ease;
+    
+}
+
+.option-list .option:hover {
+    background: rgba(255, 255, 255, .1);
+    border-color: rgba(255, 255, 255, .1);
+    
+}
+
+.option.correct {
+    color: #00c049; /* Зеленый цвет текста */
+    border-color: #00c049; /* Зеленый цвет границы */
+    background: rgba(0, 192, 73, 0.1); /* Светло-зеленый фон */
+}
+
+.option.incorrect {
+    color: #ff1010; /* Красный цвет текста */
+    border-color: #ff1010; /* Красный цвет границы */
+    background: rgba(255, 16, 16, 0.1); /* Светло-красный фон */
+}
+
+.option.disabled {
+    pointer-events: none; /* Отключаем клики */
+    opacity: 0.7; /* Делаем варианты полупрозрачными */
+}
+
+.quiz-section.active .x-close-btn {
+    position: absolute;
+    right: 1rem;
+    top: 1rem;
+    content: url("images/close-circle.png");
+    max-width: 2rem;
+    color: #fff;
+    border-radius: 50%;
+}
+
+.quiz-section.active .x-close-btn:hover {
+    box-shadow: 0 0 1rem #e05330;
+}
+
+.quiz-box .quiz-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 2px solid #ffffff;
+    padding-top: 20px;
+    margin-top: 20px;
+    
+}
+
+.quiz-footer .questions-total {
+    font-size: 16px;
+    font-weight: 600;
+    
+}
+
+.quiz-footer .next-btn {
+    width: 200px;
+    height: 45px;
+    background: rgba(255, 255, 255, .1);
+    border: 2px solid rgba(255, 255, 255, .1);
+    outline: none;
+    border-radius: 6px;
+    font-size: 16px;
+    font-weight: 600;
+    color: rgba(255, 255, 255, .3);
+    cursor: pointer;
+    pointer-events: none;
+    transition: .3s;
+}
+.question-image img {
+    max-width: 100%;
+    height: auto;
+    margin-top: 10px;
+    border-radius: 8px;
+}
+
+.quiz-footer .next-btn.active {
+    pointer-events: auto;
+    background: #e05330;
+    color: #ffffff;
+}
+
+.quiz-footer .next-btn.active:hover {
+    pointer-events: auto;
+    background: #AD3A29;
+    color: #fff;
+    transform: translateY(-2px);
+    transition: 0.3s ease;
+}
+/* Стили для кнопки подсказки */
+/* Стили для кнопки подсказки */
+.hint-btn {
+    width: 150px;
+    height: 40px;
+    background: #e05330;
+    border: none;
+    border-radius: 6px;
+    color: #fff;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    margin: 10px 0;
+    transition: 0.3s ease;
+}
+
+.hint-btn:hover {
+    background: #AD3A29;
+}
+
+/* Стили для неактивной кнопки подсказки */
+.hint-btn:disabled {
+    background: rgba(224, 83, 48, 0.5); /* Полупрозрачный оранжевый */
+    cursor: not-allowed; /* Курсор "недоступно" */
+    opacity: 0.7; /* Тусклый вид */
+}
+
+.hint-btn:disabled:hover {
+    background: rgba(224, 83, 48, 0.5); /* Сохраняем полупрозрачный цвет при наведении */
+}
+
+/* ------ QUIZ RESULT ------ */
+
+.quiz-section .result-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(.9);
+    width: 500px;
+    background: transparent;
+    border: 2px solid #fff;
+    animation: borderFadeIn 0.5s ease;
+    border-radius: 6px;
+    padding: 30px;
+    opacity: 0;
+    pointer-events: none;
+    transition: .3s ease;
+    transition: border-color 0.5s ease;
+}
+@keyframes borderFadeIn {
+    from {
+        border-color: rgba(255, 255, 255, 0); /* Прозрачная обводка */
+    }
+    to {
+        border-color: #fff; /* Белая обводка */
+    }
+}
+
+.result-box.active {
+    animation: borderFadeIn 0.5s ease; /* Анимация появления обводки */
+}
+
+@keyframes borderFadeOut {
+    from {
+        border-color: #fff; /* Белая обводка */
+    }
+    to {
+        border-color: rgba(255, 255, 255, 0); /* Прозрачная обводка */
+    }
+}
+
+.quiz-section .result-box.active {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translate(-50%, -50%) scale(1);
+    animation: borderFadeOut 0.5s ease;
+}
+
+.result-box h2 {
+    font-size: 34px;
+}
+
+.result-box .percent-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 300px;
+    background: transparent;
+    margin: 30px 0;
+}
+.result-box.hide-border {
+    animation: borderFadeOut 0.5s ease; /* Анимация скрытия обводки */
+}
+
+.percent-container .circular-progress {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    width: 250px;
+    height: 250px;
+    border-radius: 50%;
+}
+
+.percent-container .circular-progress::before {
+    content: '';
+    position: absolute;
+    width: 210px;
+    height: 210px;
+    background: #5A3A6C;
+    border-radius: 50%;
+}
+
+.circular-progress .progress-value {
+    position: relative;
+    font-size: 40px;
+    font-weight: 600;
+}
+
+.percent-container .score-text {
+    font-size: 22px;
+    font-weight: 600;
+    margin-top: 25px;
+}
+
+.result-box .buttons {
+    display: flex;
+    justify-content: space-between;
+    width: 400px;
+    gap: 14px;
+}
+
+.buttons button {
+    width: 150px;
+    height: 45px;
+    outline: none;
+    border-radius: 6px;
+    color: #fff;
+    font-size: 16px;
+    font-weight: 600;
+    /*margin: 0 40px;*/
+    cursor: pointer;
+    box-shadow: 0 0 10px rgba(0, 0, 0, .1);
+    transition: .3s ease;
+    
+}
+
+.buttons button:nth-child(1) {
+    background: transparent;
+    border: 1px solid #fff;
+    /*color: #fff;*/
+    box-shadow: 0 0 10px rgba(0, 0, 0, .1);
+    
+}
+
+.buttons button:nth-child(2) {
+    background: #e05330;
+    border: 2px solid #e05330;
+}
+
+.buttons button:nth-child(1):hover {
+    background: #fff;
+    border: 2px solid #fff;
+    color: #5A3A6C;
+}
+
+.buttons button:nth-child(2):hover {
+    background: #AD3A29;
+    border: 1px solid #AD3A29;
+}
+/* Стили для блока контактов */
+.contacts-info {
+    display: none; /* Скрыт по умолчанию */
+    flex-direction: column;
+    align-items: center;
+    margin-top: 20px;
+    opacity: 0;
+    transform: translateY(-20px);
+    transition: opacity 0.5s ease, transform 0.5s ease;
+}
+
+
+.contacts-info.active {
+    display: flex; /* Показываем блок */
+    opacity: 1;
+    transform: translateY(0);
+}
+.contacts-info1 {
+    display: none; /* Скрыт по умолчанию */
+    flex-direction: row;
+    align-items: center;
+    margin-top: 20px;
+    opacity: 0;
+    transform: translateY(-20px);
+    transition: opacity 0.5s ease, transform 0.5s ease;
+    gap: 20px; /* Добавляем отступы между ссылками */
+}
+
+.contacts-info1.active {
+    display: flex; /* Показываем блок */
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Стили для сообщения */
+.contact-message {
+    font-size: 18px;
+    color: #fff;
+    text-align: center;
+    
+}
+
+/* Стили для контейнера с ссылками */
+.contact-links {
+    display: flex;
+    justify-content: center;
+    gap: 20px; /* Расстояние между ссылками */
+}
+
+/* Стили для ссылок контактов */
+.contact-link {
+    font-size: 18px;
+    color: #fff;
+    text-decoration: none;
+    padding: 10px 20px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 6px;
+    transition: background 0.3s ease, transform 0.3s ease;
+}
+
+.contact-link:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: translateY(-2px);
+}
+
+/* Стили для кнопки "Контакты" */
+.contacts-btn {
+    width: 150px;
+    height: 45px;
+    background: transparent;
+    border: 1px solid #fff;
+    color: #fff;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 0 10px rgba(0, 0, 0, .1);
+    transition: .3s ease;
+}
+
+.contacts-btn:hover {
+    background: #fff;
+    color: #5A3A6C;
+}
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+@keyframes fadeOut {
+    from {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    to {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+}
+
+.contacts-info1:not(.active) {
+    animation: fadeOut 0.5s ease; /* Анимация скрытия */
+}
+
+.contacts-info.active {
+    animation: fadeIn 0.5s ease;
+}
