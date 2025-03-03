@@ -280,33 +280,7 @@ body {
 
 
 
-/* Кнопка открытия картинки */
-#openImageBtn {
-    width: 200px;
-    height: 50px;
-    background: #ca2b68;
-    border: none;
-    border-radius: 8px;
-    color: #fff;
-    font-size: 16px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin: 20px 0;
-}
-#openImageBtn:hover {
-    background: rgb(164, 36, 102);
-    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
-}
 
-#openImageBtn:active {
-    transform: translateY(0);
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-}
 
 /* Модальное окно */
 .modal {
@@ -568,6 +542,13 @@ body {
     margin-bottom: 6px;
     
 }
+.buttons-container {
+    display: flex;
+    justify-content: space-between; /* Распределяем кнопки по ширине */
+    gap: 10px; /* Расстояние между кнопками */
+    margin: 10px 0; /* Отступы сверху и снизу */
+}
+/* Возврат в исходное положение при нажатии */
 
 .option-list .option {
     width: 100%;
@@ -671,35 +652,94 @@ body {
 }
 /* Стили для кнопки подсказки */
 /* Стили для кнопки подсказки */
+/* Общие стили для кнопок */
 .hint-btn {
-    width: 150px;
-    height: 40px;
-    background: #e05330;
+    width: 48%; /* Ширина кнопки */
+    height: 45px; /* Фиксированная высота */
     border: none;
     border-radius: 6px;
     color: #fff;
-    font-size: 14px;
+    font-size: 16px;
     font-weight: 600;
     cursor: pointer;
-    margin: 10px 0;
-    transition: 0.3s ease;
+    transition: background 0.3s ease, transform 0.2s ease;
+    display: flex;
+    align-items: center; /* Выравниваем текст по центру */
+    justify-content: center; /* Выравниваем текст по центру */
+}
+.openImageBtn {
+    width: 48%; /* Ширина кнопки */
+    height: 45px; /* Фиксированная высота */
+    border: 1px solid #fff;
+    border-radius: 6px;
+    background: #fff;
+    outline: none;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.3); /* Тень */
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    color: #ffffff;
+    transition: background 0.3s ease, color 0.3s ease, transform 0.2s ease;
+    display: flex;
+    align-items: center; /* Выравниваем текст по центру */
+    justify-content: center; /* Выравниваем текст по центру */
+}
+/* Стили для кнопки "Показать подсказку" */
+.hint-btn {
+    background: #e05330; /* Оранжевый цвет */
 }
 
 .hint-btn:hover {
-    background: #AD3A29;
+    background: #AD3A29; /* Темный оранжевый при наведении */
 }
 
-/* Стили для неактивной кнопки подсказки */
+/* Стили для кнопки "Показать картинку" */
+.openImageBtn {
+    background: #5A3A6C; /* Фиолетовый цвет */
+}
+
+.openImageBtn:hover {
+    background: #ffffff; /* Черный фон при наведении */
+    color:  #5A3A6C; /* Белый текст при наведении */
+    box-shadow: none; /* Убираем тень при наведении */
+    transform: translateY(-2px); /* Легкий эффект поднятия */
+}
+.openImageBtn:active {
+    transform: translateY(0); /* Возврат в исходное положение при нажатии */
+}
+/* Стили для неактивных кнопок */
 .hint-btn:disabled {
     background: rgba(224, 83, 48, 0.5); /* Полупрозрачный оранжевый */
     cursor: not-allowed; /* Курсор "недоступно" */
     opacity: 0.7; /* Тусклый вид */
 }
-
+.openImageBtn:disabled {
+    background: rgba(255, 255, 255, 0.5); /* Полупрозрачный белый фон */
+    border-color: rgba(255, 255, 255, 0.5); /* Полупрозрачная рамка */
+    color: rgba(0, 0, 0, 0.5); /* Полупрозрачный текст */
+    cursor: not-allowed; /* Курсор "недоступно" */
+    box-shadow: none; /* Убираем тень */
+}
 .hint-btn:disabled:hover {
     background: rgba(224, 83, 48, 0.5); /* Сохраняем полупрозрачный цвет при наведении */
 }
+.openImageBtn:disabled:hover {
+    background: rgba(255, 255, 255, 0.5); /* Сохраняем полупрозрачный фон при наведении */
+    color: rgba(0, 0, 0, 0.5); /* Сохраняем полупрозрачный текст при наведении */
+}
 
+/* Адаптация для мобильных устройств */
+@media (max-width: 768px) {
+    .buttons-container {
+        flex-direction: column; /* Кнопки в столбик на мобильных устройствах */
+        gap: 5px; /* Уменьшаем расстояние между кнопками */
+    }
+
+    .hint-btn,
+    .openImageBtn {
+        width: 100%; /* Кнопки занимают всю ширину */
+    }
+}
 /* ------ QUIZ RESULT ------ */
 
 .result-box {
@@ -710,38 +750,57 @@ body {
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%) scale(.9);
-    width: 90%; /* Уменьшаем ширину для мобильных устройств */
-    max-width: 500px; /* Максимальная ширина для больших экранов */
+    width: 90%;
+    max-width: 500px;
     background: transparent;
     border: 2px solid #fff;
     border-radius: 6px;
-    padding: 20px; /* Уменьшаем отступы для мобильных устройств */
+    padding: 20px;
     opacity: 0;
     pointer-events: none;
     transition: .3s ease;
-    box-sizing: border-box; /* Убедимся, что padding не увеличивает ширину */
+    box-sizing: border-box;
+    min-height: 300px; /* Минимальная высота для рамки */
+    overflow: hidden; /* Скрываем переполнение */
 }
-@keyframes borderFadeIn {
+@keyframes fadeInBorder {
     from {
-        border-color: rgba(255, 255, 255, 0); /* Прозрачная обводка */
+        border-color: rgba(255, 255, 255, 0);
     }
     to {
-        border-color: #fff; /* Белая обводка */
+        border-color: #fff;
+    }
+}
+@keyframes fadeOutBorder {
+    from {
+        border-color: #fff;
+    }
+    to {
+        border-color: rgba(255, 255, 255, 0);
+    }
+}
+.result-box.show-border {
+    animation: fadeInBorder 0.5s ease forwards;
+}
+/* Анимация для плавного появления результатов */
+@keyframes fadeInResults {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
     }
 }
 
 .result-box.active {
-    animation: borderFadeIn 0.5s ease; /* Анимация появления обводки */
+    opacity: 1;
+    pointer-events: auto;
+    transform: translate(-50%, -50%) scale(1);
 }
 
-@keyframes borderFadeOut {
-    from {
-        border-color: #fff; /* Белая обводка */
-    }
-    to {
-        border-color: rgba(255, 255, 255, 0); /* Прозрачная обводка */
-    }
-}
+
 
 .quiz-section .result-box.active {
     opacity: 1;
@@ -763,7 +822,7 @@ body {
     margin: 30px 0;
 }
 .result-box.hide-border {
-    animation: borderFadeOut 0.5s ease; /* Анимация скрытия обводки */
+    animation: fadeOutBorder 0.5s ease forwards;
 }
 
 .percent-container .circular-progress {
@@ -851,6 +910,9 @@ body {
     opacity: 0;
     transform: translateY(-20px);
     transition: opacity 0.5s ease, transform 0.5s ease;
+    width: 100%; /* Занимает всю ширину родительского контейнера */
+    box-sizing: border-box; /* Учитываем padding и border в ширине */
+    padding: 10px; /* Добавляем отступы внутри блока */
 }
 
 
@@ -866,11 +928,17 @@ body {
     margin-top: 20px;
     opacity: 0;
     transform: translateY(-20px);
-    transition: opacity 0.5s ease, transform 0.5s ease;
+    transition: height 0.5s ease, opacity 0.5s ease, transform 0.5s ease;
     gap: 20px; /* Добавляем отступы между ссылками */
+    transition: height 0.5s ease, opacity 0.5s ease, transform 0.5s ease;
+    overflow: hidden;
+    height: 0;
+    opacity: 0;
+    transform: translateY(-20px);
 }
 
 .contacts-info1.active {
+    height: auto;
     display: flex; /* Показываем блок */
     opacity: 1;
     transform: translateY(0);
@@ -888,23 +956,45 @@ body {
 .contact-links {
     display: flex;
     justify-content: center;
-    gap: 20px; /* Расстояние между ссылками */
+    gap: 10px; /* Расстояние между ссылками */
+    flex-wrap: wrap; /* Разрешаем перенос на новую строку */
+    width: 100%; /* Занимает всю ширину */
+    box-sizing: border-box; /* Учитываем padding и border в ширине */
 }
+
 
 /* Стили для ссылок контактов */
 .contact-link {
-    font-size: 18px;
+    font-size: 16px; /* Уменьшаем размер шрифта для мобильных устройств */
     color: #fff;
     text-decoration: none;
-    padding: 10px 20px;
+    padding: 8px 16px; /* Уменьшаем отступы для мобильных устройств */
     background: rgba(255, 255, 255, 0.1);
     border-radius: 6px;
     transition: background 0.3s ease, transform 0.3s ease;
+    white-space: nowrap; /* Запрещаем перенос текста */
 }
 
 .contact-link:hover {
     background: rgba(255, 255, 255, 0.2);
     transform: translateY(-2px);
+}
+
+/* Адаптация для мобильных устройств */
+@media (max-width: 768px) {
+    .contacts-info {
+        padding: 5px; /* Уменьшаем отступы для мобильных устройств */
+    }
+
+    .contact-links {
+        flex-direction: column; /* Ссылки в столбик на мобильных устройствах */
+        gap: 5px; /* Уменьшаем расстояние между ссылками */
+    }
+
+    .contact-link {
+        font-size: 14px; /* Уменьшаем размер шрифта */
+        padding: 6px 12px; /* Уменьшаем отступы */
+    }
 }
 
 /* Стили для кнопки "Контакты" */
@@ -952,4 +1042,95 @@ body {
 
 .contacts-info.active {
     animation: fadeIn 0.5s ease;
+}
+.save-result-btn {
+    width: 48%; /* Уменьшаем ширину кнопок для мобильных устройств */
+    height: 45px;
+    outline: none;
+    border-radius: 6px;
+    color: #fff;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 0 10px rgba(0, 0, 0, .1);
+    transition: .3s ease;
+    box-sizing: border-box; /* Убедимся, что padding не увеличивает ширину */
+    background: #e05330; /* Оранжевый цвет, как у кнопки "Попробовать еще раз" */
+    border: 2px solid #e05330;
+}
+
+.save-result-btn:hover {
+    background: #AD3A29; /* Темный оранжевый при наведении */
+    border: 2px solid #AD3A29;
+     /* Легкий эффект поднятия */
+}
+
+.save-result-btn:active {
+    transform: translateY(0); /* Возврат в исходное положение при нажатии */
+}
+/* Стили для модального окна выбора формата */
+.save-result-modal {
+    display: none; /* Скрыто по умолчанию */
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7); /* Темный полупрозрачный фон */
+    justify-content: center;
+    align-items: center;
+    z-index: 1000; /* Выше всех элементов */
+}
+
+.save-result-content {
+    background: #fff;
+    padding: 20px;
+    border-radius: 10px;
+    text-align: center;
+    max-width: 90%;
+    width: 300px;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+}
+
+.save-result-content h3 {
+    font-size: 18px;
+    color: #5A3A6C;
+    margin-bottom: 20px;
+}
+
+.save-format-btn {
+    width: 100%;
+    height: 45px;
+    background: #e05330;
+    border: none;
+    border-radius: 6px;
+    color: #fff;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    margin: 10px 0;
+    transition: background 0.3s ease;
+}
+
+.save-format-btn:hover {
+    background: #AD3A29;
+}
+
+.close-save-modal-btn {
+    width: 100%;
+    height: 45px;
+    background: transparent;
+    border: 1px solid #5A3A6C;
+    border-radius: 6px;
+    color: #5A3A6C;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 10px;
+    transition: background 0.3s ease, color 0.3s ease;
+}
+
+.close-save-modal-btn:hover {
+    background: #5A3A6C;
+    color: #fff;
 }

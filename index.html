@@ -39,7 +39,10 @@
                         </div>
 
                         <div class="question-text" id="question-text"></div>
-                        <button id="hint-btn" class="hint-btn">Показать подсказку</button> <!-- Кнопка подсказки -->
+                        <div class="buttons-container">    
+                            <button id="hint-btn" class="hint-btn">Подсказку</button> <!-- Кнопка подсказки -->
+                            <button id="openImageBtn" class="openImageBtn">Картина</button> <!-- Кнопка картинки -->
+                        </div>
                         <div id="hint-text" class="hint-text"></div>
                         <div class="option-list"></div>
 
@@ -75,6 +78,7 @@
                             <button class="homepage-btn">Главная Страница</button>
                             <button class="try-again-btn">Попробовать еще раз</button>
                             <button class="contacts-btn">Контакты</button> <!-- Новая кнопка -->                        
+                            <button class="save-result-btn">Сохранить результат</button>
                         </div>
                         <div class="contacts-info">
                             <p class="contact-message">Свои предложения и пожелания по работе сайта можете отправить сюда:</p>
@@ -123,8 +127,17 @@
                 <a href="#" class="info-btn continue-btn">Продолжить</a>
             </div>
         </div>
+        <div id="saveResultModal" class="save-result-modal">
+            <div class="save-result-content">
+                <h3>Выберите формат для сохранения:</h3>
+                <button id="saveAsImageBtn" class="save-format-btn">Сохранить как изображение</button>
+                <button id="saveAsTextBtn" class="save-format-btn">Сохранить как текст</button>
+                <button id="closeSaveModalBtn" class="close-save-modal-btn">Закрыть</button>
+            </div>
+        </div>
 
         <script src="questions.js"></script>
         <script src="script.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     </body>
 </html>

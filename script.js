@@ -34,34 +34,44 @@ let userScore = 0; // Глобальная переменная для хран�
 let savedUserScore = 0; // Переменная для сохранения счета при выходе на главную страницу
 // Обработчик для кнопки "Пояснение"
 let isAnswerChecked = false; // Флаг для отслеживания проверки ответа
-
+const buttonsContainer = document.querySelector('.buttons-container');
 const contactsBtn = document.querySelector('.contacts-btn');
 const contactsInfo = document.querySelector('.contacts-info');
 const contactsInfo1 = document.querySelector('.contacts-info1');
 
 contactsBtn.addEventListener('click', () => {
     if (contactsInfo1.classList.contains('active')) {
-        // Если блок активен, добавляем анимацию скрытия
-        contactsInfo1.classList.remove('active');
+        // Если блок активен, начинаем анимацию скрытия
+        resultBox.classList.add('hide-border'); // Начинаем скрывать рамку
+        contactsInfo1.classList.remove('active'); // Начинаем скрывать контакты
         contactsInfo.classList.remove('active');
-        resultBox.classList.add('hide-border'); // Добавляем класс для анимации скрытия обводки
 
-        // Ждем завершения анимации (0.5s) и скрываем блок
+        // Ждем завершения анимации (0.5s)
         setTimeout(() => {
-            contactsInfo1.style.display = 'none';
+            // Скрываем блок контактов полностью
             contactsInfo.style.display = 'none';
-            resultBox.classList.remove('hide-border'); // Убираем класс после завершения анимации
+            contactsInfo1.style.display = 'none';
+
+            // Убираем класс hide-border, чтобы рамка вернулась в исходное состояние
+            resultBox.classList.remove('hide-border');
         }, 500); // Время анимации
     } else {
-        // Если блок не активен, добавляем анимацию появления
-        contactsInfo.style.display = 'flex';
-        contactsInfo1.style.display = 'flex';
-        contactsInfo.classList.add('active');
-        contactsInfo1.classList.add('active');
-        resultBox.classList.remove('hide-border'); // Убираем класс для анимации появления обводки
+        // Если блок не активен, начинаем анимацию появления
+        resultBox.classList.add('hide-border'); // Начинаем скрывать рамку
+
+        // Ждем завершения анимации скрытия рамки (0.5s)
+        setTimeout(() => {
+            // Показываем блок контактов
+            contactsInfo.style.display = 'flex';
+            contactsInfo1.style.display = 'flex';
+            contactsInfo.classList.add('active');
+            contactsInfo1.classList.add('active');
+
+            // Убираем класс hide-border, чтобы рамка появилась снова
+            resultBox.classList.remove('hide-border');
+        }, 500); // Время анимации
     }
 });
-
 explanationBtn.addEventListener('click', () => {
     const currentQuestion = questions[questionCount];
     if (currentQuestion.hint) {
@@ -200,12 +210,15 @@ function displayQuestions(index) {
     const hintText = document.getElementById('hint-text');
     const hintBtn = document.getElementById('hint-btn'); 
     const explanationBtn = document.getElementById('explanationBtn');
+    const openImageBtn = document.getElementById('openImageBtn'); // Получаем кнопку "Показать картинку"
+
     questionText.textContent = `${questions[index].numb}. ${questions[index].question}`;
+
     // Скрываем подсказку и сбрасываем состояние кнопки
     hintText.style.display = 'none';
     hintText.textContent = '';
     hintBtn.disabled = false;
-    hintBtn.textContent = 'Показать подсказку';
+    hintBtn.textContent = 'Подсказка';
     explanationBtn.disabled = true;
 
     // Если у вопроса есть подсказка, добавляем обработчик для кнопки
@@ -232,9 +245,8 @@ function displayQuestions(index) {
     if (questions[index].image) {
         modalImage.src = questions[index].image; // Устанавливаем новое изображение
 
-        const questionImage = document.querySelector('.question-image');
-        questionText.insertAdjacentHTML('beforeend', `<button id="openImageBtn" class='openImageBtn'>Показать картинку</button>`);
-        const openImageBtn = document.getElementById('openImageBtn');
+        // Показываем кнопку "Показать картинку"
+        openImageBtn.style.display = 'block';
 
         openImageBtn.addEventListener('click', () => {
             imageModal.style.display = 'flex'; // Показываем модальное окно
@@ -246,6 +258,7 @@ function displayQuestions(index) {
             xCloseBtn.classList.add('blur-background');
             hintBtn.classList.add('blur-background');
             hintText.classList.add('blur-background');
+            buttonsContainer.classList.add('blur-background');
         });
 
         // Закрытие модального окна
@@ -259,6 +272,7 @@ function displayQuestions(index) {
             xCloseBtn.classList.remove('blur-background');
             hintBtn.classList.remove('blur-background');
             hintText.classList.remove('blur-background');
+            buttonsContainer.classList.remove('blur-background');
         });
 
         // Закрытие модального окна при клике вне картинки
@@ -273,14 +287,19 @@ function displayQuestions(index) {
                 xCloseBtn.classList.remove('blur-background');
                 hintBtn.classList.remove('blur-background');
                 hintText.classList.remove('blur-background');
+                buttonsContainer.classList.remove('blur-background');
             }
         });
+    } else {
+        // Скрываем кнопку "Показать картинку", если изображения нет
+        openImageBtn.style.display = 'none';
     }
 
-    let optionTag = `<div class="option"><span>${questions[index].options[0]}</span></div>
-                    <div class="option"><span>${questions[index].options[1]}</span></div>
-                    <div class="option"><span>${questions[index].options[2]}</span></div>
-                    <div class="option"><span>${questions[index].options[3]}</span></div>`;
+    // Удаляем повторное объявление переменной optionTag
+    optionTag = `<div class="option"><span>${questions[index].options[0]}</span></div>
+                <div class="option"><span>${questions[index].options[1]}</span></div>
+                <div class="option"><span>${questions[index].options[2]}</span></div>
+                <div class="option"><span>${questions[index].options[3]}</span></div>`;
 
     optionList.innerHTML = optionTag;
 
@@ -423,3 +442,76 @@ function displayResultBox() {
 
     isQuizCompleted = true; // Устанавливаем флаг завершения квеста
 }
+// Получаем кнопку "Сохранить результат"
+const saveResultBtn = document.querySelector('.save-result-btn');
+
+// Функция для сохранения результата в виде изображения
+function saveResultAsImage() {
+    // Используем html2canvas для создания скриншота блока result-box
+    html2canvas(document.querySelector('.result-box')).then(canvas => {
+        // Преобразуем canvas в изображение
+        const imgData = canvas.toDataURL('image/png');
+
+        // Создаем ссылку для скачивания
+        const link = document.createElement('a');
+        link.href = imgData;
+        link.download = 'результаты_квиза.png'; // Имя файла
+        link.click(); // Автоматически запускаем скачивание
+    });
+}
+
+// Функция для сохранения результата в виде текстового файла
+function saveResultAsText() {
+    // Получаем текст с результатами
+    const scoreText = document.querySelector('.score-text').textContent;
+    const progressValue = document.querySelector('.progress-value').textContent;
+
+    // Формируем текст для файла
+    const textContent = `Результаты квиза:\n\n${scoreText}\nПрогресс: ${progressValue}`;
+
+    // Создаем Blob с текстом
+    const blob = new Blob([textContent], { type: 'text/plain' });
+
+    // Создаем ссылку для скачивания
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = 'результаты_квиза.txt'; // Имя файла
+    link.click(); // Автоматически запускаем скачивание
+}
+
+// Обработчик для кнопки "Сохранить результат"
+
+// Получаем элементы модального окна
+const saveResultModal = document.getElementById('saveResultModal');
+const saveAsImageBtn = document.getElementById('saveAsImageBtn');
+const saveAsTextBtn = document.getElementById('saveAsTextBtn');
+const closeSaveModalBtn = document.getElementById('closeSaveModalBtn');
+
+// Обработчик для кнопки "Сохранить результат"
+saveResultBtn.addEventListener('click', () => {
+    saveResultModal.style.display = 'flex'; // Показываем модальное окно
+});
+
+// Обработчик для кнопки "Сохранить как изображение"
+saveAsImageBtn.addEventListener('click', () => {
+    saveResultAsImage(); // Сохраняем как изображение
+    saveResultModal.style.display = 'none'; // Скрываем модальное окно
+});
+
+// Обработчик для кнопки "Сохранить как текст"
+saveAsTextBtn.addEventListener('click', () => {
+    saveResultAsText(); // Сохраняем как текст
+    saveResultModal.style.display = 'none'; // Скрываем модальное окно
+});
+
+// Обработчик для кнопки "Закрыть"
+closeSaveModalBtn.addEventListener('click', () => {
+    saveResultModal.style.display = 'none'; // Скрываем модальное окно
+});
+
+// Закрытие модального окна при клике вне его
+window.addEventListener('click', (event) => {
+    if (event.target === saveResultModal) {
+        saveResultModal.style.display = 'none';
+    }
+});
