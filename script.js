@@ -129,6 +129,7 @@ tryAgainBtn.onclick = () => {
     questionNumb = 1; // Сбрасываем номер вопроса
     userScore = 0; // Сбрасываем счет
     isQuizStarted = false; // Сбрасываем флаг начала квиза
+    isQuizCompleted = false; // Сбрасываем флаг завершения квеста
     userAnswers = []; // Очищаем массив ответов
     hintUsedArray = []; // Очищаем массив использованных подсказок
     isAnswerChecked = false;
@@ -150,6 +151,7 @@ homepageBtn.onclick = () => {
     savedUserScore = userScore; // Сохраняем текущий счет
     quizSection.classList.remove('active');
     resultBox.classList.remove('active');
+    isQuizCompleted = false; // Сбрасываем флаг завершения квеста
 };
 
 xCloseBtn.onclick = () => {
@@ -170,14 +172,22 @@ userScore = savedUserScore;
 
 startBtn.onclick = () => {
     if (isQuizStarted) {
-        quizSection.classList.add('active');
-        quizBox.classList.add('active');
-        questionCount = savedQuestionCount; // Восстанавливаем сохраненный счетчик
-        userScore = savedUserScore; // Восстанавливаем сохраненный счет
-        displayQuestions(questionCount); // Показываем текущий вопрос
-        questionCounter(questionCount + 1); // Обновляем счетчик вопросов
-        updateHeaderScore(); // Обновляем счет
-        isAnswerChecked = false; // Сбрасываем флаг проверки ответа
+        console.log(isQuizCompleted)
+        if (isQuizCompleted) {
+            // Если квест завершен, показываем результаты
+            displayResultBox();
+            startBtn.textContent = 'Посмотреть результаты';
+        } else {
+            // Если квест не завершен, продолжаем с текущего вопроса
+            quizSection.classList.add('active');
+            quizBox.classList.add('active');
+            questionCount = savedQuestionCount; // Восстанавливаем сохраненный счетчик
+            userScore = savedUserScore; // Восстанавливаем сохраненный счет
+            displayQuestions(questionCount); // Показываем текущий вопрос
+            questionCounter(questionCount + 1); // Обновляем счетчик вопросов
+            updateHeaderScore(); // Обновляем счет
+            isAnswerChecked = false; // Сбрасываем флаг проверки ответа
+        }
     } else {
         popupInfo.classList.add('active');
         main.classList.add('active');
@@ -301,8 +311,10 @@ function displayQuestions(index) {
 
 // При выходе на главную страницу сохраняем текущее состояние
 homepageBtn.onclick = () => {
+    savedUserScore = userScore; // Сохраняем текущий счет
     quizSection.classList.remove('active');
     resultBox.classList.remove('active');
+    isQuizCompleted = false; // Сбрасываем флаг завершения квеста
 };
 
 // При возвращении на страницу квиза восстанавливаем состояние
@@ -408,5 +420,6 @@ function displayResultBox() {
             clearInterval(progress);
         }
     }, speed);
-    isQuizCompleted = true;
+
+    isQuizCompleted = true; // Устанавливаем флаг завершения квеста
 }

@@ -7,7 +7,32 @@
     box-sizing: border-box;
     font-family: 'Unbounded', sans-serif;
 }
+@media (max-width: 768px) {
+    .home-content h1 {
+        font-size: 48px; /* Уменьшаем размер заголовка для мобильных устройств */
+    }
 
+    .home-content p {
+        font-size: 16px; /* Уменьшаем размер текста для мобильных устройств */
+    }
+
+    .quiz-box h1 {
+        font-size: 20px; /* Уменьшаем размер заголовка для мобильных устройств */
+    }
+
+    .quiz-box .question-text {
+        font-size: 18px; /* Уменьшаем размер текста вопроса для мобильных устройств */
+    }
+
+    .option-list .option {
+        font-size: 14px; /* Уменьшаем размер текста вариантов ответа для мобильных устройств */
+    }
+
+    .quiz-footer .next-btn {
+        width: 100%; /* Увеличиваем ширину кнопки "Следующий" для мобильных устройств */
+        margin-top: 10px; /* Добавляем отступ сверху */
+    }
+}
 body {
     color: #fff;
     background: #09001d;
@@ -89,6 +114,7 @@ body {
     align-items: center;
     flex-direction: column;
     max-width: 600px;
+    padding: 0 20px;
 }
 .named{
     font-family: 'Pacifico', sans-serif;
@@ -140,13 +166,15 @@ body {
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%) scale(.9);
-    width: 500px;
+    width: 90%;
+    max-width: 500px;
     background: #fff;
-    border-radius: 6px;
-    padding: 20px 35px;
+    border-radius: 12px;
+    padding: 25px;
     opacity: 0;
     pointer-events: none;
     transition: .3s ease;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
 }
 
 .popup-info.active {
@@ -157,11 +185,42 @@ body {
 
 .popup-info h2 {
     text-align: center;
-    font-size: 50px;
-    color: #0A0911;
-    margin-bottom: 10px;
+    font-size: 28px;
+    color: #5A3A6C;
+    margin-bottom: 20px;
+    font-family: 'Pacifico', cursive;
+}
+.guide-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 15px;
+    padding: 10px;
+    background: rgba(90, 58, 108, 0.1);
+    border-radius: 8px;
+    transition: background 0.3s ease;
 }
 
+.guide-item:hover {
+    background: rgba(90, 58, 108, 0.2);
+}
+
+.guide-icon {
+    font-size: 24px;
+    margin-right: 15px;
+    color: #5A3A6C;
+}
+
+.guide-text {
+    font-size: 16px;
+    color: #333;
+    line-height: 1.5;
+    font-weight: 500;
+}
+
+.guide-text b {
+    color: #5A3A6C;
+    font-weight: 600;
+}
 .popup-info .info {
     display: inline-block;
     font-size: 16px;
@@ -177,10 +236,10 @@ body {
     align-items: center;
     border-top: 1px solid #999;
     margin-top: 20px;
-    padding: 20px 0 10px;
+    padding: 20px;
 }
 
-.popup-info .btn-group .info-btn {
+.info-btn {
     display: inline-flex;
     justify-content: center;
     align-items: center;
@@ -428,11 +487,13 @@ body {
     
 }
 #quiz-header1 {
-    font-size: 24px; /* Уменьшите размер шрифта, если нужно */
+    font-size: 24px; /* Увеличьте размер шрифта, если нужно */
     text-align: center;
     margin-bottom: 20px; /* Добавьте отступ снизу */
     white-space: normal; /* Разрешаем перенос текста */
     word-wrap: break-word; /* Разрешаем перенос длинных слов */
+    color: #fff; /* Убедитесь, что цвет текста контрастный */
+    padding-top: 20px; /* Добавьте отступ сверху, если нужно */
 }
 .quiz-section.active {
     left: 0;
@@ -440,11 +501,10 @@ body {
 }
 
 .quiz-box {
-    display: flex;
-    flex-direction: column;
-    padding: 30px;
+    padding: 20px; /* Убедитесь, что есть достаточные отступы внутри контейнера */
     position: relative;
-    width: 500px;
+    width: 90%;
+    max-width: 500px;
     background: transparent;
     border: 2px solid #ffffff;
     border-radius: 6px;
@@ -453,10 +513,15 @@ body {
     transform: scale(.9);
     transition: .3s ease;
     transition-delay: 0s;
-    min-height: 400px; /* Минимальная высота */
-    overflow-y: auto; /* Включаем прокрутку */
+    min-height: 400px;
+    overflow-y: auto;
+    box-sizing: border-box;
+    margin-top: 20px; /* Добавьте отступ сверху, если нужно */
 }
-
+.quiz-box {
+    min-height: 400px; /* Убедитесь, что высота достаточная для отображения заголовка */
+    overflow-y: auto; /* Включаем прокрутку, если контент не помещается */
+}
 .quiz-section .quiz-box.active {
     opacity: 1;
     pointer-events: auto;
@@ -511,10 +576,10 @@ body {
     border: 2px solid rgba(255, 255, 255, .2);
     border-radius: 4px;
     font-size: 15px;
-    margin: 15px 0;
+    margin: 10px 0; /* Уменьшаем отступы для мобильных устройств */
     cursor: pointer;
     transition: .3s ease;
-    
+    box-sizing: border-box; /* Убедимся, что padding не увеличивает ширину */
 }
 
 .option-list .option:hover {
@@ -637,7 +702,7 @@ body {
 
 /* ------ QUIZ RESULT ------ */
 
-.quiz-section .result-box {
+.result-box {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -645,16 +710,16 @@ body {
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%) scale(.9);
-    width: 500px;
+    width: 90%; /* Уменьшаем ширину для мобильных устройств */
+    max-width: 500px; /* Максимальная ширина для больших экранов */
     background: transparent;
     border: 2px solid #fff;
-    animation: borderFadeIn 0.5s ease;
     border-radius: 6px;
-    padding: 30px;
+    padding: 20px; /* Уменьшаем отступы для мобильных устройств */
     opacity: 0;
     pointer-events: none;
     transition: .3s ease;
-    transition: border-color 0.5s ease;
+    box-sizing: border-box; /* Убедимся, что padding не увеличивает ширину */
 }
 @keyframes borderFadeIn {
     from {
@@ -732,26 +797,26 @@ body {
     margin-top: 25px;
 }
 
-.result-box .buttons {
+.buttons {
     display: flex;
     justify-content: space-between;
-    width: 400px;
-    gap: 14px;
+    width: 100%; /* Уменьшаем ширину для мобильных устройств */
+    gap: 10px; /* Уменьшаем отступы между кнопками */
+    flex-wrap: wrap; /* Разрешаем перенос кнопок на новую строку */
 }
 
 .buttons button {
-    width: 150px;
+    width: 48%; /* Уменьшаем ширину кнопок для мобильных устройств */
     height: 45px;
     outline: none;
     border-radius: 6px;
     color: #fff;
     font-size: 16px;
     font-weight: 600;
-    /*margin: 0 40px;*/
     cursor: pointer;
     box-shadow: 0 0 10px rgba(0, 0, 0, .1);
     transition: .3s ease;
-    
+    box-sizing: border-box; /* Убедимся, что padding не увеличивает ширину */
 }
 
 .buttons button:nth-child(1) {

@@ -4,6 +4,7 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
         <title>Кто хочет стать искусствоведом</title>
         <link rel="stylesheet" href="style.css">
     </head>
@@ -101,11 +102,22 @@
 
         <div class="popup-info">
             <h2>Гид по квизу</h2>
-            <span class="info">Нажмите <b>Продолжить</b> чтобы начать квест</span>
-            <span class="info">Нажмите <b>Вернуться</b> чтобы вернуться на главный экран</span>
-            <span class="info">Вы можете использовать <b>Подсказку</b>, но вам дадут вдвое меньше балов</span>
-            <span class="info">После ответа на вопрос вы можете нажать на <b>Пояснение</b> чтобы получить пояснение на вопрос</span>
-
+            <div class="guide-item">
+                <span class="guide-icon">📘</span>
+                <span class="guide-text">Нажмите <b>Продолжить</b>, чтобы начать квест.</span>
+            </div>
+            <div class="guide-item">
+                <span class="guide-icon">🔙</span>
+                <span class="guide-text">Нажмите <b>Вернуться</b>, чтобы вернуться на главный экран.</span>
+            </div>
+            <div class="guide-item">
+                <span class="guide-icon">💡</span>
+                <span class="guide-text">Вы можете использовать <b>Подсказку</b>, но вам дадут вдвое меньше баллов.</span>
+            </div>
+            <div class="guide-item">
+                <span class="guide-icon">📖</span>
+                <span class="guide-text">После ответа на вопрос вы можете нажать на <b>Пояснение</b>, чтобы получить пояснение к вопросу.</span>
+            </div>
             <div class="btn-group">
                 <button class="info-btn exit-btn">Вернуться</button>
                 <a href="#" class="info-btn continue-btn">Продолжить</a>
