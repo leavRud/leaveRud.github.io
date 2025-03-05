@@ -74,15 +74,35 @@ contactsBtn.addEventListener('click', () => {
 });
 explanationBtn.addEventListener('click', () => {
     const currentQuestion = questions[questionCount];
-    if (currentQuestion.hint) {
-        if (currentQuestion.image) {
-            explanationImage.src = currentQuestion.image; // Устанавливаем изображение
-            explanationImage.style.display = 'block'; // Показываем изображение
-        } else {
-            explanationImage.style.display = 'none'; // Скрываем изображение, если его нет
-        } // Устанавливаем изображение
-        explanationText.textContent = currentQuestion.explanation; // Устанавливаем текст пояснения
-        explanationModal.style.display = 'flex'; // Показываем экран с пояснением
+    if (currentQuestion.explanation) {
+        // Очищаем контейнер перед добавлением новых изображений
+        const explanationImageContainer = document.getElementById('explanationImageContainer');
+        explanationImageContainer.innerHTML = '';
+
+        // Если есть изображения, добавляем их в контейнер
+        if (currentQuestion.images && Array.isArray(currentQuestion.images)) {
+            currentQuestion.images.forEach(imageSrc => {
+                const img = document.createElement('img');
+                img.src = imageSrc;
+                img.style.maxWidth = '90%';
+                img.style.maxHeight = '90%';
+                img.style.margin = '10px';
+                img.style.borderRadius = '10px';
+                explanationImageContainer.appendChild(img); // Добавляем изображение в контейнер
+            });
+        } else if (currentQuestion.images) {
+            // Если изображение одно, просто добавляем его
+            const img = document.createElement('img');
+            img.src = currentQuestion.images;
+            img.style.maxWidth = '90%';
+            img.style.maxHeight = '90%';
+            img.style.margin = '10px';
+            img.style.borderRadius = '10px';
+            explanationImageContainer.appendChild(img); // Добавляем изображение в контейнер
+        }
+
+        explanationText.textContent = currentQuestion.explanation;
+        explanationModal.style.display = 'flex';
     }
 });
 
@@ -92,11 +112,30 @@ closeExplanationBtn.addEventListener('click', () => {
 });
 
 // Закрытие экрана с пояснением при клике вне контента
+// Закрытие модального окна с изображениями при клике вне его контента
 window.addEventListener('click', (event) => {
-    if (event.target === explanationModal) {
-        explanationModal.style.display = 'none';
+    const questionText = document.querySelector('.question-text');
+    const hintText = document.getElementById('hint-text');
+    const hintBtn = document.getElementById('hint-btn');
+    const explanationBtn = document.getElementById('explanationBtn');
+    const openImageBtn = document.getElementById('openImageBtn');
+    const imageModal = document.getElementById('imageModal');
+    const modalImage = document.getElementById('modalImage');
+    if (event.target === imageModal) {
+        imageModal.style.display = 'none';
+        // Убираем размытие фона
+        quizheader.classList.remove('blur-background');
+        quiztext.classList.remove('blur-background');
+        quizfooter.classList.remove('blur-background');
+        optionList.classList.remove('blur-background');
+        quiztext1.classList.remove('blur-background');
+        xCloseBtn.classList.remove('blur-background');
+        hintBtn.classList.remove('blur-background');
+        hintText.classList.remove('blur-background');
+        buttonsContainer.classList.remove('blur-background');
     }
 });
+// Обработчик для кнопки закрытия (крестик)
 
 nextBtn.onclick = () => {
     if (questionCount < questions.length - 1) {
@@ -115,6 +154,7 @@ exitBtn.onclick = () => {
     popupInfo.classList.remove('active');
     main.classList.remove('active');
 }
+
 
 continueBtn.onclick = () => {
     quizSection.classList.add('active');
@@ -208,9 +248,11 @@ startBtn.onclick = () => {
 function displayQuestions(index) {
     const questionText = document.querySelector('.question-text');
     const hintText = document.getElementById('hint-text');
-    const hintBtn = document.getElementById('hint-btn'); 
+    const hintBtn = document.getElementById('hint-btn');
     const explanationBtn = document.getElementById('explanationBtn');
-    const openImageBtn = document.getElementById('openImageBtn'); // Получаем кнопку "Показать картинку"
+    const openImageBtn = document.getElementById('openImageBtn');
+    const imageModal = document.getElementById('imageModal');
+    const modalImage = document.getElementById('modalImage');
 
     questionText.textContent = `${questions[index].numb}. ${questions[index].question}`;
 
@@ -223,16 +265,16 @@ function displayQuestions(index) {
 
     // Если у вопроса есть подсказка, добавляем обработчик для кнопки
     if (questions[index].hint) {
-        hintBtn.style.display = 'block'; // Показываем кнопку
+        hintBtn.style.display = 'block';
         hintBtn.onclick = () => {
             hintText.textContent = `Подсказка: ${questions[index].hint}`;
             hintText.style.display = 'block';
-            hintBtn.disabled = true; // Отключаем кнопку после использования
+            hintBtn.disabled = true;
             hintBtn.textContent = 'Подсказка использована';
-            hintUsedArray[index] = true; // Сохраняем, что подсказка была использована
+            hintUsedArray[index] = true;
         };
     } else {
-        hintBtn.style.display = 'none'; // Скрываем кнопку, если подсказки нет
+        hintBtn.style.display = 'none';
     }
 
     // Если подсказка была использована, отключаем кнопку подсказки
@@ -241,30 +283,22 @@ function displayQuestions(index) {
         hintBtn.textContent = 'Подсказка использована';
     }
 
-    // Обновляем изображение в модальном окне
-    if (questions[index].image) {
-        modalImage.src = questions[index].image; // Устанавливаем новое изображение
+    // Обработка нескольких изображений
+    // Обработка нескольких изображений
+if (questions[index].images && Array.isArray(questions[index].images)) {
+    openImageBtn.style.display = 'block';
 
-        // Показываем кнопку "Показать картинку"
-        openImageBtn.style.display = 'block';
+    openImageBtn.addEventListener('click', () => {
+        // Очищаем модальное окно перед добавлением новых изображений
+        imageModal.innerHTML = '';
 
-        openImageBtn.addEventListener('click', () => {
-            imageModal.style.display = 'flex'; // Показываем модальное окно
-            quizheader.classList.add('blur-background'); // Размываем фон
-            quiztext.classList.add('blur-background');
-            quizfooter.classList.add('blur-background');
-            optionList.classList.add('blur-background');
-            quiztext1.classList.add('blur-background');
-            xCloseBtn.classList.add('blur-background');
-            hintBtn.classList.add('blur-background');
-            hintText.classList.add('blur-background');
-            buttonsContainer.classList.add('blur-background');
-        });
-
-        // Закрытие модального окна
-        closeModalBtn.addEventListener('click', () => {
-            imageModal.style.display = 'none'; // Скрываем модальное окно
-            quizheader.classList.remove('blur-background'); // Убираем размытие
+        // Добавляем кнопку закрытия
+        const closeBtn = document.createElement('span');
+        closeBtn.className = 'cloose-btn';
+        closeBtn.innerHTML = '&times;';
+        closeBtn.onclick = () => {
+            imageModal.style.display = 'none';
+            quizheader.classList.remove('blur-background');
             quiztext.classList.remove('blur-background');
             quizfooter.classList.remove('blur-background');
             optionList.classList.remove('blur-background');
@@ -273,29 +307,36 @@ function displayQuestions(index) {
             hintBtn.classList.remove('blur-background');
             hintText.classList.remove('blur-background');
             buttonsContainer.classList.remove('blur-background');
+        };
+        imageModal.appendChild(closeBtn);
+
+        // Добавляем изображения в модальное окно
+        questions[index].images.forEach(imageSrc => {
+            const img = document.createElement('img');
+            img.src = imageSrc;
+            img.style.maxWidth = '90%';
+            img.style.maxHeight = '90%';
+            img.style.margin = '10px';
+            img.style.borderRadius = '10px';
+            imageModal.appendChild(img);
         });
 
-        // Закрытие модального окна при клике вне картинки
-        window.addEventListener('click', (event) => {
-            if (event.target === imageModal) {
-                imageModal.style.display = 'none';
-                quizheader.classList.remove('blur-background'); // Убираем размытие
-                quiztext.classList.remove('blur-background');
-                quizfooter.classList.remove('blur-background');
-                optionList.classList.remove('blur-background');
-                quiztext1.classList.remove('blur-background');
-                xCloseBtn.classList.remove('blur-background');
-                hintBtn.classList.remove('blur-background');
-                hintText.classList.remove('blur-background');
-                buttonsContainer.classList.remove('blur-background');
-            }
-        });
-    } else {
-        // Скрываем кнопку "Показать картинку", если изображения нет
-        openImageBtn.style.display = 'none';
-    }
+        imageModal.style.display = 'flex';
+        quizheader.classList.add('blur-background');
+        quiztext.classList.add('blur-background');
+        quizfooter.classList.add('blur-background');
+        optionList.classList.add('blur-background');
+        quiztext1.classList.add('blur-background');
+        xCloseBtn.classList.add('blur-background');
+        hintBtn.classList.add('blur-background');
+        hintText.classList.add('blur-background');
+        buttonsContainer.classList.add('blur-background');
+    });
+} else {
+    openImageBtn.style.display = 'none';
+}
 
-    // Удаляем повторное объявление переменной optionTag
+    // Остальная часть функции остается без изменений
     optionTag = `<div class="option"><span>${questions[index].options[0]}</span></div>
                 <div class="option"><span>${questions[index].options[1]}</span></div>
                 <div class="option"><span>${questions[index].options[2]}</span></div>
@@ -308,22 +349,19 @@ function displayQuestions(index) {
         option[i].setAttribute('onclick', 'checkAnswer(this)');
     }
 
-    // Если ответ уже был выбран, показываем его как выбранный
     if (userAnswers[index] !== undefined) {
         const selectedAnswer = userAnswers[index];
         const options = optionList.children;
         for (let i = 0; i < options.length; i++) {
             if (options[i].textContent === selectedAnswer) {
-                // Подсвечиваем выбранный ответ
                 if (selectedAnswer === questions[index].answer) {
-                    options[i].classList.add('correct'); // Правильный ответ
+                    options[i].classList.add('correct');
                 } else {
-                    options[i].classList.add('incorrect'); // Неправильный ответ
+                    options[i].classList.add('incorrect');
                 }
             }
         }
 
-        // Активируем кнопку "Пояснение", если ответ уже был выбран
         explanationBtn.disabled = false;
     }
 }
@@ -435,12 +473,12 @@ function displayResultBox() {
         progressValue.textContent = `${progressStartValue}%`;
         circularProgress.style.background = `conic-gradient(#e05330 ${progressStartValue * 3.6}deg, rgba(255, 255, 255, .1) 0deg)`;
 
-        if (progressStartValue == progressEndValue) {
+        if (progressStartValue >= progressEndValue) { // Изменено условие
             clearInterval(progress);
         }
     }, speed);
 
-    isQuizCompleted = true; // Устанавливаем флаг завершения квеста
+    isQuizCompleted = true;
 }
 // Получаем кнопку "Сохранить результат"
 const saveResultBtn = document.querySelector('.save-result-btn');

@@ -15,6 +15,9 @@
     .home-content p {
         font-size: 16px; /* Уменьшаем размер текста для мобильных устройств */
     }
+    .home-content {
+        padding: 15px; /* Уменьшите отступы для мобильных устройств */
+    }
 
     .quiz-box h1 {
         font-size: 20px; /* Уменьшаем размер заголовка для мобильных устройств */
@@ -68,6 +71,7 @@ body {
     /*hide header*/
     opacity: 0;
     overflow: auto;
+    
 }
 
 .logo {
@@ -107,6 +111,7 @@ body {
     left: -50%;
     width: 100%;
     height: 100vh;
+    
 }
 
 .home-content {
@@ -115,23 +120,47 @@ body {
     flex-direction: column;
     max-width: 600px;
     padding: 0 20px;
+    background: rgba(0, 0, 0, 0.5); /* Полупрозрачный фон для текста */
+    padding: 20px;
+    border-radius: 10px;
+    max-width: 800px; /* Увеличьте максимальную ширину контента */
+    margin: 0 auto; /* Центрирование контента */
+    
+}
+.home-content {
+    animation: fadeIntext 1s ease-in-out;
+}
+
+@keyframes fadeIntext {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 .named{
     font-family: 'Pacifico', sans-serif;
 }
 .home-content h1 {
-    font-size: 78px;
+    font-size: 78px; /* Увеличьте размер заголовка */
     font-weight: 700;
     margin-bottom: 20px;
-    text-shadow: 0 0 10px rgba(0, 0, 0, .3);
+    text-shadow: 0 0 10px rgba(0, 0, 0, 0.7); /* Добавьте тень для лучшей читаемости */
+    color: #fff; /* Белый цвет текста */
 }
 
 .home-content p {
-    font-size: 18px;
+    font-size: 20px; /* Увеличьте размер текста */
     text-align: center;
-    text-shadow: 0 0 10px rgba(0, 0, 0, .3);
+    text-shadow: 0 0 10px rgba(0, 0, 0, 0.7); /* Добавьте тень для лучшей читаемости */
     margin-bottom: 20px;
+    color: #fff; /* Белый цвет текста */
+    line-height: 1.6; /* Увеличьте межстрочный интервал */
 }
+
 
 .home-content p:last-of-type {
     margin-bottom: 35px;
@@ -284,18 +313,26 @@ body {
 
 /* Модальное окно */
 .modal {
-    display: none; /* Скрыто по умолчанию */
+    display: none;
     position: fixed;
     z-index: 1000;
     left: 0;
     top: 0;
     width: 100%;
     height: 100%;
-    
+    background: rgba(0, 0, 0, 0.9);
     justify-content: center;
     align-items: center;
+    flex-wrap: wrap; /* Разрешаем перенос изображений на новую строку */
+    overflow-y: auto; /* Добавляем прокрутку, если изображений много */
 }
-
+.modal img {
+    max-width: 45%; /* Уменьшаем ширину изображений, чтобы они помещались в ряд */
+    max-height: 45%;
+    margin: 10px;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+}
 /* Картинка внутри модального окна */
 #modalImage {
     max-width: 90%;
@@ -307,7 +344,7 @@ body {
 /* Кнопка закрытия */
 .cloose-btn {
     position: absolute;
-    top: 200px;
+    top: 20px;
     right: 30px;
     font-size: 40px;
     color: white;
@@ -334,7 +371,7 @@ body {
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0, 0, 0, 0.9); /* Темный фон */
+    background: rgba(12, 12, 12, 0.815); /* Темный фон */
     justify-content: center;
     align-items: center;
     z-index: 1000; /* Выше всех элементов */
@@ -364,6 +401,23 @@ body {
     border-radius: 10px;
     margin-bottom: 20px;
     align-self: center; /* Выравниваем изображение по центру */
+}
+#explanationImageContainer {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px; /* Расстояние между изображениями */
+    max-height: 70vh;
+    overflow-y: auto;
+    margin-bottom: 20px;
+}
+
+#explanationImageContainer img {
+    max-width: 200px; /* Уменьшаем ширину изображений */
+    max-height: 150px; /* Уменьшаем высоту изображений */
+    border-radius: 10px;
+    margin: 10px; /* Отступы между изображениями */
+    object-fit: cover; /* Сохраняем пропорции изображений */
 }
 /* Текст пояснения */
 #explanationText {
