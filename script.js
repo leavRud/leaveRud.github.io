@@ -12,6 +12,7 @@ const tryAgainBtn = document.querySelector('.try-again-btn');
 const homepageBtn = document.querySelector('.homepage-btn');
 const xCloseBtn = document.querySelector('.x-close-btn');
 let isQuizStarted = false;
+const hintBtn = document.getElementById('hint-btn');
 let currentQuestionIndex = 0;
 const imageModal = document.getElementById('imageModal');
 const closeModalBtn = document.getElementById('closeModalBtn');
@@ -108,7 +109,11 @@ explanationBtn.addEventListener('click', () => {
 
 // Обработчик для кнопки "Вернуться"
 closeExplanationBtn.addEventListener('click', () => {
-    explanationModal.style.display = 'none'; // Скрываем экран с пояснением
+    explanationModal.classList.add('fade-out'); // Добавляем анимацию исчезновения
+    setTimeout(() => {
+        explanationModal.style.display = 'none'; // Скрываем модальное окно
+        explanationModal.classList.remove('fade-out'); // Убираем класс анимации
+    }, 500); // Время анимации
 });
 
 // Закрытие экрана с пояснением при клике вне контента
@@ -139,17 +144,32 @@ window.addEventListener('click', (event) => {
 
 nextBtn.onclick = () => {
     if (questionCount < questions.length - 1) {
-        questionCount++; // Увеличиваем счетчик вопросов
-        currentQuestionIndex = questionCount; // Обновляем текущий вопрос
-        displayQuestions(questionCount); // Показываем следующий вопрос
-        questionCounter(questionCount + 1); // Обновляем счетчик вопросов
-        nextBtn.classList.remove('active'); // Скрываем кнопку "Следующий"
-        hintUsed = false; // Сбрасываем флаг использования подсказки
-        isAnswerChecked = false; // Сбрасываем флаг проверки ответа
+        // Добавляем анимацию исчезновения текущего вопроса
+        quizBox.classList.add('fade-out');
+
+        // Ждем завершения анимации исчезновения
+        setTimeout(() => {
+            questionCount++; // Увеличиваем счетчик вопросов
+            currentQuestionIndex = questionCount; // Обновляем текущий вопрос
+            displayQuestions(questionCount); // Показываем следующий вопрос
+            questionCounter(questionCount + 1); // Обновляем счетчик вопросов
+            nextBtn.classList.remove('active'); // Скрываем кнопку "Следующий"
+            hintUsed = false; // Сбрасываем флаг использования подсказки
+            isAnswerChecked = false; // Сбрасываем флаг проверки ответа
+
+            // Убираем класс fade-out и добавляем анимацию появления
+            quizBox.classList.remove('fade-out');
+            quizBox.classList.add('fade-in');
+        }, 500); // Время анимации исчезновения (0.5 секунды)
     } else {
         displayResultBox(); // Показываем результаты, если вопросы закончились
     }
 };
+
+// Удаляем класс fade-in после завершения анимации
+quizBox.addEventListener('animationend', () => {
+    quizBox.classList.remove('fade-in');
+});
 exitBtn.onclick = () => {
     popupInfo.classList.remove('active');
     main.classList.remove('active');
@@ -289,14 +309,23 @@ if (questions[index].images && Array.isArray(questions[index].images)) {
     openImageBtn.style.display = 'block';
 
     openImageBtn.addEventListener('click', () => {
+        
         // Очищаем модальное окно перед добавлением новых изображений
         imageModal.innerHTML = '';
-
+        imageModal.classList.add('show');
         // Добавляем кнопку закрытия
         const closeBtn = document.createElement('span');
         closeBtn.className = 'cloose-btn';
         closeBtn.innerHTML = '&times;';
         closeBtn.onclick = () => {
+            imageModal.classList.remove('show'); // Убираем класс анимации открытия
+            imageModal.classList.add('fade-out'); // Добавляем анимацию закрытия
+            
+            setTimeout(() => {
+                imageModal.style.display = 'none';
+                imageModal.classList.remove('fade-out'); 
+            }, 500); // Время должно совпадать с длительностью анимации
+            
             imageModal.style.display = 'none';
             quizheader.classList.remove('blur-background');
             quiztext.classList.remove('blur-background');
@@ -543,13 +572,31 @@ saveAsTextBtn.addEventListener('click', () => {
 });
 
 // Обработчик для кнопки "Закрыть"
-closeSaveModalBtn.addEventListener('click', () => {
-    saveResultModal.style.display = 'none'; // Скрываем модальное окно
-});
+
 
 // Закрытие модального окна при клике вне его
 window.addEventListener('click', (event) => {
-    if (event.target === saveResultModal) {
-        saveResultModal.style.display = 'none';
+    if (event.target === imageModal) {
+        imageModal.classList.remove('show');
+        imageModal.classList.add('fade-out');
+        
+        setTimeout(() => {
+            imageModal.style.display = 'none';
+            imageModal.classList.remove('fade-out');
+        }, 500);
+    }
+});
+
+
+
+// Если нужно скрыть подсказку при повторном нажатии
+hintBtn.addEventListener('click', () => {
+    if (hintText.style.display === 'block') {
+        hintText.classList.add('fade-out'); // Добавляем анимацию исчезновения
+        setTimeout(() => {
+            hintText.style.display = 'none'; // Скрываем подсказку
+        }, 300); // Время анимации
+    } else {
+        hintText.style.display = 'block'; // Показываем подсказку
     }
 });

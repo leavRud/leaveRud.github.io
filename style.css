@@ -313,7 +313,7 @@ body {
 
 /* Модальное окно */
 .modal {
-    display: none;
+    display: none; /* Скрыт по умолчанию */
     position: fixed;
     z-index: 1000;
     left: 0;
@@ -323,15 +323,28 @@ body {
     background: rgba(0, 0, 0, 0.9);
     justify-content: center;
     align-items: center;
-    flex-wrap: wrap; /* Разрешаем перенос изображений на новую строку */
-    overflow-y: auto; /* Добавляем прокрутку, если изображений много */
+    flex-wrap: wrap;
+    overflow-y: auto; /* Анимация появления */
 }
 .modal img {
-    max-width: 45%; /* Уменьшаем ширину изображений, чтобы они помещались в ряд */
-    max-height: 45%;
-    margin: 10px;
+    max-width: 90%;
+    max-height: 90%;
     border-radius: 10px;
-    box-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+    animation: fadeInImage 0.5s ease; /* Анимация появления изображения */
+}
+.modal.show {
+    animation: fadeInImageModal 0.5s ease;
+}
+@keyframes fadeInImage {
+    from {
+        opacity: 0;
+        transform: scale(0.8);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
 }
 /* Картинка внутри модального окна */
 #modalImage {
@@ -375,7 +388,8 @@ body {
     justify-content: center;
     align-items: center;
     z-index: 1000; /* Выше всех элементов */
-    animation: fadeIn 0.5s ease; /* Анимация появления */
+    animation: fadeInExplanation 0.5s ease;
+    overflow: hidden; /* Убираем ползунок */
 }
 
 /* Контент внутри экрана с пояснением */
@@ -400,7 +414,8 @@ body {
     max-height: 70vh;
     border-radius: 10px;
     margin-bottom: 20px;
-    align-self: center; /* Выравниваем изображение по центру */
+    align-self: center;
+     /* Выравниваем изображение по центру */
 }
 #explanationImageContainer {
     display: flex;
@@ -410,6 +425,7 @@ body {
     max-height: 70vh;
     overflow-y: auto;
     margin-bottom: 20px;
+    overflow: auto;
 }
 
 #explanationImageContainer img {
@@ -487,6 +503,7 @@ body {
 }
 
 
+
 .explanation-btn:hover {
     background: #4A2A5C; /* Темный фиолетовый */
     transform: translateY(-2px);
@@ -494,6 +511,16 @@ body {
 
 .explanation-btn:active {
     transform: translateY(0);
+}
+@keyframes fadeInExplanation {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 
@@ -574,6 +601,39 @@ body {
     border-bottom: 2px solid #ffffff;
     margin-bottom: 30px;
     
+}
+/* Анимация для исчезновения вопроса */
+@keyframes fadeOutQuestion {
+    from {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    to {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+}
+
+/* Анимация для появления вопроса */
+@keyframes fadeInQuestion {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Применение анимации к контейнеру с вопросами */
+.quiz-box {
+    animation: fadeInQuestion 0.5s ease-in-out;
+}
+
+/* Класс для исчезновения вопроса */
+.quiz-box.fade-out {
+    animation: fadeOutQuestion 0.5s ease-in-out;
 }
 
 
@@ -746,6 +806,29 @@ body {
 .hint-btn:hover {
     background: #AD3A29; /* Темный оранжевый при наведении */
 }
+/* Анимация для появления подсказки */
+@keyframes fadeInHint {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+overflow
+
+.hint-text {
+    display: none; /* Скрыт по умолчанию */
+    font-size: 16px;
+    color: #fff;
+    margin-top: 10px;
+    padding: 10px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 6px;
+    animation: fadeInHint 0.3s ease; /* Анимация появления */
+}
 
 /* Стили для кнопки "Показать картинку" */
 .openImageBtn {
@@ -794,6 +877,63 @@ body {
         width: 100%; /* Кнопки занимают всю ширину */
     }
 }
+@keyframes fadeInImageModal {
+    from {
+        opacity: 0;
+        transform: scale(0.8);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+/* Анимация для исчезновения пояснения */
+@keyframes fadeOutExplanation {
+    from {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    to {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+}
+
+.explanation-modal.fade-out {
+    animation: fadeOutExplanation 0.5s ease;
+}
+/* Анимация для исчезновения модального окна с картиной */
+@keyframes fadeOutImageModal {
+    from {
+        opacity: 1;
+        transform: scale(1);
+    }
+    to {
+        opacity: 0;
+        transform: scale(0.8);
+    }
+}
+
+.modal.fade-out {
+    animation: fadeOutImageModal 0.5s ease;
+}
+
+/* Анимация для исчезновения подсказки */
+@keyframes fadeOutHint {
+    from {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    to {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+}
+
+.hint-text.fade-out {
+    animation: fadeOutHint 0.3s ease;
+}
+
 /* ------ QUIZ RESULT ------ */
 
 .result-box {
