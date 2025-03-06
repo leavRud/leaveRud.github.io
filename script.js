@@ -513,20 +513,48 @@ function displayResultBox() {
 const saveResultBtn = document.querySelector('.save-result-btn');
 
 // Функция для сохранения результата в виде изображения
+// script.js
 function saveResultAsImage() {
-    // Используем html2canvas для создания скриншота блока result-box
-    html2canvas(document.querySelector('.result-box')).then(canvas => {
-        // Преобразуем canvas в изображение
-        const imgData = canvas.toDataURL('image/png');
+    const resultBox = document.querySelector('.result-box');
+    const originalDisplay = [
+        resultBox.style.display,
+        document.querySelector('.buttons').style.display,
+        document.querySelector('.contacts-info').style.display
+    ];
 
-        // Создаем ссылку для скачивания
+    // Показываем нужные элементы
+    resultBox.style.display = 'block';
+    document.querySelector('.circular-progress').style.opacity = '1';
+    document.querySelector('.score-text').style.opacity = '1';
+
+    html2canvas(resultBox, {
+        scale: 2,
+        logging: true,
+        useCORS: true,
+        backgroundColor: '#5A3A6C',
+        onclone: (clonedDoc) => {
+            // Гарантируем видимость элементов в клоне
+            clonedDoc.querySelector('.circular-progress').style.opacity = '1';
+            clonedDoc.querySelector('.score-text').style.opacity = '1';
+            clonedDoc.querySelectorAll('.buttons, .contacts-info').forEach(el => {
+                el.style.display = 'none';
+            });
+        }
+    }).then(canvas => {
+        const imgData = canvas.toDataURL('image/png');
         const link = document.createElement('a');
         link.href = imgData;
-        link.download = 'результаты_квиза.png'; // Имя файла
-        link.click(); // Автоматически запускаем скачивание
-    });
+        link.download = 'quiz_progress.png';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        // Восстанавливаем оригинальные стили
+        resultBox.style.display = originalDisplay[0];
+        document.querySelector('.buttons').style.display = originalDisplay[1];
+        document.querySelector('.contacts-info').style.display = originalDisplay[2];
+    }).catch(e => console.error('Ошибка:', e));
 }
-
 // Функция для сохранения результата в виде текстового файла
 function saveResultAsText() {
     // Получаем текст с результатами
@@ -572,7 +600,17 @@ saveAsTextBtn.addEventListener('click', () => {
 });
 
 // Обработчик для кнопки "Закрыть"
+// Обработчик для кнопки "Закрыть" в модалке сохранения
+closeSaveModalBtn.addEventListener('click', () => {
+    saveResultModal.style.display = 'none';
+});
 
+// Закрытие модалки при клике вне ее области
+window.addEventListener('click', (e) => {
+    if (e.target === saveResultModal) {
+        saveResultModal.style.display = 'none';
+    }
+});
 
 // Закрытие модального окна при клике вне его
 window.addEventListener('click', (event) => {

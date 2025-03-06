@@ -3,7 +3,6 @@
 
     <head>
         <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
         <title>Кто хочет стать искусствоведом</title>
         <link rel="stylesheet" href="style.css">
@@ -106,22 +105,33 @@
         </main>
 
         <div class="popup-info">
-            <h2>Гид по квизу</h2>
+            <h2><span class="icon">🧭</span> Гид по квизу</h2>
             <div class="guide-item">
-                <span class="guide-icon">📘</span>
-                <span class="guide-text">Нажмите <b>Продолжить</b>, чтобы начать квест.</span>
+                <div class="guide-header">
+                    <span class="guide-icon">📘</span>
+                    <h3>Основное управление</h3>
+                </div>
+                <p class="guide-text">Нажмите <b>Продолжить</b>, чтобы начать квест.</p>
+                <p class="guide-text">Нажмите <b>Картина</b>, чтобы увидеть картину.</p>
+            </div>
+            
+            <div class="visual-divider"></div>
+            
+            <div class="guide-item">
+                <div class="guide-header">
+                    <span class="guide-icon">💡</span>
+                    <h3>Советы</h3>
+                </div>
+                <p class="guide-text">Используйте <b>Подсказку</b> если застряли...</p>
+                <span class="guide-text">После ответа на вопрос нажмите на <b>Пояснение</b>, чтобы получить пояснение к вопросу.</span>
             </div>
             <div class="guide-item">
-                <span class="guide-icon">🔙</span>
-                <span class="guide-text">Нажмите <b>Вернуться</b>, чтобы вернуться на главный экран.</span>
-            </div>
-            <div class="guide-item">
-                <span class="guide-icon">💡</span>
-                <span class="guide-text">Вы можете использовать <b>Подсказку</b>, но вам дадут вдвое меньше баллов.</span>
-            </div>
-            <div class="guide-item">
-                <span class="guide-icon">📖</span>
-                <span class="guide-text">После ответа на вопрос вы можете нажать на <b>Пояснение</b>, чтобы получить пояснение к вопросу.</span>
+                <div class="guide-header">
+                    <span class="guide-icon">📊</span>
+                    <h3>Логика очков</h3>
+                </div>
+                <p class="guide-text">За каждый вопрос +1 бал Если использовали <b>Подсказку</b>, то +0,5 баллов. Всего 10 баллов</p>
+                
             </div>
             <div class="btn-group">
                 <button class="info-btn exit-btn">Вернуться</button>
