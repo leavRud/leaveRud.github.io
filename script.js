@@ -597,16 +597,26 @@ closeSaveModalBtn.addEventListener('click', () => {
 
 // Обработчики для кнопок выбора платформ
 document.getElementById('shareVK').addEventListener('click', () => {
-    const shareText = `Результаты квиза:\n\n${document.querySelector('.score-text').textContent}\nПрогресс: ${document.querySelector('.progress-value').textContent}\n\nПопробуйте и вы: ${window.location.href}`;
-    const vkUrl = `https://vk.com/share.php?url=${encodeURIComponent(window.location.href)}&title=${encodeURIComponent('Мои результаты квиза')}&description=${encodeURIComponent(shareText)}`;
+    const shareText = `Мои результаты квеста: ${document.querySelector('.score-text').textContent}, ${document.querySelector('.progress-value').textContent}\n\nПопробуйте и вы: ${window.location.href}`;
+    const vkUrl = `https://vk.com/share.php?url=${encodeURIComponent(window.location.href)}&title=${encodeURIComponent('Мои результаты квеста')}&description=${encodeURIComponent(shareText)}`;
     window.open(vkUrl, '_blank');
     document.getElementById('shareOptionsModal').style.display = 'none';
 });
 
 document.getElementById('shareTelegram').addEventListener('click', () => {
-    const shareText = `Результаты квиза:\n\n${document.querySelector('.score-text').textContent}\nПрогресс: ${document.querySelector('.progress-value').textContent}\n\nПопробуйте и вы: ${window.location.href}`;
+    const scoreText = document.querySelector('.score-text').textContent; // Пример: "Вы набрали 8 из 10"
+    const progressValue = document.querySelector('.progress-value').textContent; // Пример: "80%"
+
+    // Формируем текст для Telegram
+    const shareText = `Мои результаты квеста: ${scoreText}, ${progressValue}\n\nПопробуйте и вы: ${window.location.href}`;
+
+    // Создаем ссылку для Telegram
     const telegramUrl = `https://t.me/share/url?url=${encodeURIComponent(window.location.href)}&text=${encodeURIComponent(shareText)}`;
+
+    // Открываем ссылку в новом окне
     window.open(telegramUrl, '_blank');
+
+    // Закрываем модальное окно
     document.getElementById('shareOptionsModal').style.display = 'none';
 });
 
