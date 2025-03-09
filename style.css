@@ -821,6 +821,7 @@ button, .option {
     max-width: 2rem;
     color: #fff;
     border-radius: 50%;
+    z-index: 100;
 }
 
 .quiz-section.active .x-close-btn:hover {
