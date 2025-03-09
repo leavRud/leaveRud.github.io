@@ -75,6 +75,7 @@ contactsBtn.addEventListener('click', () => {
 });
 explanationBtn.addEventListener('click', () => {
     const currentQuestion = questions[questionCount];
+    const xCloseBtn = document.querySelector('.x-close-btn');
     if (currentQuestion.explanation) {
         // Очищаем контейнер перед добавлением новых изображений
         const explanationImageContainer = document.getElementById('explanationImageContainer');
@@ -89,7 +90,8 @@ explanationBtn.addEventListener('click', () => {
                 img.style.maxHeight = '90%';
                 img.style.margin = '10px';
                 img.style.borderRadius = '10px';
-                explanationImageContainer.appendChild(img); // Добавляем изображение в контейнер
+                explanationImageContainer.appendChild(img);
+                xCloseBtn.style.display = 'none'; // Добавляем изображение в контейнер
             });
         } else if (currentQuestion.images) {
             // Если изображение одно, просто добавляем его
@@ -99,9 +101,10 @@ explanationBtn.addEventListener('click', () => {
             img.style.maxHeight = '90%';
             img.style.margin = '10px';
             img.style.borderRadius = '10px';
-            explanationImageContainer.appendChild(img); // Добавляем изображение в контейнер
+            explanationImageContainer.appendChild(img);
+            xCloseBtn.style.display = 'none'; // Добавляем изображение в контейнер
         }
-
+        xCloseBtn.style.display = 'none';
         explanationText.textContent = currentQuestion.explanation;
         explanationModal.style.display = 'flex';
     }
@@ -109,10 +112,12 @@ explanationBtn.addEventListener('click', () => {
 
 // Обработчик для кнопки "Вернуться"
 closeExplanationBtn.addEventListener('click', () => {
-    explanationModal.classList.add('fade-out'); // Добавляем анимацию исчезновения
+    explanationModal.classList.add('fade-out');
+    const xCloseBtn = document.querySelector('.x-close-btn'); // Добавляем анимацию исчезновения
     setTimeout(() => {
         explanationModal.style.display = 'none'; // Скрываем модальное окно
-        explanationModal.classList.remove('fade-out'); // Убираем класс анимации
+        explanationModal.classList.remove('fade-out');
+        xCloseBtn.style.display = 'block'; // Убираем класс анимации
     }, 500); // Время анимации
 });
 
@@ -556,23 +561,11 @@ function saveResultAsImage() {
     }).catch(e => console.error('Ошибка:', e));
 }
 // Функция для сохранения результата в виде текстового файла
-function saveResultAsText() {
-    // Получаем текст с результатами
-    const scoreText = document.querySelector('.score-text').textContent;
-    const progressValue = document.querySelector('.progress-value').textContent;
-
-    // Формируем текст для файла
-    const textContent = `Результаты квиза:\n\n${scoreText}\nПрогресс: ${progressValue}`;
-
-    // Создаем Blob с текстом
-    const blob = new Blob([textContent], { type: 'text/plain' });
-
-    // Создаем ссылку для скачивания
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    link.download = 'результаты_квиза.txt'; // Имя файла
-    link.click(); // Автоматически запускаем скачивание
-}
+// Обработчик для кнопки "Поделиться"
+document.getElementById('shareResultBtn').addEventListener('click', () => {
+    // Показываем модальное окно с выбором платформ
+    document.getElementById('shareOptionsModal').style.display = 'flex';
+});
 
 // Обработчик для кнопки "Сохранить результат"
 
@@ -593,16 +586,55 @@ saveAsImageBtn.addEventListener('click', () => {
     saveResultModal.style.display = 'none'; // Скрываем модальное окно
 });
 
-// Обработчик для кнопки "Сохранить как текст"
-saveAsTextBtn.addEventListener('click', () => {
-    saveResultAsText(); // Сохраняем как текст
-    saveResultModal.style.display = 'none'; // Скрываем модальное окно
-});
 
 // Обработчик для кнопки "Закрыть"
 // Обработчик для кнопки "Закрыть" в модалке сохранения
 closeSaveModalBtn.addEventListener('click', () => {
     saveResultModal.style.display = 'none';
+});
+// Обработчик для кнопки "Поделиться"
+
+
+// Обработчики для кнопок выбора платформ
+document.getElementById('shareVK').addEventListener('click', () => {
+    const shareText = `Результаты квиза:\n\n${document.querySelector('.score-text').textContent}\nПрогресс: ${document.querySelector('.progress-value').textContent}\n\nПопробуйте и вы: ${window.location.href}`;
+    const vkUrl = `https://vk.com/share.php?url=${encodeURIComponent(window.location.href)}&title=${encodeURIComponent('Мои результаты квиза')}&description=${encodeURIComponent(shareText)}`;
+    window.open(vkUrl, '_blank');
+    document.getElementById('shareOptionsModal').style.display = 'none';
+});
+
+document.getElementById('shareTelegram').addEventListener('click', () => {
+    const shareText = `Результаты квиза:\n\n${document.querySelector('.score-text').textContent}\nПрогресс: ${document.querySelector('.progress-value').textContent}\n\nПопробуйте и вы: ${window.location.href}`;
+    const telegramUrl = `https://t.me/share/url?url=${encodeURIComponent(window.location.href)}&text=${encodeURIComponent(shareText)}`;
+    window.open(telegramUrl, '_blank');
+    document.getElementById('shareOptionsModal').style.display = 'none';
+});
+
+document.getElementById('shareWhatsApp').addEventListener('click', () => {
+    const shareText = `Результаты квиза:\n\n${document.querySelector('.score-text').textContent}\nПрогресс: ${document.querySelector('.progress-value').textContent}\n\nПопробуйте и вы: ${window.location.href}`;
+    const whatsappUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(shareText)}`;
+    window.open(whatsappUrl, '_blank');
+    document.getElementById('shareOptionsModal').style.display = 'none';
+});
+
+document.getElementById('copyLink').addEventListener('click', () => {
+    const shareText = `Результаты квиза:\n\n${document.querySelector('.score-text').textContent}\nПрогресс: ${document.querySelector('.progress-value').textContent}\n\nПопробуйте и вы: ${window.location.href}`;
+    navigator.clipboard.writeText(shareText)
+        .then(() => alert('Ссылка скопирована в буфер обмена!'))
+        .catch(() => alert('Не удалось скопировать ссылку.'));
+    document.getElementById('shareOptionsModal').style.display = 'none';
+});
+
+// Обработчик для кнопки "Закрыть" в модальном окне выбора платформ
+document.getElementById('closeShareOptionsModal').addEventListener('click', () => {
+    document.getElementById('shareOptionsModal').style.display = 'none';
+});
+
+// Закрытие модального окна при клике вне его области
+window.addEventListener('click', (e) => {
+    if (e.target === document.getElementById('shareOptionsModal')) {
+        document.getElementById('shareOptionsModal').style.display = 'none';
+    }
 });
 
 // Закрытие модалки при клике вне ее области
