@@ -465,13 +465,13 @@ button, .option {
 
 /* Кнопка закрытия */
 .cloose-btn {
-    position: absolute;
+    position: fixed; /* Фиксированное позиционирование */
     top: 20px;
     right: 30px;
     font-size: 40px;
     color: white;
     cursor: pointer;
-    
+    z-index: 1001; /* Убедитесь, что крестик выше других элементов */
 }
 
 .cloose-btn:hover {

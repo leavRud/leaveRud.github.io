@@ -638,3 +638,25 @@ hintBtn.addEventListener('click', () => {
         hintText.style.display = 'block'; // Показываем подсказку
     }
 });
+// Функция для предзагрузки изображений
+function preloadImages() {
+    const images = [];
+    questions.forEach(question => {
+        if (question.images) {
+            if (Array.isArray(question.images)) {
+                question.images.forEach(imageSrc => {
+                    const img = new Image();
+                    img.src = imageSrc;
+                    images.push(img);
+                });
+            } else {
+                const img = new Image();
+                img.src = question.images;
+                images.push(img);
+            }
+        }
+    });
+}
+
+// Вызов функции предзагрузки изображений при загрузке страницы
+window.onload = preloadImages;
