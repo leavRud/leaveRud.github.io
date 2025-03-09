@@ -611,7 +611,7 @@ document.getElementById('shareTelegram').addEventListener('click', () => {
     const shareText = `Мои результаты квеста: ${scoreText}, ${progressValue}\n\nПопробуйте и вы: ${window.location.href}`;
 
     // Создаем ссылку для Telegram
-    const telegramUrl = `https://t.me/share/url?url=${encodeURIComponent(window.location.href)}&text=${encodeURIComponent(shareText)}`;
+    const telegramUrl = `https://t.me/share/url?url=${encodeURIComponent(shareText)}`;
 
     // Открываем ссылку в новом окне
     window.open(telegramUrl, '_blank');
