@@ -33,9 +33,11 @@
         <meta property="og:image" content="https://leavrud.github.io/leaveRud.github.io/#/images/logo.png"> <!-- Укажите полный URL к изображению -->
         <meta property="og:url" content="https://leavrud.github.io/leaveRud.github.io/#"> <!-- Укажите полный URL вашего сайта -->
         <meta property="og:type" content="website">
+        <meta property="og:site_name" content="Державинский лицей">
     </head>
 
-    <body>
+    <!-- В index.html изменить тег body -->
+    <body onload="document.body.classList.add('loaded')">
         <main class="main">
             <header class="header">
                 <!-- Header is deactivated in style.css -->
@@ -124,7 +126,7 @@
                     </div>
                 </section>
             </div>
-            
+            <div class="gradient-follow" id="gradient"></div>    
         </main>
 
         <div class="popup-info">
@@ -185,7 +187,9 @@
         </div>
 
         <script src="questions.js"></script>
-        <script src="script.js"></script>
+        <!-- В index.html ПЕРЕД закрывающим тегом </body> -->
         <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+        <!-- Добавить этот скрипт ПОСЛЕ создания элемента gradient -->
+        <script src="script.js"></script>
     </body>
 </html>
