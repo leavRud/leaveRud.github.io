@@ -141,6 +141,67 @@ let questions = [
         ],
         images: ["images/question10.jpg"], // Путь к изображению
         hint: "Это зимний праздник",
-        explanation:''
+        explanation:'На картине Пеховой «Диалог или золотая уточка» изображено празднование Нового года, символом которого  является Дед Мороз.'
     }
 ]
+let galleryImages = [
+    {
+        src: "images/question1.jpg",
+        description: "Описание картины 1"
+    },
+    {
+        src: "images/question2.jpg",
+        description: "Описание картины 2"
+    },
+    {
+        src: "images/question3.jpg",
+        description: "Описание картины 3"
+    
+    },
+    {
+        src: "images/question4.jpg",
+        description: "Описание картины 4"
+    },
+    {
+        src: "images/question6.jpg",
+        description: "Описание картины 6"
+    
+    },
+    {
+        src: "images/question7.jpg",
+        description: "Описание картины 7"
+    },
+    
+    {
+        src: "images/question9.jpg",
+        description: "Описание картины 9"
+    
+    },
+    {
+        src: "images/question12.jpg",
+        description: "Описание картины 12"
+    },
+    {
+        src: "images/question41.jpg",
+        description: "Описание картины 41"
+    
+    },
+    {
+        src: "images/question42.jpg",
+        description: "Описание картины 42"
+    },
+    {
+        src: "images/question71.jpg",
+        description: "Описание картины 71"
+    },
+    {
+        src: "images/question72.jpg",
+        description: "Описание картины 72"
+    
+    },
+    {
+        src: "images/question73.jpg",
+        description: "Описание картины 73"
+    }
+    
+];

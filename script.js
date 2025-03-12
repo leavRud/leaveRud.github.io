@@ -40,37 +40,29 @@ const contactsBtn = document.querySelector('.contacts-btn');
 const contactsInfo = document.querySelector('.contacts-info');
 const contactsInfo1 = document.querySelector('.contacts-info1');
 
-contactsBtn.addEventListener('click', () => {
-    if (contactsInfo1.classList.contains('active')) {
-        // Если блок активен, начинаем анимацию скрытия
-        resultBox.classList.add('hide-border'); // Начинаем скрывать рамку
-        contactsInfo1.classList.remove('active'); // Начинаем скрывать контакты
-        contactsInfo.classList.remove('active');
-
-        // Ждем завершения анимации (0.5s)
-        setTimeout(() => {
-            // Скрываем блок контактов полностью
-            contactsInfo.style.display = 'none';
-            contactsInfo1.style.display = 'none';
-
-            // Убираем класс hide-border, чтобы рамка вернулась в исходное состояние
-            resultBox.classList.remove('hide-border');
-        }, 500); // Время анимации
-    } else {
-        // Если блок не активен, начинаем анимацию появления
-        resultBox.classList.add('hide-border'); // Начинаем скрывать рамку
-
-        // Ждем завершения анимации скрытия рамки (0.5s)
-        setTimeout(() => {
-            // Показываем блок контактов
-            contactsInfo.style.display = 'flex';
-            contactsInfo1.style.display = 'flex';
-            contactsInfo.classList.add('active');
-            contactsInfo1.classList.add('active');
-
-            // Убираем класс hide-border, чтобы рамка появилась снова
-            resultBox.classList.remove('hide-border');
-        }, 500); // Время анимации
+// script.js (добавить в начало)
+// В начале файла после объявления переменных
+document.addEventListener('DOMContentLoaded', () => {
+    const savedState = localStorage.getItem('quizState');
+    if (savedState) {
+        const state = JSON.parse(savedState);
+        userScore = state.userScore;
+        questionCount = state.questionCount;
+        userAnswers = state.userAnswers;
+        hintUsedArray = state.hintUsedArray;
+        isQuizCompleted = state.isQuizCompleted;
+        
+        // Обновляем интерфейс
+        updateHeaderScore();
+        questionCounter(questionCount + 1);
+        
+        // Если квест был завершен, показываем результаты
+        if (isQuizCompleted) {
+            displayResultBox();
+            quizSection.classList.add('active');
+        }
+        
+        localStorage.removeItem('quizState');
     }
 });
 explanationBtn.addEventListener('click', () => {
@@ -702,3 +694,15 @@ function preloadImages() {
 
 // Вызов функции предзагрузки изображений при загрузке страницы
 window.onload = preloadImages;
+// В обработчике кнопки "Картинная галерея"
+document.getElementById('galleryBtn').addEventListener('click', () => {
+    // Сохраняем все ключевые данные
+    localStorage.setItem('quizState', JSON.stringify({
+        userScore: userScore,
+        questionCount: questionCount,
+        userAnswers: userAnswers,
+        hintUsedArray: hintUsedArray,
+        isQuizCompleted: isQuizCompleted
+    }));
+    window.location.href = 'gallery.html';
+});
