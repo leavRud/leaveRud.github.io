@@ -695,14 +695,84 @@ function preloadImages() {
 // Вызов функции предзагрузки изображений при загрузке страницы
 window.onload = preloadImages;
 // В обработчике кнопки "Картинная галерея"
-document.getElementById('galleryBtn').addEventListener('click', () => {
-    // Сохраняем все ключевые данные
-    localStorage.setItem('quizState', JSON.stringify({
-        userScore: userScore,
-        questionCount: questionCount,
-        userAnswers: userAnswers,
-        hintUsedArray: hintUsedArray,
-        isQuizCompleted: isQuizCompleted
-    }));
-    window.location.href = 'gallery.html';
+
+// Добавить в конец файла
+// В script.js добавить
+// Кнопка в блоке результатов
+const reportErrorBtn = document.createElement('button');
+reportErrorBtn.className = 'report-btn';
+reportErrorBtn.textContent = 'Сообщить об ошибке';
+document.querySelector('.buttons').appendChild(reportErrorBtn);
+
+// Элементы модального окна
+const reportModal = document.querySelector('.report-modal');
+const closeReportBtn = document.querySelector('.close-report-btn');
+
+// Обработчики
+reportErrorBtn.addEventListener('click', () => {
+    document.getElementById('reportScore').value = userScore;
+    document.getElementById('reportQuestion').value = questionCount + 1;
+    document.getElementById('reportAnswers').value = userAnswers.join('\n');
+    reportModal.style.display = 'block';
 });
+
+closeReportBtn.addEventListener('click', () => {
+    reportModal.style.display = 'none';
+});
+
+window.addEventListener('click', (e) => {
+    if (e.target === reportModal) {
+        reportModal.style.display = 'none';
+    }
+});
+
+// Обработка успешной отправки формы
+const form = document.querySelector('.report-content form');
+form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    try {
+        const response = await fetch(e.target.action, {
+            method: 'POST',
+            body: new FormData(e.target),
+            headers: { Accept: 'application/json' }
+        });
+        
+        if (response.ok) {
+            showSuccessToast();
+            reportModal.style.display = 'none';
+            form.reset();
+        } else {
+            showErrorToast();
+        }
+    } catch (error) {
+        showErrorToast();
+    }
+});
+
+function showSuccessToast() {
+    const toast = document.createElement('div');
+    toast.className = 'success-toast';
+    toast.innerHTML = `
+        <div class="toast-content">
+            <span class="toast-message">Отчёт успешно отправлен!</span>
+        </div>
+    `;
+    
+    document.body.appendChild(toast);
+    
+    setTimeout(() => {
+        toast.remove();
+    }, 3000);
+}
+
+function showErrorToast() {
+    const toast = document.createElement('div');
+    toast.className = 'error-toast'; // Добавьте аналогичные стили для ошибок
+    toast.textContent = 'Ошибка отправки. Попробуйте ещё раз.';
+    document.body.appendChild(toast);
+    
+    setTimeout(() => {
+        toast.remove();
+    }, 3000);
+}
