@@ -124,6 +124,7 @@
                         <p>Cайт с квизом из 10 вопросов сделанный для картинной галереи МОУ "Державинский лицей"</p>
                         <p>Нажмите на кнопку снизу чтобы начать тест и проверить свои знания, а может и узнать много интересного</p>
                         <button id="startBtn" class="start-btn">Начать квиз</button>
+                        <button class="gallery-btn" title="Неполная галерея">Картинная галерея</button>
                     </div>
                 </section>
             </div>
@@ -209,6 +210,25 @@
                     <button type="submit">Отправить</button>
                 </form>
             </div>
+        </div>
+        <div class="gallery-modal">
+            <span class="gallery-close-btn">&times;</span>
+            <div class="gallery-container">
+                <h2>Картинная галерея квиза</h2>
+                <p id="galleryDescription">ℹ️ Здесь все картины что используются в квизе. Нажми на картину чтобы узнать интересные факты!</p>
+                <div class="gallery-grid" id="galleryGrid"></div>
+                <button class="close-gallery-btn">Закрыть галерею</button>
+            </div>
+        </div>
+        <div class="image-modal">
+            <span class="close-image-modal">&times;</span>
+            <div class="image-modal-content">
+                <img class="modal-image" src="" alt="">
+                <p class="image-description"></p>
+            </div>
+        </div>
+        <div class="loading-spinner">
+            <div class="spinner"></div>
         </div>
         <div class="notification-container"></div>
         <script src="questions.js"></script>

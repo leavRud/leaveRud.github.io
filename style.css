@@ -235,7 +235,7 @@ body {
 }
 
 .home-content .start-btn:hover {
-    background: #000;
+    background: transparent;
     color: #fff;
     box-shadow: none;
 }
@@ -724,7 +724,7 @@ button, .option {
 }
 .quiz-box {
     min-height: 400px; /* Убедитесь, что высота достаточная для отображения заголовка */
-    overflow-y: auto; /* Включаем прокрутку, если контент не помещается */
+   
 }
 .quiz-section .quiz-box.active {
     opacity: 1;
@@ -1629,177 +1629,6 @@ overflow
     background: #5A3A6C;
     color: #fff;
 }
-.gallery-header {
-    padding: 20px;
-    background: #5A3A6C;
-    color: white;
-    text-align: center;
-    position: relative;
-}
-
-/* В style.css */
-.back-btn {
-    position: absolute;
-    left: 20px;
-    top: 50%;
-    transform: translateY(-50%);
-    color: white;
-    text-decoration: none;
-    font-weight: bold;
-    font-size: 24px; /* Увеличиваем размер символа */
-    z-index: 1001;
-    padding: 10px;
-    background: rgba(255, 255, 255, 0.1); /* Легкий фон для кнопки */
-    border-radius: 50%; /* Делаем круглую кнопку */
-    width: 40px; /* Фиксированная ширина */
-    height: 40px; /* Фиксированная высота */
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: background 0.3s ease;
-}
-
-.back-btn:hover {
-    background: rgba(255, 255, 255, 0.2); /* Эффект при наведении */
-}
-@media (max-width: 768px) {
-    .back-btn {
-        font-size: 20px; /* Уменьшаем размер символа на мобильных */
-        width: 35px;
-        height: 35px;
-    }
-}
-.back-btn i {
-    font-size: 24px; /* Размер иконки */
-}
-/* В style.css */
-.gallery-container {
-    padding: 20px;
-    margin: 0 auto; /* Центрируем контейнер */
-    overflow-y: auto;
-    overflow-x: hidden;
-    height: calc(100vh - 75px); /* Высота контейнера с учетом заголовка */
-     /* Ограничиваем максимальную ширину */
-    width: 100%; /* Ширина контейнера */
-}
-.gallery-body{
-    background: url("images/background.jpg");
-    background-size: cover;
-}
-.gallery-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-    gap: 20px;
-    padding: 20px;
-    width: 100%;
-    /* Включаем прокрутку внутри сетки */
-    max-height: calc(100vh - 200px); /* Ограничиваем высоту сетки */
-}
-
-/* style.css */
-.gallery-item {
-    overflow: hidden;
-    border-radius: 8px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    cursor: pointer;
-    opacity: 0;
-    transform: translateY(20px);
-    animation: fadeInUp 0.8s ease-out forwards;
-    /* Добавляем отдельный transition для hover */
-    transition: 
-        transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94),
-        box-shadow 0.3s ease !important; /* Приоритет */
-    will-change: transform; /* Оптимизация */
-}
-
-.gallery-item:hover {
-    transform: scale(1.05) translateZ(0); /* translateZ для аппаратного ускорения */
-    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
-    z-index: 1; /* Поднимаем элемент над другими */
-}
-
-@keyframes fadeInUp {
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-@media (max-width: 768px) {    
-    .gallery-header h1{
-        font-size: 28px;
-    }
-}
-
-
-.gallery-item img {
-    width: 100%;
-    height: 300px;
-    object-fit: cover;
-    display: block;
-}
-
-/* Адаптация для мобильных устройств */
-@media (max-width: 768px) {
-    .gallery-grid {
-        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-    }
-
-    .gallery-container {
-        height: calc(100vh - 80px); /* Уменьшаем высоту для мобильных */
-    }
-}
-
-.gallery-description {
-    text-align: center; /* Центрируем текст */
-    margin: 0 auto; /* Центрируем контейнер по горизонтали */
-    margin-bottom: 30px;
-    font-size: 1.1em;
-    color: #333;
-    padding: 15px;
-    background: #f8f8f8;
-    border-radius: 8px;
-    max-width: 800px; /* Ограничиваем максимальную ширину */
-    width: 90%; /* Ширина контейнера */
-}
-
-.gallery-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-    gap: 20px;
-    padding: 20px;
-    
-}
-
-
-
-/* Модальное окно галереи */
-.gallery-modal {
-    display: none;
-    position: fixed;
-    z-index: 1000;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0,0,0,0.9);
-    padding-top: 60px;
-}
-
-.modal-content {
-    margin: auto;
-    display: block;
-    max-width: 80%;
-    max-height: 80vh;
-    border-radius: 8px;
-}
-
-.image-description {
-    color: white;
-    text-align: center;
-    padding: 20px;
-    max-width: 600px;
-    margin: 15px auto;
-}
 
 .close-btn {
     position: absolute;
@@ -2015,3 +1844,519 @@ overflow
     to { width: 0%; }
 }
 
+/* Стили галереи */
+.gallery-btn {
+    width: 190px;
+    height: 55px;
+    background: #5A3A6C;
+    border: 1px solid #fff;
+    color: #fff;
+    font-size: 18px;
+    border-radius: 8px;
+    margin-top: 20px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.gallery-btn:hover {
+    background: transparent;
+
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+}
+
+.gallery-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.95);
+    z-index: 1000;
+    overflow-y: auto;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+.gallery-modal.active {
+    display: block;
+    opacity: 1;
+    animation: fadein 0.3s ease;
+}
+
+.gallery-container {
+    padding: 40px 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+    animation: slideUp 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.gallery-container h2 {
+    color: #fff;
+    text-align: center;
+    margin-bottom: 30px;
+    font-size: 3em;
+    font-family: 'Pacifico', sans-serif;
+
+}
+.gallery-container p {
+    color: #fff;
+    text-align: center;
+    margin-bottom: 10px;
+}
+
+.gallery-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 25px;
+    padding: 20px;
+}
+
+.gallery-item {
+    border-radius: 10px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: transform 0.3s ease;
+    position: relative;
+    opacity: 0;
+    transform: translateY(20px);
+    animation: itemAppear 0.5s ease forwards;
+    position: relative;
+    overflow: visible;
+}
+
+.gallery-item img {
+    width: 100%;
+    height: 300px;
+    object-fit: cover;
+    border-radius: 8px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.gallery-item:hover img {
+    transform: scale(1.05);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+}
+.gallery-item:hover::after {
+    content: attr(data-description);
+    position: absolute;
+    bottom: -40px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0,0,0,0.8);
+    color: white;
+    padding: 8px 15px;
+    border-radius: 6px;
+    font-size: 14px;
+    white-space: nowrap;
+    pointer-events: none;
+    z-index: 100;
+}
+.gallery-item:hover {
+    transform: scale(1.03);
+}
+
+.close-gallery-btn {
+    display: block;
+    margin: 30px auto;
+    padding: 12px 35px;
+    background: #e05330;
+    border: none;
+    border-radius: 8px;
+    color: white;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+/* Стили модального окна картины */
+.image-modal {
+    display: none;
+    position: fixed;
+    display: none;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.9);
+    z-index: 1001;
+    opacity: 0;
+    transform: scale(0.8);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.image-modal.active {
+    opacity: 1;
+    transform: scale(1);
+}
+@keyframes fadein {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+.image-modal-content {
+    /* существующие стили */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+    
+    position: relative;
+    padding: 20px;
+    border-radius: 10px;
+    max-width: 90%;
+    margin: 20px auto;
+    pointer-events: none; /* Отключаем взаимодействие с самой оберткой */
+    
+}
+
+
+@keyframes slideUp {
+    from {
+        transform: translateY(100vh);
+    }
+    to {
+        transform: translateY(0);
+    }
+}
+.modal-image {
+    max-width: 100%;
+    max-height: 70vh;
+    border-radius: 8px;
+    margin-top: 3vh;
+}
+.modal-image, 
+.image-description {
+    pointer-events: auto; /* Включаем взаимодействие с контентом */
+}
+
+@keyframes itemAppear {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+.image-description {
+    color: #fff;
+    font-size: 1.2em;
+    text-align: center;
+    max-width: 80%;
+    padding: 15px;
+    background: rgba(0,0,0,0.7);
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+@media (max-width: 768px) {
+    .gallery-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .gallery-item img {
+        height: 250px;
+    }
+    
+    .gallery-container h2 {
+        font-size: 2em;
+    }
+}
+.gallery-item:nth-child(1) { animation-delay: 0.1s; }
+.gallery-item:nth-child(2) { animation-delay: 0.2s; }
+.gallery-item:nth-child(3) { animation-delay: 0.3s; }
+.gallery-item:nth-child(4) { animation-delay: 0.4s; }
+.gallery-item:nth-child(5) { animation-delay: 0.5s; }
+.gallery-item:nth-child(6) { animation-delay: 0.6s; }
+.gallery-item:nth-child(7) { animation-delay: 0.7s; }
+.gallery-item:nth-child(8) { animation-delay: 0.8s; }
+.gallery-item:nth-child(9) { animation-delay: 0.9s; }
+.gallery-item:nth-child(10) { animation-delay: 1.0s; }
+.gallery-item:nth-child(11) { animation-delay: 1.1s; }
+.gallery-item:nth-child(12) { animation-delay: 1.2s; }
+.gallery-item:nth-child(13) { animation-delay: 1.3s; }
+
+.loading-spinner {
+    display: none;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 1000;
+}
+
+.spinner {
+    width: 50px;
+    height: 50px;
+    border: 5px solid #f3f3f3;
+    border-top: 5px solid #e05330;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+.image-modal {
+    transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.image-modal.active {
+    opacity: 1;
+    transform: scale(1);
+}
+.close-image-modal {
+    position: absolute;
+    right: 20px;
+    top: 20px;
+    cursor: pointer;
+    color: white;
+    font-size: 40px;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+    transition: 0.3s;
+    z-index: 1001;
+}
+
+.close-image-modal:hover {
+    color: #e05330;
+    transform: scale(1.1);
+}
+
+.image-modal-content {
+    position: relative;
+    margin-top: 60px; /* Добавили отступ сверху для кнопки */
+}
+.gallery-close-btn {
+    position: fixed;
+    right: 35px;
+    top: 20px;
+    color: white;
+    font-size: 40px;
+    cursor: pointer;
+    z-index: 1001;
+    transition: 0.3s;
+}
+
+.gallery-close-btn:hover {
+    color: #e05330;
+    transform: scale(1.1);
+}
+
+/* Адаптация для мобильных */
+@media (max-width: 768px) {
+    .gallery-close-btn {
+        right: 20px;
+        top: 10px;
+        font-size: 35px;
+    }
+}
+/* Добавляем анимацию блокировки */
+/* Стили для заблокированного описания */
+.locked-description {
+    background: rgba(255, 0, 0, 0.15);
+    padding: 15px;
+    border-radius: 8px;
+    border: 2px solid #ff4444;
+    margin-top: 15px;
+}
+
+.lock-icon {
+    color: #ff4444;
+    font-size: 1.3em;
+    margin-right: 8px;
+    animation: pulse 1.5s infinite;
+}
+
+.locked-text {
+    color: #ff9999;
+    font-weight: 500;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+}
+
+/* Для обычного описания */
+.image-description {
+    color: #fff;
+    font-size: 1.1em;
+    line-height: 1.6;
+    padding: 15px;
+    background: rgba(0, 0, 0, 0.7);
+    border-radius: 8px;
+    margin-top: 15px;
+    max-width: 90%;
+}
+/* Модальное окно изображения */
+.image-modal {
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+    overflow-y: auto; /* Добавляем прокрутку для всего модального окна */
+}
+
+.image-modal-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+    max-height: 90vh; /* Ограничиваем высоту контента */
+    width: 100%;
+}
+
+.modal-image {
+    max-width: 100%;
+    max-height: 60vh; /* Уменьшаем максимальную высоту изображения */
+    object-fit: contain; /* Гарантируем, что изображение полностью видно */
+    margin-top: 20px;
+}
+
+.image-description {
+    color: #fff;
+    font-size: 1.1em;
+    line-height: 1.4;
+    padding: 15px;
+    background: rgba(0, 0, 0, 0.7);
+    border-radius: 8px;
+    max-width: 90%;
+    max-height: 30vh; /* Ограничиваем высоту описания */
+    overflow-y: auto; /* Добавляем прокрутку для длинного текста */
+    margin-bottom: 20px;
+}
+
+/* Адаптация для мобильных устройств */
+@media (max-width: 768px) {
+    .modal-image {
+        max-height: 50vh; /* Уменьшаем высоту изображения */
+    }
+    
+    .image-description {
+        font-size: 0.9em; /* Уменьшаем размер шрифта */
+        max-height: 25vh; /* Уменьшаем высоту блока описания */
+        padding: 10px;
+    }
+    
+    .image-modal-content {
+        gap: 10px; /* Уменьшаем расстояние между элементами */
+    }
+}
+
+/* Для заблокированного описания добавьте */
+.locked-description {
+    max-height: 20vh; /* Еще меньше высота для заблокированного контента */
+}
+/* Добавить в style.css */
+.gallery-modal.active {
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    overflow-y: auto;
+}
+
+/* Запретить прокрутку основного контента */
+body.gallery-open {
+    overflow: hidden;
+    position: fixed;
+    width: 100%;
+    height: 100%;
+}
+/* Стиль по умолчанию (квест не пройден) */
+.gallery-btn {
+    background: #5A3A6C;
+    border: 2px solid #5A3A6C;
+    color: #fff;
+    opacity: 0.7;
+    cursor: pointer;
+}
+
+/* Стиль когда квест пройден */
+.gallery-btn.completed {
+    background: #e05330;
+    border: 2px solid #fff;
+    opacity: 1;
+    cursor: pointer;
+    animation: pulse-glow 1.5s infinite;
+}
+
+@keyframes pulse-glow {
+    0% { box-shadow: 0 0 5px rgba(224, 83, 48, 0.4); }
+    50% { box-shadow: 0 0 20px rgba(224, 83, 48, 0.8); }
+    100% { box-shadow: 0 0 5px rgba(224, 83, 48, 0.4); }
+}
+/* Стили для описания галереи */
+#galleryDescription {
+    transition: all 0.3s ease;
+    padding: 15px;
+    border-radius: 8px;
+    margin: 20px auto;
+    max-width: 80%;
+}
+
+/* Стиль когда квест не пройден */
+#galleryDescription.locked {
+    background: rgba(255, 255, 255, 0.1);
+    border: 2px solid #5A3A6C;
+    color: #ffffff;
+}
+
+/* Стиль когда квест пройден */
+#galleryDescription.unlocked {
+    background: rgba(224, 83, 48, 0.2);
+    border: 2px solid #e05330;
+    color: #ffd700;
+    box-shadow: 0 0 15px rgba(224, 83, 48, 0.4);
+}
+/* Стили для тоста-достижения */
+.unlock-toast {
+    position: fixed;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: linear-gradient(135deg, #5A3A6C 0%, #e05330 100%);
+    color: #fff;
+    padding: 20px 35px;
+    border-radius: 15px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+    z-index: 10000;
+    border: 2px solid rgba(255,255,255,0.2);
+}
+
+.unlock-toast.active {
+    opacity: 1;
+    visibility: visible;
+    bottom: 50px;
+}
+
+.unlock-toast::before {
+    content: '🎉';
+    font-size: 28px;
+    filter: drop-shadow(0 2px 5px rgba(0,0,0,0.3));
+}
+
+.unlock-toast::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    height: 4px;
+    background: rgba(255,255,255,0.3);
+    border-radius: 0 0 15px 15px;
+    animation: progress 3s linear forwards;
+}
+
+@keyframes progress {
+    from { width: 100%; }
+    to { width: 0%; }
+}

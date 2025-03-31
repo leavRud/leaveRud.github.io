@@ -14,7 +14,7 @@ const xCloseBtn = document.querySelector('.x-close-btn');
 let isQuizStarted = false;
 const hintBtn = document.getElementById('hint-btn');
 let currentQuestionIndex = 0;
-const imageModal = document.getElementById('imageModal');
+let isQuizCompletedres = false
 const closeModalBtn = document.getElementById('closeModalBtn');
 const modalImage = document.getElementById('modalImage');
 const quizheader = document.getElementById('quiz-header');
@@ -39,7 +39,7 @@ const buttonsContainer = document.querySelector('.buttons-container');
 const contactsBtn = document.querySelector('.contacts-btn');
 const contactsInfo = document.querySelector('.contacts-info');
 const contactsInfo1 = document.querySelector('.contacts-info1');
-
+const unlockSound = new Audio('sounds/unlock.mp3'); 
 // script.js (добавить в начало)
 // В начале файла после объявления переменных
 document.addEventListener('DOMContentLoaded', () => {
@@ -64,6 +64,8 @@ document.addEventListener('DOMContentLoaded', () => {
         
         localStorage.removeItem('quizState');
     }
+    updateGalleryButtonState();
+    updateGalleryDescription();
 });
 explanationBtn.addEventListener('click', () => {
     const currentQuestion = questions[questionCount];
@@ -95,6 +97,16 @@ explanationBtn.addEventListener('click', () => {
             img.style.borderRadius = '10px';
             explanationImageContainer.appendChild(img);
             xCloseBtn.style.display = 'none'; // Добавляем изображение в контейнер
+        }
+        if (currentQuestion.explanationImage) {
+            const img = document.createElement('img');
+            img.src = currentQuestion.explanationImage;
+            img.style.maxWidth = '90%';
+            img.style.maxHeight = '80%';
+            img.style.margin = '10px';
+            img.style.borderRadius = '10px';
+            explanationImageContainer.innerHTML = ''
+            explanationImageContainer.appendChild(img);
         }
         xCloseBtn.style.display = 'none';
         explanationText.textContent = currentQuestion.explanation;
@@ -212,13 +224,17 @@ tryAgainBtn.onclick = () => {
     // Меняем текст кнопки на "Начать квиз"
     const startBtn = document.getElementById('startBtn');
     startBtn.textContent = 'Начать квиз';
+    isQuizCompleted = false;
+    updateGalleryButtonState();
+    updateGalleryDescription();
+    localStorage.removeItem('galleryUnlocked');
 };
 
 homepageBtn.onclick = () => {
     savedUserScore = userScore; // Сохраняем текущий счет
     quizSection.classList.remove('active');
     resultBox.classList.remove('active');
-    isQuizCompleted = false; // Сбрасываем флаг завершения квеста
+    
 };
 
 xCloseBtn.onclick = () => {
@@ -393,15 +409,13 @@ if (questions[index].images && Array.isArray(questions[index].images)) {
 }
 
 // При выходе на главную страницу сохраняем текущее состояние
-homepageBtn.onclick = () => {
-    savedUserScore = userScore; // Сохраняем текущий счет
-    quizSection.classList.remove('active');
-    resultBox.classList.remove('active');
-    isQuizCompleted = false; // Сбрасываем флаг завершения квеста
-};
+
 
 // При возвращении на страницу квиза восстанавливаем состояние
 startBtn.onclick = () => {
+    if (isQuizCompletedres){
+
+    }
     if (isQuizStarted) {
         quizSection.classList.add('active');
         quizBox.classList.add('active');
@@ -505,6 +519,15 @@ function displayResultBox() {
     }, speed);
 
     isQuizCompleted = true;
+    isQuizCompletedres = true
+    if (!localStorage.getItem('galleryUnlocked')) {
+        showGalleryUnlockToast();
+        localStorage.setItem('galleryUnlocked', 'true');
+    }
+    updateGalleryButtonState();
+    updateGalleryDescription(); // Добавить
+    if (document.querySelector('.gallery-modal.active')) {
+        initGallery();}
 }
 // Получаем кнопку "Сохранить результат"
 const saveResultBtn = document.querySelector('.save-result-btn');
@@ -646,18 +669,6 @@ window.addEventListener('click', (e) => {
     }
 });
 
-// Закрытие модального окна при клике вне его
-window.addEventListener('click', (event) => {
-    if (event.target === imageModal) {
-        imageModal.classList.remove('show');
-        imageModal.classList.add('fade-out');
-        
-        setTimeout(() => {
-            imageModal.style.display = 'none';
-            imageModal.classList.remove('fade-out');
-        }, 500);
-    }
-});
 
 
 
@@ -775,4 +786,162 @@ function showErrorToast() {
     setTimeout(() => {
         toast.remove();
     }, 3000);
+}
+
+
+// Добавить в начало файла
+const galleryBtn = document.querySelector('.gallery-btn');
+const galleryModal = document.querySelector('.gallery-modal');
+const closeGalleryBtn = document.querySelector('.close-gallery-btn');
+const imageModal = document.querySelector('.image-modal');
+const closeImageModal = document.querySelector('.close-image-modal');
+
+// Инициализация галереи
+function initGallery() {
+    const galleryGrid = document.getElementById('galleryGrid');
+    galleryGrid.innerHTML = '';
+    
+    galleryImages.forEach((image, index) => {
+        const galleryItem = document.createElement('div');
+        galleryItem.className = 'gallery-item';
+        galleryItem.innerHTML = `<img src="${image.src}" alt="${image.description}">`;
+        
+        galleryItem.addEventListener('click', () => {
+            
+            // Добавьте проверку на существование элементов
+            const modal = document.querySelector('.image-modal');
+            const modalImg = modal.querySelector('.modal-image');
+            const desc = modal.querySelector('.image-description');
+            
+            if (modalImg && desc) {
+                modalImg.src = image.src;
+                if (isQuizCompleted) {
+                    desc.textContent = image.description;
+                    desc.classList.remove('locked-description');
+                } else {
+                    desc.innerHTML = '<span class="lock-icon">🔒</span><span class="locked-text"> Пройди квиз до конца, чтобы открыть описание!</span>';
+                    desc.classList.add('locked-description');
+                }
+                modal.style.display = 'block';
+                
+                setTimeout(() => {
+                    modal.classList.add('active');
+                }, 50);
+            }
+            modal.addEventListener('click', function modalClickHandler(event) {
+                // Проверяем, что кликнули именно на фон (а не на содержимое)
+                const content = modal.querySelector('.image-modal-content');
+                const isClickInside = content.contains(event.target);
+                if (!isClickInside) { // Клик вне контента
+                    modal.classList.remove('active');
+                    setTimeout(() => {
+                        modal.style.display = 'none';
+                    }, 300);
+                    
+                    modal.removeEventListener('click', modalClickHandler);
+                }
+            });
+        });
+        
+        galleryGrid.appendChild(galleryItem);
+    });
+}
+
+// Добавьте обработчик закрытия модального окна
+document.querySelector('.close-image-modal').addEventListener('click', () => {
+    const modal = document.querySelector('.image-modal');
+    modal.classList.remove('active');
+    setTimeout(() => {
+        modal.style.display = 'none';
+    }, 300);
+});
+
+// Обработчики событий
+galleryBtn.addEventListener('click', () => {
+    document.body.classList.add('gallery-open'); // Добавить класс
+    galleryModal.classList.add('active');
+    initGallery();
+});
+
+// Общая функция закрытия галереи
+function closeGallery() {
+    document.body.classList.remove('gallery-open'); // Убрать класс
+    galleryModal.classList.remove('active');
+}
+
+// Обработчики для всех способов закрытия
+document.querySelector('.gallery-close-btn').addEventListener('click', closeGallery);
+document.querySelector('.close-gallery-btn').addEventListener('click', closeGallery);
+
+// Закрытие по клику вне контента
+document.querySelector('.gallery-modal').addEventListener('click', (e) => {
+    if (e.target.classList.contains('gallery-modal')) {
+        closeGallery();
+    }
+});
+closeGalleryBtn.addEventListener('click', closeGallery);
+
+function openImageModal(src, description) {
+    document.querySelector('.modal-image').src = src;
+    document.querySelector('.image-description').textContent = description;
+    imageModal.classList.add('active');
+}
+
+
+galleryGrid.addEventListener('click', (e) => {
+    if (e.target.tagName === 'IMG') {
+        const img = galleryImages.find(i => i.src === e.target.src);
+        if (img) openImageModal(img.src, img.description);
+    }
+});
+// Стало
+window.addEventListener('click', (e) => {
+    if (e.target === imageModal) {
+        const modal = document.querySelector('.image-modal');
+        modal.classList.remove('active');
+        setTimeout(() => {
+            modal.style.display = 'none';
+        }, 300);
+    }
+});
+function updateGalleryButtonState() {
+    const galleryBtn = document.querySelector('.gallery-btn');
+    if (isQuizCompleted) {
+        galleryBtn.classList.add('completed');
+        galleryBtn.title = "Галерея доступна!";
+    } else {
+        galleryBtn.classList.remove('completed');
+        galleryBtn.title = "Пройдите квест для доступа";
+    }
+}
+function updateGalleryDescription() {
+    const galleryDesc = document.getElementById('galleryDescription');
+    
+    if (isQuizCompleted) {
+        galleryDesc.textContent = "🎉 Поздравляем! Теперь вы можете видеть эксклюзивные описания картин. Нажмите на любую картину, чтобы узнать интересные факты!";
+        galleryDesc.classList.remove('locked');
+        galleryDesc.classList.add('unlocked');
+    } else {
+        galleryDesc.textContent = "🔒 Пройдите весь квест до конца, чтобы разблокировать подробные описания картин. Сейчас доступен только предпросмотр!";
+        galleryDesc.classList.remove('unlocked');
+        galleryDesc.classList.add('locked');
+    }
+}
+function showGalleryUnlockToast() {
+    const toast = document.createElement('div');
+    toast.className = 'unlock-toast active';
+    toast.innerHTML = `
+        <div class="toast-content">
+            <strong>Достижение разблокировано!</strong>
+            <p>Полная версия галереи теперь доступна</p>
+        </div>
+    `;
+    if (unlockSound) unlockSound.play();
+    document.body.appendChild(toast);
+    
+    // Автоматическое скрытие через 4 секунды
+    setTimeout(() => {
+        toast.classList.remove('active');
+        setTimeout(() => toast.remove(), 500);
+    }, 4000);
 }
