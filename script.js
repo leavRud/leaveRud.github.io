@@ -830,7 +830,7 @@ function initGallery() {
             const modal = document.querySelector('.image-modal');
             const modalImg = modal.querySelector('.modal-image');
             const desc = modal.querySelector('.image-description');
-            
+            modalImg.style.display = 'flex';
             if (modalImg && desc) {
                 modalImg.src = image.src;
                 if (isQuizCompleted) {

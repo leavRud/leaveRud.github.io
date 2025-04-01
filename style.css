@@ -489,6 +489,7 @@ button, .option {
 }
 /* Картинка внутри модального окна */
 #modalImage {
+    
     max-width: 90%;
     max-height: 90%;
     border-radius: 10px;
@@ -1116,7 +1117,7 @@ button, .option {
         transform: translateY(0);
     }
 }
-overflow
+.modal-image
 
 .hint-text {
     display: none; /* Скрыт по умолчанию */
@@ -2154,6 +2155,7 @@ overflow
     }
 }
 .modal-image {
+    
     max-width: 100%;
     max-height: 70vh;
     border-radius: 8px;
@@ -2325,7 +2327,7 @@ overflow
 }
 /* Модальное окно изображения */
 .image-modal {
-    display: flex;
+    display: none;
     flex-direction: column;
     padding: 20px;
     overflow-y: auto; /* Добавляем прокрутку для всего модального окна */
@@ -2341,6 +2343,7 @@ overflow
 }
 
 .modal-image {
+    display: none;
     max-width: 100%;
     max-height: 60vh; /* Уменьшаем максимальную высоту изображения */
     object-fit: contain; /* Гарантируем, что изображение полностью видно */
