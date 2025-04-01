@@ -519,34 +519,84 @@ button, .option {
 
 /* Стили для экрана с пояснением */
 .explanation-modal {
-    display: none; /* Скрыт по умолчанию */
+    display: none;
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(12, 12, 12, 0.815); /* Темный фон */
+    background: rgba(12, 12, 12, 0.9);
     justify-content: center;
     align-items: center;
-    z-index: 1001; /* Выше всех элементов */
-    animation: fadeInExplanation 0.5s ease;
-    overflow: hidden; /* Убираем ползунок */
+    z-index: 1001;
+    opacity: 0;
+    transition: opacity 0.3s ;
+    perspective: 1000px;
+}
+.explanation-modal.active {
+    display: flex;
+    opacity: 1;
 }
 
+.explanation-modal.active {
+    display: flex; 
+    opacity: 1;
+    transform: translateY(0);
+    animation: explanationSlideIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
 /* Контент внутри экрана с пояснением */
 .explanation-content {
     background: #fff;
     padding: 20px;
+    position: relative;
+    transform: translateY(20px);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     border-radius: 10px;
     text-align: center;
     max-width: 90%;
     max-height: 90%;
     overflow-y: auto;
-    animation: slideIn 0.5s ease; /* Анимация появления */
+
     display: flex;
     flex-direction: column;
     align-items: center;
-    
+    transform-origin: center center;
+    will-change: transform, opacity;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+}
+@keyframes explanationSlideIn {
+    0% {
+        opacity: 0;
+        transform: translateY(-50px) scale(0.95);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+@keyframes explanationSlideOut {
+    0% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+    100% {
+        opacity: 0;
+        transform: translateY(50px) scale(0.95);
+    }
+}
+@keyframes contentScaleIn {
+    0% {
+        opacity: 0;
+        transform: scale(0.8);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+.explanation-modal.active .explanation-content {
+    transform: translateY(0);
+    animation: contentScaleIn 0.3s 0.1s ease-out both;
 }
 /* Скрываем крестик, когда активно модальное окно с пояснением */
 .explanation-modal.active ~ .x-close-btn {
@@ -590,22 +640,54 @@ button, .option {
 
 /* Кнопка "Вернуться" */
 .close-explanation-btn {
-    width: 150px;
-    height: 45px;
+    width: 160px;
+    height: 48px;
     background: #e05330;
     border: none;
-    border-radius: 6px;
+    border-radius: 8px;
     color: #fff;
     font-size: 16px;
     font-weight: 600;
     cursor: pointer;
-    transition: 0.3s ease;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+    margin-top: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
 }
 
 .close-explanation-btn:hover {
     background: #AD3A29;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(224, 83, 48, 0.4);
 }
-
+.close-explanation-btn:active {
+    transform: translateY(0);
+}
+.close-explanation-btn::after {
+    content: '←';
+    font-size: 18px;
+    transition: transform 0.3s ease;
+}
+.explanation-modal.fade-out {
+    animation: explanationSlideOut 0.3s cubic-bezier(0.6, -0.3, 0.735, 0.045) forwards;
+}
+.explanation-modal.fade-out .explanation-content {
+    animation: contentScaleOut 0.2s ease-in forwards;
+}
+@keyframes contentScaleOut {
+    from {
+        transform: scale(1);
+        opacity: 1;
+    }
+    to {
+        transform: scale(0.8);
+        opacity: 0;
+    }
+}
 /* Анимация появления */
 @keyframes fadeIn {
     from {
@@ -636,7 +718,7 @@ button, .option {
     display: flex;
     align-items: center;
     justify-content: center;
-    background: #5A3A6C; /* Фиолетовый цвет */
+    background:  #4A2A5C; /* Фиолетовый цвет */
     border: none;
     border-radius: 6px;
     color: #fff;
@@ -645,31 +727,68 @@ button, .option {
     cursor: pointer;
     transition: background 0.3s ease, transform 0.2s ease;
     margin-right: 10px; /* Отступ от кнопки "Следующий" */
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
 }
 .explanation-btn:disabled {
-    background: #5A3A6C80; /* Полупрозрачный фиолетовый */
-    cursor: not-allowed; /* Курсор "недоступно" */
-    opacity: 0.6; /* Тусклый вид */
+    background: rgba(90, 58, 108, 0.3) !important;
+    color: rgba(255, 255, 255, 0.5) !important;
+    cursor: not-allowed;
+    transform: scale(0.95);
+    border: 2px dashed rgba(255, 255, 255, 0.2);
 }
-
-
-
+.explanation-btn:disabled:before {
+    content: "✋ Ответь на вопрос сначала!";
+    position: absolute;
+    top: -30px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #e05330;
+    color: white;
+    padding: 5px 10px;
+    border-radius: 6px;
+    font-size: 12px;
+    white-space: nowrap;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+.explanation-btn:disabled:hover:before {
+    opacity: 1;
+    top: -40px;
+}
+.explanation-btn:disabled:after {
+    content: "🔒";
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    filter: drop-shadow(0 2px 2px rgba(0,0,0,0.3));
+}
 .explanation-btn:hover {
-    background: #4A2A5C; /* Темный фиолетовый */
+    background: #402551;
+    transform: translateY(-2px);
+    transition: 0.3s ease;
 }
-
+@media (max-width: 768px) {
+    .explanation-btn:disabled:before {
+        content: "Ответь сначала!";
+        font-size: 10px;
+        padding: 3px 6px;
+    }
+    .explanation-btn{
+        margin-right: 0px;
+    }
+}
 .explanation-btn:active {
     transform: translateY(0);
 }
-@keyframes fadeInExplanation {
-    from {
-        opacity: 0;
-        transform: translateY(20px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+
+.explanation-modal {
+    will-change: opacity;
+}
+.explanation-content {
+    will-change: transform;
 }
 
 
@@ -718,7 +837,7 @@ button, .option {
     transition: .3s ease;
     transition-delay: 0s;
     min-height: 400px;
-    overflow-y: auto;
+    
     box-sizing: border-box;
     margin-top: 20px; /* Добавьте отступ сверху, если нужно */
 }
@@ -1208,11 +1327,25 @@ overflow
     
     overflow: visible !important; /* Разрешаем отображение всего контента */
 }
-.score-text, .circular-progress {
+.circular-progress {
     opacity: 1 !important;
     visibility: visible !important;
+    transform: none !important;
 }
 
+.progress-value {
+    opacity: 1 !important;
+    visibility: visible !important;
+    z-index: 2 !important;
+}
+.circular-progress::before {
+    content: '' !important;
+    position: absolute !important;
+    width: 210px !important;
+    height: 210px !important;
+    background: #5A3A6C !important;
+    border-radius: 50% !important;
+}
 
 
 .quiz-section .result-box.active {

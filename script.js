@@ -68,6 +68,8 @@ document.addEventListener('DOMContentLoaded', () => {
     updateGalleryDescription();
 });
 explanationBtn.addEventListener('click', () => {
+    explanationModal.style.display = 'flex';  
+    explanationModal.classList.add('active');
     const currentQuestion = questions[questionCount];
     const xCloseBtn = document.querySelector('.x-close-btn');
     if (currentQuestion.explanation) {
@@ -110,19 +112,29 @@ explanationBtn.addEventListener('click', () => {
         }
         xCloseBtn.style.display = 'none';
         explanationText.textContent = currentQuestion.explanation;
-        explanationModal.style.display = 'flex';
+        
+
     }
 });
 
 // Обработчик для кнопки "Вернуться"
 closeExplanationBtn.addEventListener('click', () => {
     explanationModal.classList.add('fade-out');
-    const xCloseBtn = document.querySelector('.x-close-btn'); // Добавляем анимацию исчезновения
+    explanationModal.classList.remove('active');
+    
     setTimeout(() => {
-        explanationModal.style.display = 'none'; // Скрываем модальное окно
+        explanationModal.style.display = 'none';
         explanationModal.classList.remove('fade-out');
-        xCloseBtn.style.display = 'block'; // Убираем класс анимации
-    }, 500); // Время анимации
+        // Сбрасываем стили после анимации
+        explanationModal.style.opacity = '0';
+        explanationModal.style.transform = 'translateY(50px) scale(0.95)';
+    }, 300); // Время должно совпадать с длительностью анимации
+    
+    // Возвращаем исходные параметры через 500мс
+    setTimeout(() => {
+        explanationModal.style.opacity = '';
+        explanationModal.style.transform = '';
+    }, 500);
 });
 
 // Закрытие экрана с пояснением при клике вне контента
@@ -536,44 +548,50 @@ const saveResultBtn = document.querySelector('.save-result-btn');
 // script.js
 function saveResultAsImage() {
     const resultBox = document.querySelector('.result-box');
-    const originalDisplay = [
-        resultBox.style.display,
-        document.querySelector('.buttons').style.display,
-        document.querySelector('.contacts-info').style.display
-    ];
+    const originalStyles = {
+        display: resultBox.style.display,
+        opacity: resultBox.style.opacity,
+        circularProgress: document.querySelector('.circular-progress').style.opacity,
+        progressValue: document.querySelector('.progress-value').style.opacity
+    };
 
-    // Показываем нужные элементы
+    // Показываем и делаем видимыми нужные элементы
     resultBox.style.display = 'block';
+    resultBox.style.opacity = '1';
     document.querySelector('.circular-progress').style.opacity = '1';
-    document.querySelector('.score-text').style.opacity = '1';
+    document.querySelector('.progress-value').style.opacity = '1';
 
-    html2canvas(resultBox, {
-        scale: 2,
-        logging: true,
-        useCORS: true,
-        backgroundColor: '#5A3A6C',
-        onclone: (clonedDoc) => {
-            // Гарантируем видимость элементов в клоне
-            clonedDoc.querySelector('.circular-progress').style.opacity = '1';
-            clonedDoc.querySelector('.score-text').style.opacity = '1';
-            clonedDoc.querySelectorAll('.buttons, .contacts-info').forEach(el => {
-                el.style.display = 'none';
-            });
-        }
-    }).then(canvas => {
-        const imgData = canvas.toDataURL('image/png');
-        const link = document.createElement('a');
-        link.href = imgData;
-        link.download = 'quiz_progress.png';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        
-        // Восстанавливаем оригинальные стили
-        resultBox.style.display = originalDisplay[0];
-        document.querySelector('.buttons').style.display = originalDisplay[1];
-        document.querySelector('.contacts-info').style.display = originalDisplay[2];
-    }).catch(e => console.error('Ошибка:', e));
+    // Ждем завершения всех анимаций
+    setTimeout(() => {
+        html2canvas(resultBox, {
+            scale: 2,
+            logging: true,
+            useCORS: true,
+            backgroundColor: '#5A3A6C',
+            onclone: (clonedDoc) => {
+                // Гарантируем видимость элементов в клоне
+                clonedDoc.querySelector('.circular-progress').style.opacity = '1';
+                clonedDoc.querySelector('.progress-value').style.opacity = '1';
+                clonedDoc.querySelectorAll('.buttons, .contacts-info').forEach(el => {
+                    el.style.display = 'none';
+                });
+            }
+        }).then(canvas => {
+            const imgData = canvas.toDataURL('image/png');
+            const link = document.createElement('a');
+            link.href = imgData;
+            link.download = 'quiz_progress.png';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            // Восстанавливаем оригинальные стили
+            resultBox.style.display = originalStyles.display;
+            resultBox.style.opacity = originalStyles.opacity;
+            document.querySelector('.circular-progress').style.opacity = originalStyles.circularProgress;
+            document.querySelector('.progress-value').style.opacity = originalStyles.progressValue;
+        }).catch(e => console.error('Ошибка:', e));
+    }, 500); // Даем время на завершение анимаций
 }
 // Функция для сохранения результата в виде текстового файла
 // Обработчик для кнопки "Поделиться"
