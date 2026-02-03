@@ -114,6 +114,17 @@ document.addEventListener('DOMContentLoaded', function() {
     if (confirmExportBtn) {
         debounceButtonClick(confirmExportBtn, confirmExport);
     }
+    setupMobileView();
+    setTimeout(updateCheatsheetListHeight, 100);
+    const observer = new MutationObserver(updateCheatsheetListHeight);
+    const cheatsheetList = document.querySelector('.cheatsheet-list');
+    if (cheatsheetList) {
+        observer.observe(cheatsheetList, { childList: true });
+    }
+    // Скрываем кнопку закрытия просмотра на десктопах
+    if (!isMobileDevice()) {
+        document.getElementById('closeViewBtn').style.display = 'none';
+    }
 });
 function initSubjects() {
     const subjects = [
@@ -188,6 +199,39 @@ function updateModalSubtitle() {
 // Настройка обработчиков событий
 // Настройка обработчиков событий
 function setupEventListeners() {
+    const sidebarFooter = document.querySelector('.sidebar-footer');
+    const mobileMenu = document.querySelector('.mobile-menu');
+    if (sidebarFooter && mobileMenu) {
+        // Показываем оба меню, CSS скроет ненужное
+        sidebarFooter.style.display = 'flex';
+        mobileMenu.style.display = 'flex';
+        
+        // Явно назначаем обработчики для мобильных кнопок
+        const mobileExportBtn = document.getElementById('mobileExportBtn');
+        const mobileImportBtn = document.getElementById('mobileImportBtn');
+        const mobileThemeToggle = document.getElementById('mobileThemeToggle');
+        
+        if (mobileExportBtn) {
+            mobileExportBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                exportBtn.click();
+            });
+        }
+        
+        if (mobileImportBtn) {
+            mobileImportBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                importBtn.click();
+            });
+        }
+        
+        if (mobileThemeToggle) {
+            mobileThemeToggle.addEventListener('click', (e) => {
+                e.stopPropagation();
+                themeToggle.click();
+            });
+        }
+    }
     // Форма
     cheatsheetForm.addEventListener('submit', saveCheatsheet);
     contentTextarea.addEventListener('input', updateCharCount);
@@ -1160,6 +1204,7 @@ function renderCheatsheets() {
         renderCheatsheetItem(cheatsheet);
         renderGridItem(cheatsheet);
     });
+    setTimeout(updateCheatsheetListHeight, 100);
 }
 
 // Рендер элемента списка
@@ -1380,6 +1425,9 @@ function renderGridItem(cheatsheet) {
 
 // Просмотр шпаргалки
 function viewCheatsheet(cheatsheet) {
+    if (isMobileDevice() && !document.querySelector('.main-content').classList.contains('mobile-active')) {
+        return;
+    }
     currentView = 'view';
     
     // Обновляем данные
@@ -1418,6 +1466,9 @@ function showEmptyState() {
 
 // Показать список
 function showListView() {
+    if (isMobileDevice()) {
+        return mobileShowListView();
+    }
     currentView = 'list';
     emptyState.style.display = 'none';
     cheatsheetGrid.style.display = 'grid';
@@ -2018,3 +2069,197 @@ function updateExportSelection() {
         }
     }
 }
+// ===== МОБИЛЬНАЯ АДАПТИВНОСТЬ =====
+
+// Проверяем мобильное устройство
+function isMobileDevice() {
+    return window.innerWidth <= 768 || 
+           /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+}
+function updateCheatsheetListHeight() {
+    if (!isMobileDevice()) return;
+    
+    const sidebar = document.querySelector('.sidebar');
+    const header = document.querySelector('.sidebar-header');
+    const btnNew = document.querySelector('.btn-new');
+    const filters = document.querySelector('.filters');
+    const footer = document.querySelector('.mobile-menu');
+    const cheatsheetList = document.querySelector('.cheatsheet-list');
+    
+    if (sidebar && header && btnNew && filters && footer && cheatsheetList) {
+        // Вычисляем использованную высоту
+        const usedHeight = 
+            header.offsetHeight + 
+            btnNew.offsetHeight + 
+            filters.offsetHeight + 
+            footer.offsetHeight + 40; // 40px для отступов
+        
+        // Доступная высота
+        const availableHeight = window.innerHeight - usedHeight;
+        
+        // Устанавливаем высоту списка
+        cheatsheetList.style.maxHeight = `${Math.max(availableHeight, 100)}px`;
+        cheatsheetList.style.height = `${Math.max(availableHeight, 100)}px`;
+        
+        // Принудительно обновляем прокрутку
+        cheatsheetList.style.overflowY = 'auto';
+    }
+}
+window.addEventListener('resize', function() {
+    // Пересчитываем высоту списка
+    setTimeout(updateCheatsheetListHeight, 100);
+    
+    // Обновляем отображение кнопок в зависимости от устройства
+    const mobileMenu = document.querySelector('.mobile-menu');
+    const sidebarFooter = document.querySelector('.sidebar-footer');
+    
+    if (mobileMenu && sidebarFooter) {
+        if (isMobileDevice()) {
+            mobileMenu.style.display = 'flex';
+            sidebarFooter.style.display = 'none';
+        } else {
+            mobileMenu.style.display = 'none';
+            sidebarFooter.style.display = 'flex';
+        }
+    }
+});
+// Обновляем функцию viewCheatsheet для мобильных
+function mobileViewCheatsheet(cheatsheet) {
+    if (!isMobileDevice()) return false;
+    
+    // Показываем main-content как модальное окно
+    const mainContent = document.querySelector('.main-content');
+    mainContent.classList.add('mobile-active');
+    
+    // Меняем кнопку "Назад"
+    const closeBtn = document.getElementById('closeViewBtn');
+    closeBtn.classList.add('mobile-back-btn');
+    
+    // Показываем шпаргалку обычным способом
+    viewCheatsheet(cheatsheet);
+    
+    // Прокручиваем к началу
+    mainContent.scrollTo(0, 0);
+    
+    // Блокируем прокрутку body
+    document.body.style.overflow = 'hidden';
+    
+    return true;
+}
+
+// Обновляем функцию showListView для мобильных
+function mobileShowListView() {
+    if (!isMobileDevice()) return false;
+    
+    // Скрываем main-content
+    const mainContent = document.querySelector('.main-content');
+    mainContent.classList.remove('mobile-active');
+    
+    // Возвращаем обычную кнопку
+    const closeBtn = document.getElementById('closeViewBtn');
+    closeBtn.classList.remove('mobile-back-btn');
+    
+    // Разблокируем прокрутку
+    document.body.style.overflow = '';
+    
+    // Сбрасываем активные элементы
+    document.querySelectorAll('.cheatsheet-item.active, .grid-item.active').forEach(el => {
+        el.classList.remove('active');
+    });
+    
+    return true;
+}
+
+// Обновляем обработчики кликов на шпаргалки
+function setupMobileView() {
+    // Делегирование событий для списка
+    const cheatsheetList = document.getElementById('cheatsheetList');
+    if (cheatsheetList) {
+        cheatsheetList.addEventListener('click', function(e) {
+            const cheatsheetItem = e.target.closest('.cheatsheet-item');
+            if (!cheatsheetItem) return;
+            
+            const cheatsheetId = cheatsheetItem.dataset.id;
+            const cheatsheet = cheatsheets.find(c => c.id === cheatsheetId);
+            
+            if (cheatsheet && isMobileDevice()) {
+                e.preventDefault();
+                e.stopPropagation();
+                mobileViewCheatsheet(cheatsheet);
+            }
+        });
+    }
+    
+    // Для сетки
+    const cheatsheetGrid = document.getElementById('cheatsheetGrid');
+    if (cheatsheetGrid) {
+        cheatsheetGrid.addEventListener('click', function(e) {
+            const gridItem = e.target.closest('.grid-item');
+            if (!gridItem) return;
+            
+            const cheatsheetId = gridItem.dataset.id;
+            const cheatsheet = cheatsheets.find(c => c.id === cheatsheetId);
+            
+            if (cheatsheet && isMobileDevice()) {
+                e.preventDefault();
+                e.stopPropagation();
+                mobileViewCheatsheet(cheatsheet);
+            }
+        });
+    }
+    
+    // Обновляем кнопку "Назад" для мобильных
+    const closeViewBtn = document.getElementById('closeViewBtn');
+    if (closeViewBtn) {
+        closeViewBtn.addEventListener('click', function() {
+            if (isMobileDevice() && document.querySelector('.main-content').classList.contains('mobile-active')) {
+                mobileShowListView();
+            }
+        });
+    }
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && isMobileDevice() && 
+            document.querySelector('.main-content').classList.contains('mobile-active')) {
+            mobileShowListView();
+        }
+    });
+    
+    // Адаптация при изменении размера окна
+    window.addEventListener('resize', function() {
+        if (!isMobileDevice() && document.querySelector('.main-content').classList.contains('mobile-active')) {
+            mobileShowListView();
+        }
+    });
+}
+document.addEventListener('DOMContentLoaded', function() {
+    // ... существующий код ...
+    
+    // Настраиваем мобильный вид
+    setupMobileView();
+    
+    // Инициализируем высоту списка после небольшой задержки
+    setTimeout(function() {
+        updateCheatsheetListHeight();
+        
+        // Наблюдаем за изменениями в DOM для обновления высоты
+        const observer = new MutationObserver(function() {
+            setTimeout(updateCheatsheetListHeight, 50);
+        });
+        
+        const cheatsheetList = document.querySelector('.cheatsheet-list');
+        if (cheatsheetList) {
+            observer.observe(cheatsheetList, { 
+                childList: true, 
+                subtree: true 
+            });
+        }
+    }, 300); // Увеличиваем задержку для полной загрузки DOM
+    
+    // Скрываем кнопку закрытия просмотра на десктопах
+    if (!isMobileDevice()) {
+        const closeViewBtn = document.getElementById('closeViewBtn');
+        if (closeViewBtn) {
+            closeViewBtn.style.display = 'none';
+        }
+    }
+});

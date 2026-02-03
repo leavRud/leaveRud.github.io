@@ -2319,7 +2319,6 @@ body.dark-theme .formatted-list li::before {
   
   .sidebar {
     width: 100%;
-    height: auto;
     max-height: 60vh;
   }
   
@@ -2357,6 +2356,43 @@ body.dark-theme .formatted-list li::before {
 
 /* Планшеты в портретной ориентации (768px и меньше) */
 @media (max-width: 768px) {
+      .app-container {
+    flex-direction: column;
+    min-height: 100vh;
+  }
+  
+  .sidebar {
+    width: 100%;
+  }
+  
+  .cheatsheet-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 10px;
+  }
+  
+  .cheatsheet-item {
+    margin-bottom: 0;
+  }
+  
+  .sidebar.collapsed .cheatsheet-item {
+    padding: 10px;
+    text-align: center;
+  }
+  
+  .sidebar.collapsed .cheatsheet-item .cheatsheet-info {
+    display: none;
+  }
+  
+  .sidebar-footer {
+    padding: 15px;
+    gap: 15px;
+  }
+  
+  .btn-icon {
+    width: 44px;
+    height: 44px;
+  }
   .modal-content {
     max-height: 100vh;
     border-radius: 0;
@@ -2477,6 +2513,40 @@ body.dark-theme .formatted-list li::before {
   .cheatsheet-tags-meta {
     max-width: 100px;
   }
+  .cheatsheet-list {
+    flex: 1;
+    min-height: 200px; /* Минимальная высота */
+    max-height: calc(100vh - 350px) !important; /* Адаптивная высота */
+    overflow-y: auto;
+    padding: 15px;
+    height: auto;
+  }
+  
+  /* Улучшаем пустое состояние */
+  .empty-state {
+    height: 100%;
+    min-height: 300px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 40px 20px;
+  }
+  
+  /* Фиксируем кнопки внизу */
+  .mobile-menu {
+    display: flex !important;
+    position: sticky;
+    bottom: 0;
+    background: var(--bg-card);
+    border-top: 1px solid var(--border-color);
+    padding: 10px;
+    z-index: 100;
+  }
+  
+  .sidebar-footer {
+    display: none !important;
+  }
 }
 
 /* Мобильные устройства (480px и меньше) */
@@ -2517,6 +2587,1529 @@ body.dark-theme .formatted-list li::before {
   }
   
   .cheatsheet-tags-meta {
-    max-width: 80px;
+    max-width: 300px;
+  }
+}
+/* ===== АДАПТИВНОСТЬ ДЛЯ ТЕЛЕФОНОВ ===== */
+
+/* Телефоны в альбомной ориентации (640px и меньше) */
+@media (max-width: 640px) {
+  .app-container {
+    flex-direction: column;
+    height: auto;
+    min-height: 100vh;
+  }
+  
+  .sidebar {
+    width: 100%;
+    max-height: 100vh;
+    border-right: none;
+    border-bottom: 1px solid var(--border-color);
+  }
+  
+  .sidebar-header {
+    padding: 20px;
+  }
+  
+  .sidebar-header h1 {
+    font-size: 1.3rem;
+  }
+  
+  .btn-new {
+    margin: 15px;
+    padding: 14px;
+    font-size: 0.9rem;
+  }
+  
+  .filters {
+    padding: 0 15px 15px;
+  }
+  
+  .filter-row {
+    grid-template-columns: 1fr;
+  }
+  
+  .cheatsheet-list {
+    padding: 15px;
+    max-height: 50vh;
+  }
+  
+  .cheatsheet-item {
+    padding: 15px;
+    margin-bottom: 8px;
+  }
+  
+  .content-header {
+    padding: 20px 15px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 15px;
+  }
+  
+  .content-header h2 {
+    font-size: 1.4rem;
+  }
+  
+  .content-area {
+    padding: 20px 15px;
+  }
+  
+  .cheatsheet-grid {
+    grid-template-columns: 1fr;
+    gap: 15px;
+  }
+  
+  .grid-item {
+    padding: 20px;
+    height: auto;
+    min-height: 180px;
+  }
+  
+  .view-header {
+    padding: 20px;
+    flex-direction: column;
+    gap: 15px;
+  }
+  
+  .view-title h3 {
+    font-size: 1.5rem;
+  }
+  
+  .view-meta {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  
+  .view-actions {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .view-content {
+    padding: 20px;
+  }
+  
+  .modal-content {
+    max-width: 95vw;
+    max-height: 95vh;
+    margin: 10px;
+  }
+  
+  .modal-header,
+  .modal-body {
+    padding: 20px;
+  }
+  
+  .form-grid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  
+  .subject-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+  
+  .task-grid {
+    grid-template-columns: repeat(6, 1fr);
+    gap: 8px;
+  }
+  
+  .subject-btn,
+  .task-btn {
+    padding: 15px 10px;
+    font-size: 0.9rem;
+  }
+  
+  .subject-btn i {
+    font-size: 1.4rem;
+  }
+  
+  .editor-toolbar {
+    justify-content: center;
+  }
+  
+  .content-editor {
+    min-height: 300px;
+  }
+  
+  .editor-footer {
+    flex-direction: column;
+    gap: 10px;
+    align-items: flex-start;
+  }
+  
+  .form-actions {
+    flex-direction: column;
+    gap: 15px;
+  }
+  
+  .form-actions-right {
+    width: 100%;
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .btn {
+    width: 100%;
+  }
+  
+  .preview-card {
+    padding: 20px;
+  }
+  
+  .export-options {
+    gap: 12px;
+  }
+  
+  .export-option label {
+    padding: 20px;
+    text-align: center;
+    gap: 15px;
+  }
+  
+  .export-option-icon {
+    margin-right: 0;
+  }
+  
+  .export-checkbox-item {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .export-checkbox-content {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+    width: 100%;
+  }
+  
+  .export-checkbox-meta {
+    width: 100%;
+    justify-content: space-between;
+  }
+}
+
+/* Маленькие телефоны (480px и меньше) */
+@media (max-width: 480px) {
+  .sidebar-header h1 {
+    font-size: 1.2rem;
+    flex-wrap: wrap;
+  }
+  
+  .stats {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 5px;
+  }
+  
+  #totalCheatsheets {
+    font-size: 1.8rem;
+  }
+  
+  .subject-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .task-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+  
+  .subject-btn {
+    padding: 15px;
+    flex-direction: row;
+    justify-content: flex-start;
+    text-align: left;
+    gap: 15px;
+  }
+  
+  .subject-btn i {
+    font-size: 1.2rem;
+  }
+  
+  .task-btn {
+    padding: 12px 6px;
+    font-size: 0.85rem;
+  }
+  
+  .cheatsheet-item {
+    padding: 12px;
+  }
+  
+  .cheatsheet-subject-icon {
+    width: 32px;
+    height: 32px;
+    font-size: 0.9rem;
+  }
+  
+  .cheatsheet-title {
+    font-size: 0.9rem;
+  }
+  
+  .content-header {
+    padding: 15px;
+  }
+  
+  .content-header h2 {
+    font-size: 1.2rem;
+  }
+  
+  .view-title h3 {
+    font-size: 1.3rem;
+  }
+  
+  .subject-badge,
+  .task-badge {
+    padding: 8px 15px;
+    font-size: 0.8rem;
+  }
+  
+  .modal-content {
+    max-width: 100vw;
+    max-height: 100vh;
+    margin: 0;
+    border-radius: 0;
+  }
+  
+  .modal-header {
+    padding: 15px;
+  }
+  
+  .modal-header h3 {
+    font-size: 1.4rem;
+  }
+  
+  .modal-body {
+    padding: 15px;
+  }
+  
+  .form-stepper {
+    gap: 30px;
+  }
+  
+  .stepper-line {
+    left: 50px;
+    right: 50px;
+  }
+  
+  .step-label {
+    display: none;
+  }
+  
+  .preview-title {
+    font-size: 1.2rem;
+  }
+  
+  .preview-content {
+    padding: 15px;
+    max-height: 300px;
+  }
+  
+  .toast-container {
+    bottom: 10px;
+    right: 10px;
+    left: 10px;
+  }
+  
+  .toast {
+    min-width: auto;
+    width: 100%;
+  }
+  
+  .confirm-actions {
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .confirm-actions .btn {
+    min-width: 100%;
+  }
+}
+
+/* Очень маленькие телефоны (360px и меньше) */
+@media (max-width: 360px) {
+  :root {
+    --radius-sm: 6px;
+    --radius: 8px;
+    --radius-lg: 10px;
+    --radius-xl: 12px;
+  }
+  
+  .sidebar-header {
+    padding: 15px;
+  }
+  
+  .sidebar-header h1 {
+    font-size: 1.1rem;
+    gap: 10px;
+  }
+  
+  .sidebar-header h1 i {
+    font-size: 1rem;
+  }
+  
+  .btn-new {
+    margin: 12px;
+    padding: 12px;
+    font-size: 0.85rem;
+  }
+  
+  .search-box input {
+    padding: 12px 15px 12px 40px;
+    font-size: 0.9rem;
+  }
+  
+  .filter-select {
+    padding: 10px 12px;
+    font-size: 0.85rem;
+  }
+  
+  .cheatsheet-item {
+    padding: 10px;
+  }
+  
+  .cheatsheet-subject,
+  .cheatsheet-task {
+    font-size: 0.75rem;
+    padding: 2px 6px;
+  }
+  
+  .grid-item {
+    padding: 15px;
+  }
+  
+  .grid-title {
+    font-size: 1rem;
+  }
+  
+  .grid-preview {
+    font-size: 0.9rem;
+  }
+  
+  .view-content {
+    padding: 15px;
+    font-size: 0.95rem;
+  }
+  
+  .task-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  
+  .content-editor {
+    padding: 15px;
+    font-size: 1rem;
+  }
+  
+  .format-btn {
+    width: 40px;
+    height: 40px;
+  }
+  
+  .help-grid {
+    grid-template-columns: 1fr;
+    gap: 15px;
+  }
+}
+
+/* Поддержка высоты экрана (для мобильных браузеров) */
+@media (max-height: 700px) {
+  .modal-content {
+    max-height: 85vh;
+  }
+  
+  .modal-body {
+    max-height: 60vh;
+    overflow-y: auto;
+  }
+  
+  .content-editor {
+    min-height: 250px;
+  }
+  
+  .preview-content {
+    max-height: 250px;
+  }
+}
+
+/* Пейзажная ориентация на телефонах */
+@media (max-width: 768px) and (orientation: landscape) {
+  .sidebar {
+    max-height: 50vh;
+  }
+  
+  .cheatsheet-list {
+    max-height: 40vh;
+  }
+  
+  .content-area {
+    max-height: 50vh;
+  }
+  
+  .modal-content {
+    max-height: 85vh;
+  }
+}
+
+/* Улучшение для касаний на мобильных */
+@media (hover: none) and (pointer: coarse) {
+  .btn,
+  .btn-icon,
+  .btn-text,
+  .subject-btn,
+  .task-btn,
+  .cheatsheet-item,
+  .grid-item,
+  .format-btn,
+  .export-checkbox-item {
+    min-height: 44px; /* Минимальный размер для удобного касания */
+  }
+  
+  .btn-icon {
+    width: 44px;
+    height: 44px;
+  }
+  
+  input,
+  select,
+  textarea {
+    font-size: 16px !important; /* Предотвращает зум в iOS */
+  }
+  
+  .search-box input,
+  .filter-select {
+    min-height: 44px;
+  }
+}
+
+/* Плавные анимации для мобильных */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Темная тема для мобильных с OLED экранами */
+@media (max-width: 480px) and (prefers-color-scheme: dark) {
+  body:not(.light-theme) {
+    --bg-dark: #000000;
+    --bg-card: #111111;
+    --bg-hover: #222222;
+  }
+}
+/* Улучшения для мобильного UX */
+
+/* Предотвращение выделения текста при касании */
+.cheatsheet-item,
+.grid-item,
+.btn,
+.btn-icon {
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  user-select: none;
+}
+
+/* Улучшение скролла на iOS */
+.modal-body,
+.content-area,
+.cheatsheet-list {
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Фикс для фиксированных элементов в мобильных браузерах */
+.modal,
+.toast-container {
+  position: fixed;
+}
+
+/* Улучшение для инпутов на iOS */
+input[type="text"],
+input[type="search"],
+textarea,
+select {
+  appearance: none;
+  -webkit-appearance: none;
+  border-radius: var(--radius);
+}
+
+/* Увеличение кликабельной области для маленьких элементов */
+.cheatsheet-subject-icon,
+.task-number-badge {
+  position: relative;
+}
+
+.cheatsheet-subject-icon::after,
+.task-number-badge::after {
+  content: '';
+  position: absolute;
+  top: -10px;
+  left: -10px;
+  right: -10px;
+  bottom: -10px;
+}
+
+/* Адаптивные изображения */
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Скрытие лишних элементов на мобильных */
+@media (max-width: 640px) {
+  .stats-breakdown,
+  .modal-subtitle,
+  .form-hint,
+  .tags-example,
+  .char-info-separator {
+    display: none;
+  }
+  
+  .char-info {
+    font-size: 0.8rem;
+  }
+}
+/* ===== МОБИЛЬНАЯ АДАПТИВНОСТЬ ===== */
+
+/* Телефоны (до 768px) - переключаемся на модальный режим */
+@media (max-width: 768px) {
+  .app-container {
+    flex-direction: column;
+    height: auto;
+    min-height: 100vh;
+  }
+  
+  .sidebar {
+    width: 100%;
+    border-right: none;
+    border-bottom: 1px solid var(--border-color);
+  }
+  
+  /* Скрываем основной контент на мобильных */
+  .main-content {
+    display: none !important;
+  }
+  
+  /* Когда показываем просмотр в модальном окне */
+  .main-content.mobile-active {
+    display: flex !important;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 1000;
+    background: var(--bg-dark);
+    animation: modalFadeIn 0.3s ease-out;
+  }
+  
+  .main-content.mobile-active .content-header {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: var(--bg-card);
+  }
+  
+  .main-content.mobile-active .content-area {
+    padding: 20px;
+    overflow-y: auto;
+  }
+  
+  /* Адаптируем просмотр для мобильных */
+  .cheatsheet-view {
+    max-width: 100%;
+    border: none;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+  }
+  
+  .view-header {
+    padding: 20px;
+    flex-direction: column;
+    gap: 15px;
+  }
+  
+  .view-title h3 {
+    font-size: 1.5rem;
+  }
+  
+  .view-meta {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  
+  .subject-badge,
+  .task-badge {
+    padding: 8px 15px;
+    font-size: 0.85rem;
+  }
+  
+  .view-content {
+    padding: 20px;
+    font-size: 1rem;
+  }
+  
+  /* Адаптируем список для мобильных */
+  .cheatsheet-list {
+    max-height: 60vh;
+  }
+  
+  .cheatsheet-item {
+    margin-bottom: 8px;
+  }
+  
+  /* Кнопка "Назад" в модальном режиме */
+  #closeViewBtn.mobile-back-btn {
+    display: flex !important;
+    background: var(--primary-color);
+    color: white;
+    width: 44px;
+    height: 44px;
+  }
+  
+  #closeViewBtn.mobile-back-btn:hover {
+    background: var(--primary-dark);
+  }
+}
+
+/* Телефоны в портретной ориентации (до 480px) */
+@media (max-width: 480px) {
+  .sidebar-header {
+    padding: 20px;
+  }
+  
+  .sidebar-header h1 {
+    font-size: 1.3rem;
+  }
+  
+  .btn-new {
+    margin: 15px;
+    padding: 14px;
+  }
+  
+  .filters {
+    padding: 0 15px 15px;
+  }
+  
+  .cheatsheet-list {
+    padding: 15px;
+  }
+  
+  .cheatsheet-item {
+    padding: 15px;
+  }
+  
+  .cheatsheet-title {
+    font-size: 0.9rem;
+  }
+  
+  .view-title h3 {
+    font-size: 1.3rem;
+  }
+  
+  .view-content {
+    padding: 15px;
+    font-size: 0.95rem;
+  }
+}
+
+/* Очень маленькие телефоны (до 360px) */
+@media (max-width: 360px) {
+  .sidebar-header h1 {
+    font-size: 1.1rem;
+  }
+  
+  .btn-new {
+    margin: 12px;
+    padding: 12px;
+    font-size: 0.9rem;
+  }
+  
+  .cheatsheet-item {
+    padding: 12px;
+  }
+  
+  .cheatsheet-subject-icon {
+    width: 36px;
+    height: 36px;
+  }
+}
+
+/* Пейзажная ориентация на телефонах */
+@media (max-width: 768px) and (orientation: landscape) {
+  .sidebar {
+    max-height: 50vh;
+  }
+  
+  .cheatsheet-list {
+    max-height: 35vh;
+  }
+  
+  .main-content.mobile-active .content-area {
+    max-height: calc(100vh - 80px);
+  }
+}
+
+/* Улучшение для касаний */
+@media (hover: none) and (pointer: coarse) {
+  .btn,
+  .cheatsheet-item,
+  .btn-icon {
+    min-height: 44px;
+  }
+  
+  input,
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+}
+/* ===== МОБИЛЬНОЕ МОДАЛЬНОЕ ОКНО ===== */
+
+/* Фон для модального окна на мобильных */
+.main-content.mobile-active::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(5px);
+    z-index: -1;
+}
+
+/* Анимация появления */
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.main-content.mobile-active .cheatsheet-view {
+    animation: slideUp 0.3s ease-out;
+}
+
+/* Кнопка закрытия */
+#closeViewBtn.mobile-back-btn {
+    position: relative;
+    background: var(--primary-color);
+    color: white;
+    transition: var(--transition);
+}
+
+#closeViewBtn.mobile-back-btn:hover {
+    background: var(--primary-dark);
+    transform: scale(1.1);
+}
+
+/* Затемнение при открытом модальном окне */
+body.mobile-modal-open {
+    overflow: hidden;
+}
+
+body.mobile-modal-open .sidebar {
+    filter: blur(2px);
+    opacity: 0.7;
+    pointer-events: none;
+}
+
+/* Улучшение скролла на iOS */
+.main-content.mobile-active .content-area {
+    -webkit-overflow-scrolling: touch;
+}
+
+/* Адаптивные заголовки */
+@media (max-width: 768px) {
+    .main-content.mobile-active .content-header {
+        padding: 15px 20px;
+        background: var(--bg-card);
+        box-shadow: var(--shadow);
+    }
+    
+    .main-content.mobile-active .content-header h2 {
+        font-size: 1.2rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+}
+/* ===== ПЛАНШЕТНАЯ АДАПТИВНОСТЬ (768-990px) ===== */
+@media (min-width: 768px) and (max-width: 990px) {
+  .app-container {
+    flex-direction: column;
+    height: auto;
+    min-height: 100vh;
+  }
+  
+  .sidebar {
+    width: 100%;
+    height: auto;
+    max-height: 50vh;
+    border-right: none;
+    border-bottom: 1px solid var(--border-color);
+    order: 2; /* Перемещаем sidebar вниз */
+  }
+  
+  .main-content {
+    order: 1; /* Перемещаем main-content наверх */
+    width: 100%;
+    height: 50vh;
+    min-height: 50vh;
+    border-bottom: 1px solid var(--border-color);
+  }
+  
+  /* Убираем лишние отступы */
+  .sidebar-header,
+  .filters {
+    padding: 20px;
+  }
+  
+  .btn-new {
+    margin: 20px;
+  }
+  
+  .cheatsheet-list {
+    max-height: 30vh;
+    overflow-y: auto;
+  }
+  
+  .content-header {
+    padding: 20px;
+  }
+  
+  .content-area {
+    padding: 20px;
+    height: calc(50vh - 80px); /* Высота минус заголовок */
+    overflow-y: auto;
+  }
+  
+  /* Адаптируем сетку */
+  .cheatsheet-grid {
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 15px;
+  }
+  
+  .grid-item {
+    height: 180px;
+    padding: 20px;
+  }
+  
+  /* Адаптируем просмотр */
+  .cheatsheet-view {
+    max-width: 100%;
+    margin: 0;
+  }
+  
+  .view-header {
+    padding: 20px;
+  }
+  
+  .view-content {
+    padding: 20px;
+    max-height: calc(50vh - 160px);
+    overflow-y: auto;
+  }
+}
+
+/* Улучшение для планшетов в альбомной ориентации */
+@media (min-width: 768px) and (max-width: 990px) and (orientation: landscape) {
+  .sidebar {
+    max-height: 40vh;
+  }
+  
+  .main-content {
+    height: 60vh;
+    min-height: 60vh;
+  }
+  
+  .cheatsheet-list {
+    max-height: 25vh;
+  }
+  
+  .content-area {
+    height: calc(60vh - 80px);
+  }
+  
+  .grid-item {
+    height: 160px;
+  }
+}
+/* ===== МОБИЛЬНАЯ АДАПТИВНОСТЬ (до 768px) ===== */
+@media (max-width: 768px) {
+  .app-container {
+    flex-direction: column;
+    height: 100vh; /* Фиксируем высоту */
+  }
+  
+  .sidebar {
+    width: 100%;
+    height: 100vh; /* Занимаем всю высоту */
+    border-right: none;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  /* Растягиваем список на всё доступное пространство */
+  .cheatsheet-list {
+    flex: 1; /* Занимает всё оставшееся пространство */
+    min-height: 0; /* Важно для правильной работы flex в старых браузерах */
+    max-height: none !important; /* Снимаем ограничения */
+    overflow-y: auto;
+    padding: 15px;
+  }
+  
+  /* Уменьшаем отступы в заголовке */
+  .sidebar-header {
+    padding: 20px 20px 15px;
+    flex-shrink: 0; /* Запрещаем сжатие */
+  }
+  
+  .sidebar-header h1 {
+    font-size: 1.3rem;
+  }
+  
+  /* Фиксируем кнопку добавления */
+  .btn-new {
+    margin: 0 20px 15px;
+    flex-shrink: 0;
+  }
+  
+  /* Фиксируем фильтры */
+  .filters {
+    padding: 0 20px 15px;
+    flex-shrink: 0;
+    border-bottom: 1px solid var(--border-color);
+  }
+  
+  /* Увеличиваем элементы списка для удобного касания */
+  .cheatsheet-item {
+    margin-bottom: 10px;
+    padding: 18px;
+    max-width: 100%;
+  }
+  
+  /* Улучшаем визуализацию пустого состояния */
+  .empty-state {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 40px 20px;
+  }
+  
+  .empty-icon {
+    font-size: 4rem;
+  }
+  
+  .empty-state h3 {
+    font-size: 1.5rem;
+  }
+  
+  /* Убираем main-content */
+  .main-content {
+    display: none !important;
+  }
+  
+  /* Стили для мобильного просмотра (модальное окно) */
+  .main-content.mobile-active {
+    display: flex !important;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 1000;
+    background: var(--bg-dark);
+  }
+  
+  .main-content.mobile-active .content-area {
+    padding: 0;
+    height: 100%;
+  }
+  
+  /* Улучшаем скролл на iOS */
+  .cheatsheet-list,
+  .main-content.mobile-active .content-area {
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+/* Телефоны в портретной ориентации */
+@media (max-width: 480px) {
+  .sidebar-header {
+    padding: 15px 15px 10px;
+  }
+  
+  .sidebar-header h1 {
+    font-size: 1.2rem;
+  }
+  
+  .btn-new {
+    margin: 0 15px 10px;
+    padding: 14px;
+    font-size: 0.95rem;
+  }
+  
+  .filters {
+    padding: 0 15px 10px;
+  }
+  
+  .filter-row {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+  
+  .cheatsheet-list {
+    padding: 10px;
+  }
+  
+  .cheatsheet-item {
+    padding: 15px;
+    margin-bottom: 8px;
+  }
+  
+  .empty-icon {
+    font-size: 3.5rem;
+  }
+  
+  .empty-state h3 {
+    font-size: 1.3rem;
+  }
+}
+
+/* Пейзажная ориентация на телефонах */
+@media (max-width: 768px) and (orientation: landscape) {
+  .sidebar-header {
+    padding: 15px;
+  }
+  
+  .btn-new {
+    margin: 0 15px 10px;
+    padding: 12px;
+  }
+  
+  .filters {
+    padding: 0 15px 10px;
+  }
+  
+  .filter-row {
+    grid-template-columns: 1fr 1fr;
+  }
+  
+  /* В пейзажной ориентации можно показать больше контента */
+  .cheatsheet-item {
+    display: flex;
+    align-items: center;
+    min-height: 60px;
+    padding: 12px;
+  }
+  
+  .cheatsheet-item-header {
+    margin-bottom: 0;
+    flex: 1;
+  }
+  
+  .cheatsheet-meta {
+    display: none; /* Скрываем мета-данные для экономии места */
+  }
+}
+/* ===== УТИЛИТЫ ДЛЯ МОБИЛЬНЫХ ===== */
+
+/* Предотвращение зума при фокусе на iOS */
+@media (max-width: 768px) {
+  input[type="text"],
+  input[type="search"],
+  textarea,
+  select {
+    font-size: 16px !important;
+  }
+}
+
+/* Улучшение для касаний */
+@media (hover: none) and (pointer: coarse) {
+  .cheatsheet-item,
+  .btn,
+  .btn-icon {
+    min-height: 44px;
+    cursor: pointer;
+  }
+  
+  .cheatsheet-item:active {
+    background-color: var(--bg-hover);
+    transform: scale(0.98);
+  }
+}
+
+/* Скрываем лишние элементы на мобильных */
+@media (max-width: 768px) {
+  .sidebar-footer {
+    display: none; /* Футер можно скрыть или вынести в другое место */
+  }
+  
+  /* Альтернатива: выносим кнопки в выпадающее меню */
+  .mobile-menu {
+    display: flex;
+    justify-content: space-around;
+    padding: 10px;
+    border-top: 1px solid var(--border-color);
+    background: var(--bg-card);
+  }
+}
+/* ===== ПЛАНШЕТНАЯ АДАПТИВНОСТЬ (768-990px) ===== */
+@media (min-width: 768px) and (max-width: 990px) {
+  .app-container {
+    flex-direction: column;
+    height: 100vh;
+  }
+  
+  .sidebar {
+    width: 100%;
+    height: auto;
+    min-height: auto;
+    max-height: none;
+    border-right: none;
+    border-bottom: 1px solid var(--border-color);
+    order: 1; /* Sidebar идет первым */
+  }
+  
+  .main-content {
+    order: 2; /* Main content идет вторым */
+    width: 100%;
+    flex: 1;
+    height: auto;
+    min-height: 0;
+  }
+  
+  /* Sidebar-header должен быть видим и на своем месте */
+  .sidebar-header {
+    padding: 20px;
+    display: block !important;
+  }
+  
+  .btn-new {
+    margin: 20px;
+  }
+  
+  .filters {
+    padding: 0 20px 20px;
+  }
+  
+  .cheatsheet-list {
+    max-height: 40vh;
+    min-height: 200px;
+    overflow-y: auto;
+  }
+  
+  .content-header {
+    padding: 20px;
+  }
+  
+  .content-area {
+    padding: 20px;
+    height: calc(60vh - 80px); /* Оставляем место для header */
+    min-height: 300px;
+    overflow-y: auto;
+  }
+  
+  /* Адаптируем сетку */
+  .cheatsheet-grid {
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 15px;
+  }
+  
+  .grid-item {
+    height: 180px;
+    padding: 20px;
+  }
+  
+  /* Адаптируем просмотр */
+  .cheatsheet-view {
+    max-width: 100%;
+    margin: 0;
+  }
+  
+  .view-header {
+    padding: 20px;
+  }
+  
+  .view-content {
+    padding: 20px;
+    max-height: calc(60vh - 160px);
+    overflow-y: auto;
+  }
+  
+  /* Показываем footer на планшетах */
+  .sidebar-footer {
+    display: flex !important;
+    padding: 20px;
+    border-top: 1px solid var(--border-color);
+    background: var(--bg-card);
+  }
+  
+  .mobile-menu {
+    display: none !important; /* Скрываем мобильное меню на планшетах */
+  }
+}
+
+/* Улучшение для планшетов в альбомной ориентации */
+@media (min-width: 768px) and (max-width: 990px) and (orientation: landscape) {
+  .sidebar {
+    max-height: 45vh;
+  }
+  
+  .cheatsheet-list {
+    max-height: 30vh;
+  }
+  
+  .content-area {
+    height: calc(55vh - 80px);
+  }
+  
+  .grid-item {
+    height: 160px;
+  }
+}
+/* ===== МОБИЛЬНАЯ АДАПТИВНОСТЬ (до 768px) ===== */
+@media (max-width: 768px) {
+  .app-container {
+    flex-direction: column;
+    height: 100vh;
+  }
+  
+  .sidebar {
+    width: 100%;
+    height: 100vh;
+    border-right: none;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  /* Исправляем кнопку "Новая шпаргалка" - делаем адаптивной */
+  .btn-new {
+    margin: 15px;
+    padding: 14px 16px;
+    font-size: 0.95rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0; /* Разрешаем сжатие */
+    width: calc(100% - 30px); /* Учитываем отступы */
+    box-sizing: border-box;
+  }
+  
+  /* Фиксируем кнопки в футере для телефонов */
+  .sidebar-footer {
+    display: none; /* Скрываем десктопный футер */
+  }
+  
+  .mobile-menu {
+    display: flex !important;
+    justify-content: space-around;
+    padding: 15px;
+    border-top: 1px solid var(--border-color);
+    background: var(--bg-card);
+    position: sticky;
+    bottom: 0;
+    z-index: 100;
+  }
+  
+  .mobile-menu .btn-icon {
+    width: 50px;
+    height: 50px;
+    font-size: 1.2rem;
+    background-color: var(--bg-light);
+    border: 2px solid var(--border-color);
+  }
+  
+  /* Улучшаем список для мобильных */
+  .cheatsheet-list {
+    flex: 1;
+    min-height: 0;
+    padding: 15px;
+  }
+  
+  .cheatsheet-item {
+    margin-bottom: 10px;
+    padding: 16px;
+  }
+  
+  /* Адаптируем заголовок на мобильных */
+  .sidebar-header h1 {
+    font-size: 1.3rem;
+    white-space: normal;
+    line-height: 1.3;
+  }
+  
+  /* Убираем main-content из потока */
+  .main-content {
+    display: none !important;
+  }
+  
+  /* Стили для мобильного просмотра (модальное окно) */
+  .main-content.mobile-active {
+    display: flex !important;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 1000;
+    background: var(--bg-dark);
+  }
+  
+  .main-content.mobile-active .content-area {
+    padding: 0;
+    height: 100%;
+  }
+    .cheatsheet-list {
+    flex: 1;
+    min-height: 0;
+    max-height: none !important;
+    overflow-y: auto;
+    padding: 15px;
+    /* Добавляем автоматическое растяжение */
+    height: auto;
+    max-height: calc(100vh - 400px); /* Адаптивная высота */
+  }
+  
+  /* Улучшаем пустое состояние */
+  .empty-state {
+    height: 100%;
+    min-height: 300px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 40px 20px;
+  }
+  .sidebar-footer {
+    display: flex !important; /* Принудительно показываем */
+    padding: 10px;
+    gap: 10px;
+  }
+  
+  .mobile-menu {
+    display: flex !important; /* Принудительно показываем */
+    justify-content: space-around;
+    padding: 10px;
+    border-top: 1px solid var(--border-color);
+    background: var(--bg-card);
+    position: sticky;
+    bottom: 0;
+    z-index: 100;
+  }
+  
+  .mobile-menu .btn-icon {
+    width: 44px;
+    height: 44px;
+    font-size: 1.1rem;
+    background-color: var(--bg-light);
+    border: 2px solid var(--border-color);
+  }
+}
+
+/* Очень маленькие телефоны - дополнительная адаптация */
+@media (max-width: 480px) {
+  .btn-new {
+    margin: 12px;
+    padding: 12px 14px;
+    font-size: 0.9rem;
+    width: calc(100% - 24px);
+  }
+  
+  .sidebar-header h1 {
+    font-size: 1.1rem;
+  }
+  
+  .mobile-menu .btn-icon {
+    width: 44px;
+    height: 44px;
+    font-size: 1rem;
+  }
+  
+  .cheatsheet-item {
+    max-height: 35%;
+    padding: 14px;
+  }
+  
+  /* Уменьшаем отступы в фильтрах */
+  .filters {
+    padding: 0 12px 12px;
+  }
+  
+  .filter-row {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+}
+
+/* Пейзажная ориентация на телефонах */
+@media (max-width: 768px) and (orientation: landscape) {
+  .btn-new {
+    margin: 10px;
+    padding: 10px 12px;
+    font-size: 0.85rem;
+    width: calc(100% - 20px);
+  }
+  
+  .cheatsheet-item {
+    padding: 12px;
+    min-height: 60px;
+  }
+  
+  .cheatsheet-title {
+    font-size: 0.9rem;
+  }
+  
+  .mobile-menu {
+    padding: 10px;
+  }
+  
+  .mobile-menu .btn-icon {
+    width: 42px;
+    height: 42px;
+  }
+}
+
+/* Улучшение для касаний */
+@media (hover: none) and (pointer: coarse) {
+  .btn-new {
+    min-height: 48px;
+    touch-action: manipulation;
+  }
+  
+  .mobile-menu .btn-icon {
+    min-height: 48px;
+    min-width: 48px;
+  }
+}
+@media (min-width: 769px) and (max-width: 990px) {
+  .mobile-menu {
+    display: none !important; /* Скрываем на планшетах */
+  }
+  
+  .sidebar-footer {
+    display: flex !important;
+  }
+}
+
+/* Для десктопов */
+@media (min-width: 991px) {
+  .mobile-menu {
+    display: none !important;
+  }
+  
+  .sidebar-footer {
+    display: flex !important;
   }
 }
