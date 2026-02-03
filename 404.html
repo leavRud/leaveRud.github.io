@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Страница не найдена - Шпаргалки ЕГЭ</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .error-container {
+            max-width: 600px;
+            margin: 100px auto;
+            text-align: center;
+            padding: 40px;
+        }
+        
+        .error-code {
+            font-size: 120px;
+            font-weight: 900;
+            color: var(--primary-color);
+            margin-bottom: 20px;
+        }
+        
+        .error-message {
+            font-size: 24px;
+            margin-bottom: 30px;
+            color: var(--text-primary);
+        }
+        
+        .back-btn {
+            display: inline-block;
+            padding: 12px 30px;
+            background-color: var(--primary-color);
+            color: white;
+            text-decoration: none;
+            border-radius: var(--radius);
+            font-weight: 600;
+            transition: var(--transition);
+        }
+        
+        .back-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow);
+        }
+    </style>
+</head>
+<body class="dark-theme">
+    <div class="error-container">
+        <div class="error-code">404</div>
+        <div class="error-message">Страница не найдена</div>
+        <p>Возможно, эта страница была перемещена или удалена.</p>
+        <br>
+        <a href="./" class="back-btn">
+            <i class="fas fa-arrow-left"></i> Вернуться на главную
+        </a>
+    </div>
+</body>
+</html>
