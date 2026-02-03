@@ -1,965 +1,2020 @@
-const startBtn = document.querySelector('.start-btn');
-const popupInfo = document.querySelector('.popup-info');
-const exitBtn = document.querySelector('.exit-btn');
-const main = document.querySelector('.main');
-const continueBtn = document.querySelector('.continue-btn');
-const quizSection = document.querySelector('.quiz-section');
-const quizBox = document.querySelector('.quiz-box');
-const nextBtn = document.querySelector('.next-btn');
-const optionList = document.querySelector('.option-list');
-const resultBox = document.querySelector('.result-box');
-const tryAgainBtn = document.querySelector('.try-again-btn');
-const homepageBtn = document.querySelector('.homepage-btn');
-const xCloseBtn = document.querySelector('.x-close-btn');
-let isQuizStarted = false;
-const hintBtn = document.getElementById('hint-btn');
-let currentQuestionIndex = 0;
-let isQuizCompletedres = false
+// Данные приложения
+let cheatsheets = JSON.parse(localStorage.getItem('egeCheatsheets')) || [];
+let editingId = null;
+let currentView = 'list'; // 'list', 'grid', 'view'
+let currentFilter = {
+    subject: 'all',
+    task: 'all',
+    search: ''
+};
+let isEditModalOpen = false;
+let selectedCheatsheets = new Set();
+let customSubjects = JSON.parse(localStorage.getItem('egeCustomSubjects')) || [];
+let currentStep = 1;
+let selectedSubject = '';
+let selectedTask = '';
+let helpModal = document.getElementById('helpModal');
+let closeHelpModalBtn = document.getElementById('closeHelpModalBtn');
+let prevStepBtn = document.getElementById('prevStepBtn');
+let nextStepBtn = document.getElementById('nextStepBtn');
+let subjectGrid = document.getElementById('subjectGrid');
+let taskGrid = document.getElementById('taskGrid');
+let formatBtns = document.querySelectorAll('.format-btn');
+let previewSection = document.getElementById('previewSection');
+let editPreviewBtn = document.getElementById('editPreviewBtn');
+let modalSubtitle = document.getElementById('modalSubtitle');
+let formatHelpBtn = document.getElementById('formatHelpBtn');
+let tagsInput = document.getElementById('tags');
+let statsContainer = document.getElementById('statsContainer');
+let subjectStats = document.getElementById('subjectStats');
+// DOM элементы
+// Константы для настройки
+const PREVIEW_MAX_LENGTH = 120;
+const LIST_MAX_TAGS = 2;
+const cheatsheetList = document.getElementById('cheatsheetList');
+const cheatsheetGrid = document.getElementById('cheatsheetGrid');
+const contentArea = document.getElementById('contentArea');
+const emptyState = document.getElementById('emptyState');
+const totalCheatsheets = document.getElementById('totalCheatsheets');
+const searchInput = document.getElementById('searchInput');
+const subjectFilter = document.getElementById('subjectFilter');
+const taskFilter = document.getElementById('taskFilter');
+const currentSubject = document.getElementById('currentSubject');
+const closeViewBtn = document.getElementById('closeViewBtn');
+const cheatsheetView = document.getElementById('cheatsheetView');
+const viewTitle = document.getElementById('viewTitle');
+const viewSubject = document.getElementById('viewSubject');
+const viewTask = document.getElementById('viewTask');
+const viewDate = document.getElementById('viewDate');
+const viewContent = document.getElementById('viewContent');
+const editBtn = document.getElementById('editBtn');
+const deleteBtn = document.getElementById('deleteBtn');
+const newCheatsheetBtn = document.getElementById('newCheatsheetBtn');
+const emptyNewBtn = document.getElementById('emptyNewBtn');
+const editModal = document.getElementById('editModal');
 const closeModalBtn = document.getElementById('closeModalBtn');
-const modalImage = document.getElementById('modalImage');
-const quizheader = document.getElementById('quiz-header');
-const quiztext1 = document.getElementById('quiz-header1');
-const quiztext = document.getElementById('question-text');
-const quizfooter = document.getElementById('quiz-footer');
-const body = document.body;
-let isQuizCompleted = false; // Флаг для отслеживания завершения теста
-// Получаем элементы
-const explanationBtn = document.getElementById('explanationBtn');
-const explanationModal = document.getElementById('explanationModal');
-const explanationImage = document.getElementById('explanationImage');
-const explanationText = document.getElementById('explanationText');
-const closeExplanationBtn = document.getElementById('closeExplanationBtn');
-let userAnswers = []; // Массив для хранения выбранных ответов
-let hintUsedArray = [];
-let userScore = 0; // Глобальная переменная для хранения счета
-let savedUserScore = 0; // Переменная для сохранения счета при выходе на главную страницу
-// Обработчик для кнопки "Пояснение"
-let isAnswerChecked = false; // Флаг для отслеживания проверки ответа
-const buttonsContainer = document.querySelector('.buttons-container');
-const contactsBtn = document.querySelector('.contacts-btn');
-const contactsInfo = document.querySelector('.contacts-info');
-const contactsInfo1 = document.querySelector('.contacts-info1');
-const unlockSound = new Audio('sounds/unlock.mp3'); 
-// script.js (добавить в начало)
-// В начале файла после объявления переменных
-document.addEventListener('DOMContentLoaded', () => {
-    const savedState = localStorage.getItem('quizState');
-    if (savedState) {
-        const state = JSON.parse(savedState);
-        userScore = state.userScore;
-        questionCount = state.questionCount;
-        userAnswers = state.userAnswers;
-        hintUsedArray = state.hintUsedArray;
-        isQuizCompleted = state.isQuizCompleted;
-        
-        // Обновляем интерфейс
-        updateHeaderScore();
-        questionCounter(questionCount + 1);
-        
-        // Если квест был завершен, показываем результаты
-        if (isQuizCompleted) {
-            displayResultBox();
-            quizSection.classList.add('active');
-        }
-        
-        localStorage.removeItem('quizState');
+const cancelBtn = document.getElementById('cancelBtn');
+const modalTitle = document.getElementById('modalTitle');
+const cheatsheetForm = document.getElementById('cheatsheetForm');
+const subjectSelect = document.getElementById('subject');
+const taskNumberSelect = document.getElementById('taskNumber');
+const titleInput = document.getElementById('title');
+const contentTextarea = document.getElementById('content');
+const charCount = document.getElementById('charCount');
+const saveBtn = document.getElementById('saveBtn');
+const exportBtn = document.getElementById('exportBtn');
+const importBtn = document.getElementById('importBtn');
+const themeToggle = document.getElementById('themeToggle');
+const toastContainer = document.getElementById('toastContainer');
+const deleteConfirmModal = document.getElementById('deleteConfirmModal');
+const cancelDeleteBtn = document.getElementById('cancelDeleteBtn');
+const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
+const deleteConfirmText = document.getElementById('deleteConfirmText');
+const deleteConfirmDetails = document.getElementById('deleteConfirmDetails');
+let cheatsheetToDelete = null;
+// Элементы модального окна экспорта
+const exportModal = document.getElementById('exportModal');
+const closeExportModalBtn = document.getElementById('closeExportModalBtn');
+const cancelExportBtn = document.getElementById('cancelExportBtn');
+const confirmExportBtn = document.getElementById('confirmExportBtn');
+const exportAllRadio = document.getElementById('exportAll');
+const exportFilteredRadio = document.getElementById('exportFiltered');
+const exportSelectedRadio = document.getElementById('exportSelected');
+const exportSelection = document.getElementById('exportSelection');
+const exportCheckboxes = document.getElementById('exportCheckboxes');
+const exportAllCount = document.getElementById('exportAllCount');
+const exportFilteredCount = document.getElementById('exportFilteredCount');
+const exportSelectedCount = document.getElementById('exportSelectedCount');
+// Инициализация приложения
+document.addEventListener('DOMContentLoaded', function() {
+    if (!subjectGrid || !taskGrid || !editModal) {
+        console.error('Не найдены необходимые DOM элементы');
+        return;
     }
-    updateGalleryButtonState();
-    updateGalleryDescription();
-});
-explanationBtn.addEventListener('click', () => {
-    explanationModal.style.display = 'flex';  
-    explanationModal.classList.add('active');
-    const currentQuestion = questions[questionCount];
-    const xCloseBtn = document.querySelector('.x-close-btn');
-    if (currentQuestion.explanation) {
-        // Очищаем контейнер перед добавлением новых изображений
-        const explanationImageContainer = document.getElementById('explanationImageContainer');
-        explanationImageContainer.innerHTML = '';
-
-        // Если есть изображения, добавляем их в контейнер
-        if (currentQuestion.images && Array.isArray(currentQuestion.images)) {
-            currentQuestion.images.forEach(imageSrc => {
-                const img = document.createElement('img');
-                img.src = imageSrc;
-                img.style.maxWidth = '90%';
-                img.style.maxHeight = '90%';
-                img.style.margin = '10px';
-                img.style.borderRadius = '10px';
-                explanationImageContainer.appendChild(img);
-                xCloseBtn.style.display = 'none'; // Добавляем изображение в контейнер
-            });
-        } else if (currentQuestion.images) {
-            // Если изображение одно, просто добавляем его
-            const img = document.createElement('img');
-            img.src = currentQuestion.images;
-            img.style.maxWidth = '90%';
-            img.style.maxHeight = '90%';
-            img.style.margin = '10px';
-            img.style.borderRadius = '10px';
-            explanationImageContainer.appendChild(img);
-            xCloseBtn.style.display = 'none'; // Добавляем изображение в контейнер
-        }
-        if (currentQuestion.explanationImage) {
-            const img = document.createElement('img');
-            img.src = currentQuestion.explanationImage;
-            img.style.maxWidth = '90%';
-            img.style.maxHeight = '80%';
-            img.style.margin = '10px';
-            img.style.borderRadius = '10px';
-            explanationImageContainer.innerHTML = ''
-            explanationImageContainer.appendChild(img);
-        }
-        xCloseBtn.style.display = 'none';
-        explanationText.textContent = currentQuestion.explanation;
-        
-
-    }
-});
-
-// Обработчик для кнопки "Вернуться"
-closeExplanationBtn.addEventListener('click', () => {
-    explanationModal.classList.add('fade-out');
-    explanationModal.classList.remove('active');
+    initTaskNumbers();
+    initSubjects();
+    updateStats();
+    renderCheatsheets();
+    setupEventListeners();
     
-    setTimeout(() => {
-        explanationModal.style.display = 'none';
-        explanationModal.classList.remove('fade-out');
-        // Сбрасываем стили после анимации
-        explanationModal.style.opacity = '0';
-        explanationModal.style.transform = 'translateY(50px) scale(0.95)';
-    }, 300); // Время должно совпадать с длительностью анимации
+    // Проверяем тему
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme === 'light') {
+        document.body.classList.add('light-theme');
+        themeToggle.innerHTML = '<i class="fas fa-sun"></i>';
+    }
+    if (saveBtn) {
+        debounceButtonClick(saveBtn, saveCheatsheet);
+    }
     
-    // Возвращаем исходные параметры через 500мс
-    setTimeout(() => {
-        explanationModal.style.opacity = '';
-        explanationModal.style.transform = '';
-    }, 500);
-});
-
-// Закрытие экрана с пояснением при клике вне контента
-// Закрытие модального окна с изображениями при клике вне его контента
-window.addEventListener('click', (event) => {
-    const questionText = document.querySelector('.question-text');
-    const hintText = document.getElementById('hint-text');
-    const hintBtn = document.getElementById('hint-btn');
-    const explanationBtn = document.getElementById('explanationBtn');
-    const openImageBtn = document.getElementById('openImageBtn');
-    const imageModal = document.getElementById('imageModal');
-    const modalImage = document.getElementById('modalImage');
-    if (event.target === imageModal) {
-        imageModal.style.display = 'none';
-        // Убираем размытие фона
-        quizheader.classList.remove('blur-background');
-        quiztext.classList.remove('blur-background');
-        quizfooter.classList.remove('blur-background');
-        optionList.classList.remove('blur-background');
-        quiztext1.classList.remove('blur-background');
-        xCloseBtn.classList.remove('blur-background');
-        hintBtn.classList.remove('blur-background');
-        hintText.classList.remove('blur-background');
-        buttonsContainer.classList.remove('blur-background');
+    if (confirmDeleteBtn) {
+        debounceButtonClick(confirmDeleteBtn, confirmDeleteCheatsheet, 500);
+    }
+    
+    if (confirmExportBtn) {
+        debounceButtonClick(confirmExportBtn, confirmExport);
     }
 });
-// Обработчик для кнопки закрытия (крестик)
-
-nextBtn.onclick = () => {
-    if (questionCount < questions.length - 1) {
-        // Добавляем анимацию исчезновения текущего вопроса
-        quizBox.classList.add('fade-out');
-
-        // Ждем завершения анимации исчезновения
-        setTimeout(() => {
-            questionCount++; // Увеличиваем счетчик вопросов
-            currentQuestionIndex = questionCount; // Обновляем текущий вопрос
-            displayQuestions(questionCount); // Показываем следующий вопрос
-            questionCounter(questionCount + 1); // Обновляем счетчик вопросов
-            nextBtn.classList.remove('active'); // Скрываем кнопку "Следующий"
-            hintUsed = false; // Сбрасываем флаг использования подсказки
-            isAnswerChecked = false; // Сбрасываем флаг проверки ответа
-
-            // Убираем класс fade-out и добавляем анимацию появления
-            quizBox.classList.remove('fade-out');
-            quizBox.classList.add('fade-in');
-        }, 500); // Время анимации исчезновения (0.5 секунды)
-    } else {
-        displayResultBox(); // Показываем результаты, если вопросы закончились
-    }
-};
-
-// Удаляем класс fade-in после завершения анимации
-quizBox.addEventListener('animationend', () => {
-    quizBox.classList.remove('fade-in');
-});
-exitBtn.onclick = () => {
-    popupInfo.classList.remove('active');
-    main.classList.remove('active');
-}
-
-
-continueBtn.onclick = () => {
-    quizSection.classList.add('active');
-    popupInfo.classList.remove('active');
-    main.classList.remove('active');
-    quizBox.classList.add('active');
-
-    isQuizStarted = true; // Устанавливаем флаг, что квиз начат
-    displayQuestions(currentQuestionIndex); // Показываем текущий вопрос
-    questionCounter(currentQuestionIndex + 1); // Обновляем счетчик вопросов
-    updateHeaderScore(); // Обновляем счет
-};
-
-tryAgainBtn.onclick = () => {
-    quizBox.classList.add('active');
-    resultBox.classList.remove('active');
-
-    nextBtn.classList.remove('active');
-
-    questionCount = 0; // Сбрасываем счетчик вопросов
-    currentQuestionIndex = 0; // Сбрасываем индекс текущего вопроса
-    questionNumb = 1; // Сбрасываем номер вопроса
-    userScore = 0; // Сбрасываем счет
-    isQuizStarted = false; // Сбрасываем флаг начала квиза
-    isQuizCompleted = false; // Сбрасываем флаг завершения квеста
-    userAnswers = []; // Очищаем массив ответов
-    hintUsedArray = []; // Очищаем массив использованных подсказок
-    isAnswerChecked = false;
-    const options = document.querySelectorAll('.option');
-    options.forEach(option => {
-        option.classList.remove('disabled', 'correct', 'incorrect'); // Убираем классы disabled, correct, incorrect
-    });
+function initSubjects() {
+    const subjects = [
+        { id: 'Математика', icon: 'fa-calculator', color: '#4361ee' },
+        { id: 'Русский язык', icon: 'fa-language', color: '#7209b7' },
+        { id: 'Физика', icon: 'fa-atom', color: '#f72585' },
+        { id: 'Химия', icon: 'fa-flask', color: '#4cc9f0' },
+        { id: 'Биология', icon: 'fa-dna', color: '#2ec4b6' },
+        { id: 'Информатика', icon: 'fa-laptop-code', color: '#ff9e00' },
+        { id: 'История', icon: 'fa-landmark', color: '#9d4edd' },
+        { id: 'Обществознание', icon: 'fa-users', color: '#06d6a0' },
+        { id: 'Английский язык', icon: 'fa-globe-europe', color: '#ef476f' },
+        { id: 'Литература', icon: 'fa-book-open', color: '#118ab2' },
+        { id: 'География', icon: 'fa-globe-americas', color: '#06d6a0' }
+    ];
     
-    displayQuestions(questionCount); // Показываем первый вопрос
-    questionCounter(questionNumb); // Обновляем счетчик вопросов
-    updateHeaderScore(); // Обновляем счет
-
-    // Меняем текст кнопки на "Начать квиз"
-    const startBtn = document.getElementById('startBtn');
-    startBtn.textContent = 'Начать квиз';
-    isQuizCompleted = false;
-    updateGalleryButtonState();
-    updateGalleryDescription();
-    localStorage.removeItem('galleryUnlocked');
-};
-
-homepageBtn.onclick = () => {
-    savedUserScore = userScore; // Сохраняем текущий счет
-    quizSection.classList.remove('active');
-    resultBox.classList.remove('active');
+    subjectGrid.innerHTML = subjects.map(subject => `
+        <button type="button" class="subject-btn" data-subject="${subject.id}">
+            <i class="fas ${subject.icon}"></i>
+            <span>${subject.id}</span>
+        </button>
+    `).join('');
     
-};
-
-xCloseBtn.onclick = () => {
-    savedUserScore = userScore; // Сохраняем текущий счет
-    savedQuestionCount = questionCount; // Сохраняем текущий счетчик
-    quizSection.classList.remove('active'); // Скрываем секцию с квизом
-    resultBox.classList.remove('active'); // Скрываем результаты (если они открыты)
-
-    // Меняем текст кнопки на "Продолжить квиз"
-    const startBtn = document.getElementById('startBtn');
-    startBtn.textContent = 'Продолжить квиз';
-};
-
-let savedQuestionCount = 0;
-let questionCount = 0;
-let questionNumb = 1;
-userScore = savedUserScore;
-
-startBtn.onclick = () => {
-    if (isQuizStarted) {
-        console.log(isQuizCompleted)
-        if (isQuizCompleted) {
-            // Если квест завершен, показываем результаты
-            displayResultBox();
-            startBtn.textContent = 'Посмотреть результаты';
-        } else {
-            // Если квест не завершен, продолжаем с текущего вопроса
-            quizSection.classList.add('active');
-            quizBox.classList.add('active');
-            questionCount = savedQuestionCount; // Восстанавливаем сохраненный счетчик
-            userScore = savedUserScore; // Восстанавливаем сохраненный счет
-            displayQuestions(questionCount); // Показываем текущий вопрос
-            questionCounter(questionCount + 1); // Обновляем счетчик вопросов
-            updateHeaderScore(); // Обновляем счет
-            isAnswerChecked = false; // Сбрасываем флаг проверки ответа
-        }
-    } else {
-        popupInfo.classList.add('active');
-        main.classList.add('active');
-    }
-};
-// getting questions and options from array
-
-function displayQuestions(index) {
-    const questionText = document.querySelector('.question-text');
-    const hintText = document.getElementById('hint-text');
-    const hintBtn = document.getElementById('hint-btn');
-    const explanationBtn = document.getElementById('explanationBtn');
-    const openImageBtn = document.getElementById('openImageBtn');
-    const imageModal = document.getElementById('imageModal');
-    const modalImage = document.getElementById('modalImage');
-
-    questionText.textContent = `${questions[index].numb}. ${questions[index].question}`;
-
-    // Скрываем подсказку и сбрасываем состояние кнопки
-    hintText.style.display = 'none';
-    hintText.textContent = '';
-    hintBtn.disabled = false;
-    hintBtn.textContent = 'Подсказка';
-    explanationBtn.disabled = true;
-
-    // Если у вопроса есть подсказка, добавляем обработчик для кнопки
-    if (questions[index].hint) {
-        hintBtn.style.display = 'block';
-        hintBtn.onclick = () => {
-            hintText.textContent = `Подсказка: ${questions[index].hint}`;
-            hintText.style.display = 'block';
-            hintBtn.disabled = true;
-            hintBtn.textContent = 'Подсказка использована';
-            hintUsedArray[index] = true;
-        };
-    } else {
-        hintBtn.style.display = 'none';
-    }
-
-    // Если подсказка была использована, отключаем кнопку подсказки
-    if (hintUsedArray[index]) {
-        hintBtn.disabled = true;
-        hintBtn.textContent = 'Подсказка использована';
-    }
-
-    // Обработка нескольких изображений
-    // Обработка нескольких изображений
-if (questions[index].images && Array.isArray(questions[index].images)) {
-    openImageBtn.style.display = 'block';
-
-    openImageBtn.addEventListener('click', () => {
-        
-        // Очищаем модальное окно перед добавлением новых изображений
-        imageModal.innerHTML = '';
-        imageModal.classList.add('show');
-        // Добавляем кнопку закрытия
-        const closeBtn = document.createElement('span');
-        closeBtn.className = 'cloose-btn';
-        closeBtn.innerHTML = '&times;';
-        closeBtn.onclick = () => {
-            imageModal.classList.remove('show'); // Убираем класс анимации открытия
-            imageModal.classList.add('fade-out'); // Добавляем анимацию закрытия
-            
-            setTimeout(() => {
-                imageModal.style.display = 'none';
-                imageModal.classList.remove('fade-out'); 
-            }, 500); // Время должно совпадать с длительностью анимации
-            
-            imageModal.style.display = 'none';
-            quizheader.classList.remove('blur-background');
-            quiztext.classList.remove('blur-background');
-            quizfooter.classList.remove('blur-background');
-            optionList.classList.remove('blur-background');
-            quiztext1.classList.remove('blur-background');
-            xCloseBtn.classList.remove('blur-background');
-            hintBtn.classList.remove('blur-background');
-            hintText.classList.remove('blur-background');
-            buttonsContainer.classList.remove('blur-background');
-        };
-        imageModal.appendChild(closeBtn);
-
-        // Добавляем изображения в модальное окно
-        questions[index].images.forEach(imageSrc => {
-            const img = document.createElement('img');
-            img.src = imageSrc;
-            img.style.maxWidth = '90%';
-            img.style.maxHeight = '90%';
-            img.style.margin = '10px';
-            img.style.borderRadius = '10px';
-            imageModal.appendChild(img);
+    // Обработчики для кнопок предметов
+    document.querySelectorAll('.subject-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.subject-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            selectedSubject = btn.dataset.subject;
+            updateModalSubtitle();
         });
-
-        imageModal.style.display = 'flex';
-        quizheader.classList.add('blur-background');
-        quiztext.classList.add('blur-background');
-        quizfooter.classList.add('blur-background');
-        optionList.classList.add('blur-background');
-        quiztext1.classList.add('blur-background');
-        xCloseBtn.classList.add('blur-background');
-        hintBtn.classList.add('blur-background');
-        hintText.classList.add('blur-background');
-        buttonsContainer.classList.add('blur-background');
     });
-} else {
-    openImageBtn.style.display = 'none';
 }
-
-    // Остальная часть функции остается без изменений
-    optionTag = `<div class="option"><span>${questions[index].options[0]}</span></div>
-                <div class="option"><span>${questions[index].options[1]}</span></div>
-                <div class="option"><span>${questions[index].options[2]}</span></div>
-                <div class="option"><span>${questions[index].options[3]}</span></div>`;
-
-    optionList.innerHTML = optionTag;
-
-    const option = document.querySelectorAll('.option');
-    for (let i = 0; i < option.length; i++) {
-        option[i].setAttribute('onclick', 'checkAnswer(this)');
+// Заполняем список номеров заданий
+function initTaskNumbers() {
+    const taskNumbers = Array.from({length: 27}, (_, i) => i + 1);
+    
+    // Для фильтра
+    taskFilter.innerHTML = '<option value="all">Все задания</option>' +
+        taskNumbers.map(num => `<option value="${num}">${num}</option>`).join('');
+    
+    // Для сетки
+    taskGrid.innerHTML = taskNumbers.map(num => `
+        <button type="button" class="task-btn" data-task="${num}">${num}</button>
+    `).join('');
+    
+    // Обработчики для кнопок заданий
+    document.querySelectorAll('.task-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.task-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            selectedTask = btn.dataset.task;
+            updateModalSubtitle();
+        });
+    });
+    
+    // Инициализируем скрытые селекты для формы (добавляем)
+    taskNumberSelect.innerHTML = '<option value="" disabled selected>Выберите номер</option>' +
+        taskNumbers.map(num => `<option value="${num}">${num}</option>`).join('');
+}
+function updateModalSubtitle() {
+    if (selectedSubject && selectedTask) {
+        modalSubtitle.textContent = `${selectedSubject}, задание ${selectedTask}`;
+    } else if (selectedSubject) {
+        modalSubtitle.textContent = `Выбран предмет: ${selectedSubject}`;
+    } else if (selectedTask) {
+        modalSubtitle.textContent = `Выбрано задание: ${selectedTask}`;
+    } else {
+        modalSubtitle.textContent = 'Заполните информацию о шпаргалке';
     }
-
-    if (userAnswers[index] !== undefined) {
-        const selectedAnswer = userAnswers[index];
-        const options = optionList.children;
-        for (let i = 0; i < options.length; i++) {
-            if (options[i].textContent === selectedAnswer) {
-                if (selectedAnswer === questions[index].answer) {
-                    options[i].classList.add('correct');
-                } else {
-                    options[i].classList.add('incorrect');
+}
+// Настройка обработчиков событий
+// Настройка обработчиков событий
+function setupEventListeners() {
+    // Форма
+    cheatsheetForm.addEventListener('submit', saveCheatsheet);
+    contentTextarea.addEventListener('input', updateCharCount);
+    
+    // Фильтры
+    searchInput.addEventListener('input', updateFilters);
+    subjectFilter.addEventListener('change', updateFilters);
+    taskFilter.addEventListener('change', updateFilters);
+    
+    // Кнопки
+    newCheatsheetBtn.addEventListener('click', () => openEditModal());
+    emptyNewBtn.addEventListener('click', () => openEditModal());
+    closeViewBtn.addEventListener('click', () => {
+        // Снимаем активный класс со всех элементов
+        document.querySelectorAll('.cheatsheet-item.active, .grid-item.active').forEach(el => {
+            el.classList.remove('active');
+        });
+        showListView();
+    });
+    editBtn.addEventListener('click', editCurrentCheatsheet);
+    deleteBtn.addEventListener('click', showDeleteConfirmation);
+    
+    // Модальное окно
+    closeModalBtn.addEventListener('click', closeEditModal);
+    cancelBtn.addEventListener('click', closeEditModal);
+    
+    // Управление
+    importBtn.addEventListener('click', importCheatsheets);
+    themeToggle.addEventListener('click', toggleTheme);
+    
+    // Улучшенное закрытие модалки при клике вне её
+    setupImprovedModalClose(editModal, closeEditModal);
+    setupImprovedModalClose(exportModal, closeExportModal);
+    setupImprovedModalClose(deleteConfirmModal, closeDeleteModal);
+    setupImprovedModalClose(helpModal, closeHelpModal);
+    
+    nextStepBtn.addEventListener('click', nextStep);
+    prevStepBtn.addEventListener('click', prevStep);
+    
+    // Обработчики форматирования
+    formatBtns.forEach(btn => {
+        btn.addEventListener('click', () => applyFormatting(btn.dataset.format));
+    });
+    
+    // Предпросмотр
+    editPreviewBtn.addEventListener('click', () => goToStep(2));
+    
+    // Подсказки
+    formatHelpBtn.addEventListener('click', openHelpModal);
+    closeHelpModalBtn.addEventListener('click', closeHelpModal);
+    
+    // Обработчик Escape для модальных окон
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            if (editModal.style.display === 'flex') {
+                closeEditModal();
+            }
+            if (helpModal.style.display === 'flex') {
+                closeHelpModal();
+            }
+            if (exportModal.style.display === 'flex') {
+                closeExportModal();
+            }
+            if (deleteConfirmModal.style.display === 'flex') {
+                closeDeleteModal();
+            }
+        }
+    });
+    
+    exportBtn.addEventListener('click', openExportModal);
+    
+    // Модальное окно экспорта
+    closeExportModalBtn.addEventListener('click', closeExportModal);
+    cancelExportBtn.addEventListener('click', closeExportModal);
+    confirmExportBtn.addEventListener('click', confirmExport);
+    
+    // Переключение типа экспорта
+    exportAllRadio.addEventListener('change', updateExportSelection);
+    exportFilteredRadio.addEventListener('change', updateExportSelection);
+    exportSelectedRadio.addEventListener('change', updateExportSelection);
+    
+    // Следим за изменениями в форме для предпросмотра
+    titleInput.addEventListener('input', updatePreview);
+    contentTextarea.addEventListener('input', updatePreview);
+    tagsInput.addEventListener('input', updatePreview);
+    
+    // Удаление шпаргалки
+    deleteBtn.addEventListener('click', showDeleteConfirmation);
+    
+    // Модальное окно подтверждения удаления
+    cancelDeleteBtn.addEventListener('click', closeDeleteModal);
+    confirmDeleteBtn.addEventListener('click', confirmDeleteCheatsheet);
+    
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            if (deleteConfirmModal.style.display === 'flex') {
+                closeDeleteModal();
+            }
+        }
+    });
+}
+// Улучшенная функция закрытия модального окна при клике вне его
+function setupImprovedModalClose(modalElement, closeFunction) {
+    let mouseDownInside = false;
+    let mouseDownTarget = null;
+    
+    // Отслеживаем начало клика
+    modalElement.addEventListener('mousedown', function(e) {
+        mouseDownInside = true;
+        mouseDownTarget = e.target;
+    });
+    
+    // Отслеживаем отпускание кнопки мыши
+    modalElement.addEventListener('mouseup', function(e) {
+        // Проверяем, был ли клик начат и завершен на фоне модального окна
+        if (mouseDownInside && mouseDownTarget === e.target && e.target === modalElement) {
+            // Ждем немного, чтобы избежать конфликтов с другими событиями
+            setTimeout(() => {
+                if (modalElement.style.display === 'flex') {
+                    closeFunction();
                 }
+            }, 10);
+        }
+        // Сбрасываем флаги
+        mouseDownInside = false;
+        mouseDownTarget = null;
+    });
+    
+    // Также обрабатываем клик, но только если он не начался внутри контента
+    modalElement.addEventListener('click', function(e) {
+        // Если клик был на самом фоне модалки (не на контенте)
+        if (e.target === modalElement) {
+            // Проверяем, не было ли начало клика внутри контента
+            const modalContent = modalElement.querySelector('.modal-content');
+            if (modalContent && modalContent.contains(mouseDownTarget)) {
+                // Клик начался внутри контента, не закрываем
+                return;
             }
-        }
-
-        explanationBtn.disabled = false;
-    }
-}
-
-// При выходе на главную страницу сохраняем текущее состояние
-
-
-// При возвращении на страницу квиза восстанавливаем состояние
-startBtn.onclick = () => {
-    if (isQuizCompletedres){
-
-    }
-    if (isQuizStarted) {
-        quizSection.classList.add('active');
-        quizBox.classList.add('active');
-        userScore = savedUserScore; // Восстанавливаем сохраненный счет
-        displayQuestions(currentQuestionIndex); // Показываем текущий вопрос
-        questionCounter(currentQuestionIndex + 1); // Обновляем счетчик вопросов
-        updateHeaderScore(); // Обновляем счет
-    } else {
-        popupInfo.classList.add('active');
-        main.classList.add('active');
-    }
-};
-
-let hintUsed = false; // Флаг для отслеживания использования подсказки
-
-function checkAnswer(answer) {
-    if (isAnswerChecked) return; // Если ответ уже проверен, выходим из функции
-
-    let userAnswer = answer.textContent;
-    let correctAnswer = questions[questionCount].answer; // Используем questionCount
-    let allOptions = optionList.children.length;
-
-    // Сохраняем выбранный ответ
-    userAnswers[questionCount] = userAnswer;
-
-    if (userAnswer == correctAnswer) {
-        answer.classList.add('correct');
-        if (hintUsedArray[questionCount]) {
-            userScore += 0.5; // Даем 0.5 балла, если подсказка была использована
-        } else {
-            userScore += 1; // Даем 1 балл, если подсказка не использовалась
-        }
-        updateHeaderScore();
-    } else {
-        answer.classList.add('incorrect');
-
-        // Если выбран неправильный ответ, показываем правильный
-        for (let i = 0; i < allOptions; i++) {
-            if (optionList.children[i].textContent == correctAnswer) {
-                optionList.children[i].classList.add('correct'); // Добавляем класс correct
-            }
-        }
-    }
-
-    // Отключаем все варианты ответов после выбора
-    for (let i = 0; i < allOptions; i++) {
-        optionList.children[i].classList.add('disabled');
-    }
-
-    nextBtn.classList.add('active');
-    hintUsed = false; // Сбрасываем флаг использования подсказки
-
-    // Деактивируем кнопку "Показать подсказку"
-    const hintBtn = document.getElementById('hint-btn');
-    hintBtn.disabled = true; // Отключаем кнопку
-
-    // Если подсказка была использована, не меняем текст кнопки
-    if (!hintUsedArray[questionCount]) {
-        hintBtn.textContent = 'Подсказка недоступна'; // Меняем текст кнопки только если подсказка не использовалась
-    }
-
-    // Активируем кнопку "Пояснение"
-    const explanationBtn = document.getElementById('explanationBtn');
-    explanationBtn.disabled = false; // Активируем кнопку "Пояснение"
-
-    isAnswerChecked = true; // Устанавливаем флаг, что ответ был проверен
-}
-function questionCounter(index) {
-    const questionsTotal = document.querySelector('.questions-total');
-    questionsTotal.textContent = `${index} из ${questions.length} вопросов`;
-}
-
-function updateHeaderScore() {
-    const headerScoreText = document.querySelector('.header-score');
-    headerScoreText.textContent = `Счет: ${userScore} / ${questions.length}`;
-}
-
-function displayResultBox() {
-    quizBox.classList.remove('active');
-    resultBox.classList.add('active');
-
-    let scoreText = document.querySelector('.score-text');
-    scoreText.textContent = `Вы набрали ${userScore} из ${questions.length}`;
-
-    let circularProgress = document.querySelector('.circular-progress');
-    let progressValue = document.querySelector('.progress-value');
-
-    let progressStartValue = -1;
-    let progressEndValue = (userScore / questions.length) * 100;
-    let speed = 20;
-
-    let progress = setInterval(() => {
-        progressStartValue++;
-
-        progressValue.textContent = `${progressStartValue}%`;
-        circularProgress.style.background = `conic-gradient(#e05330 ${progressStartValue * 3.6}deg, rgba(255, 255, 255, .1) 0deg)`;
-
-        if (progressStartValue >= progressEndValue) { // Изменено условие
-            clearInterval(progress);
-        }
-    }, speed);
-
-    isQuizCompleted = true;
-    isQuizCompletedres = true
-    if (!localStorage.getItem('galleryUnlocked')) {
-        showGalleryUnlockToast();
-        localStorage.setItem('galleryUnlocked', 'true');
-    }
-    updateGalleryButtonState();
-    updateGalleryDescription(); // Добавить
-    if (document.querySelector('.gallery-modal.active')) {
-        initGallery();}
-}
-// Получаем кнопку "Сохранить результат"
-const saveResultBtn = document.querySelector('.save-result-btn');
-
-// Функция для сохранения результата в виде изображения
-// script.js
-function saveResultAsImage() {
-    const resultBox = document.querySelector('.result-box');
-    const originalStyles = {
-        display: resultBox.style.display,
-        opacity: resultBox.style.opacity,
-        circularProgress: document.querySelector('.circular-progress').style.opacity,
-        progressValue: document.querySelector('.progress-value').style.opacity
-    };
-
-    // Показываем и делаем видимыми нужные элементы
-    resultBox.style.display = 'block';
-    resultBox.style.opacity = '1';
-    document.querySelector('.circular-progress').style.opacity = '1';
-    document.querySelector('.progress-value').style.opacity = '1';
-
-    // Ждем завершения всех анимаций
-    setTimeout(() => {
-        html2canvas(resultBox, {
-            scale: 2,
-            logging: true,
-            useCORS: true,
-            backgroundColor: '#5A3A6C',
-            onclone: (clonedDoc) => {
-                // Гарантируем видимость элементов в клоне
-                clonedDoc.querySelector('.circular-progress').style.opacity = '1';
-                clonedDoc.querySelector('.progress-value').style.opacity = '1';
-                clonedDoc.querySelectorAll('.buttons, .contacts-info').forEach(el => {
-                    el.style.display = 'none';
-                });
-            }
-        }).then(canvas => {
-            const imgData = canvas.toDataURL('image/png');
-            const link = document.createElement('a');
-            link.href = imgData;
-            link.download = 'quiz_progress.png';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
             
-            // Восстанавливаем оригинальные стили
-            resultBox.style.display = originalStyles.display;
-            resultBox.style.opacity = originalStyles.opacity;
-            document.querySelector('.circular-progress').style.opacity = originalStyles.circularProgress;
-            document.querySelector('.progress-value').style.opacity = originalStyles.progressValue;
-        }).catch(e => console.error('Ошибка:', e));
-    }, 500); // Даем время на завершение анимаций
-}
-// Функция для сохранения результата в виде текстового файла
-// Обработчик для кнопки "Поделиться"
-document.getElementById('shareResultBtn').addEventListener('click', () => {
-    // Показываем модальное окно с выбором платформ
-    document.getElementById('shareOptionsModal').style.display = 'flex';
-});
-
-// Обработчик для кнопки "Сохранить результат"
-
-// Получаем элементы модального окна
-const saveResultModal = document.getElementById('saveResultModal');
-const saveAsImageBtn = document.getElementById('saveAsImageBtn');
-const saveAsTextBtn = document.getElementById('saveAsTextBtn');
-const closeSaveModalBtn = document.getElementById('closeSaveModalBtn');
-
-// Обработчик для кнопки "Сохранить результат"
-saveResultBtn.addEventListener('click', () => {
-    saveResultModal.style.display = 'flex'; // Показываем модальное окно
-});
-
-// Обработчик для кнопки "Сохранить как изображение"
-saveAsImageBtn.addEventListener('click', () => {
-    saveResultAsImage(); // Сохраняем как изображение
-    saveResultModal.style.display = 'none'; // Скрываем модальное окно
-});
-
-
-// Обработчик для кнопки "Закрыть"
-// Обработчик для кнопки "Закрыть" в модалке сохранения
-closeSaveModalBtn.addEventListener('click', () => {
-    saveResultModal.style.display = 'none';
-});
-// Обработчик для кнопки "Поделиться"
-
-
-// Обработчики для кнопок выбора платформ
-document.getElementById('shareVK').addEventListener('click', () => {
-    const shareText = `Мои результаты квеста: ${document.querySelector('.score-text').textContent}, ${document.querySelector('.progress-value').textContent}\n\nПопробуйте и вы: ${window.location.href}`;
-    const vkUrl = `https://vk.com/share.php?url=${encodeURIComponent(window.location.href)}&title=${encodeURIComponent('Мои результаты квеста')}&description=${encodeURIComponent(shareText)}`;
-    window.open(vkUrl, '_blank');
-    document.getElementById('shareOptionsModal').style.display = 'none';
-});
-
-document.getElementById('shareTelegram').addEventListener('click', () => {
-    const scoreText = document.querySelector('.score-text').textContent; // Пример: "Вы набрали 8 из 10"
-    const progressValue = document.querySelector('.progress-value').textContent; // Пример: "80%"
-
-    // Формируем текст для Telegram
-    const shareText = `Мои результаты квеста: ${scoreText}, ${progressValue}\n\nПопробуйте и вы: ${window.location.href}`;
-
-    // Создаем ссылку для Telegram
-    const telegramUrl = `https://t.me/share/url?url=${encodeURIComponent(shareText)}`;
-
-    // Открываем ссылку в новом окне
-    window.open(telegramUrl, '_blank');
-
-    // Закрываем модальное окно
-    document.getElementById('shareOptionsModal').style.display = 'none';
-});
-
-document.getElementById('shareWhatsApp').addEventListener('click', () => {
-    const shareText = `Результаты квиза:\n\n${document.querySelector('.score-text').textContent}\nПрогресс: ${document.querySelector('.progress-value').textContent}\n\nПопробуйте и вы: ${window.location.href}`;
-    const whatsappUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(shareText)}`;
-    window.open(whatsappUrl, '_blank');
-    document.getElementById('shareOptionsModal').style.display = 'none';
-});
-
-document.getElementById('copyLink').addEventListener('click', () => {
-    const shareText = `Результаты квиза:\n\n${document.querySelector('.score-text').textContent}\nПрогресс: ${document.querySelector('.progress-value').textContent}\n\nПопробуйте и вы: ${window.location.href}`;
-    navigator.clipboard.writeText(shareText)
-        .then(() => alert('Ссылка скопирована в буфер обмена!'))
-        .catch(() => alert('Не удалось скопировать ссылку.'));
-    document.getElementById('shareOptionsModal').style.display = 'none';
-});
-
-// Обработчик для кнопки "Закрыть" в модальном окне выбора платформ
-document.getElementById('closeShareOptionsModal').addEventListener('click', () => {
-    document.getElementById('shareOptionsModal').style.display = 'none';
-});
-
-// Закрытие модального окна при клике вне его области
-window.addEventListener('click', (e) => {
-    if (e.target === document.getElementById('shareOptionsModal')) {
-        document.getElementById('shareOptionsModal').style.display = 'none';
-    }
-});
-
-// Закрытие модалки при клике вне ее области
-window.addEventListener('click', (e) => {
-    if (e.target === saveResultModal) {
-        saveResultModal.style.display = 'none';
-    }
-});
-
-
-
-
-// Если нужно скрыть подсказку при повторном нажатии
-hintBtn.addEventListener('click', () => {
-    if (hintText.style.display === 'block') {
-        hintText.classList.add('fade-out'); // Добавляем анимацию исчезновения
-        setTimeout(() => {
-            hintText.style.display = 'none'; // Скрываем подсказку
-        }, 300); // Время анимации
-    } else {
-        hintText.style.display = 'block'; // Показываем подсказку
-    }
-});
-// Функция для предзагрузки изображений
-function preloadImages() {
-    const images = [];
-    questions.forEach(question => {
-        if (question.images) {
-            if (Array.isArray(question.images)) {
-                question.images.forEach(imageSrc => {
-                    const img = new Image();
-                    img.src = imageSrc;
-                    images.push(img);
-                });
-            } else {
-                const img = new Image();
-                img.src = question.images;
-                images.push(img);
-            }
+            // Задержка для стабильности
+            setTimeout(() => {
+                if (modalElement.style.display === 'flex') {
+                    closeFunction();
+                }
+            }, 10);
         }
     });
+    
+    // Сбрасываем флаги при уходе курсора
+    modalElement.addEventListener('mouseleave', function() {
+        mouseDownInside = false;
+        mouseDownTarget = null;
+    });
+}
+function closeDeleteModal() {
+    // Проверяем, открыто ли окно
+    if (deleteConfirmModal.style.display !== 'flex') return;
+    
+    // Убираем подсветку
+    if (cheatsheetToDelete) {
+        const listItem = document.querySelector(`.cheatsheet-item[data-id="${cheatsheetToDelete}"]`);
+        const gridItem = document.querySelector(`.grid-item[data-id="${cheatsheetToDelete}"]`);
+        
+        if (listItem) listItem.classList.remove('deleting-highlight');
+        if (gridItem) gridItem.classList.remove('deleting-highlight');
+    }
+    
+    deleteConfirmModal.style.opacity = '0';
+    setTimeout(() => {
+        deleteConfirmModal.style.display = 'none';
+        cheatsheetToDelete = null;
+    }, 0);
+}
+function confirmDeleteCheatsheet() {
+    if (!cheatsheetToDelete) return;
+    
+    // Сразу закрываем модальное окно
+    deleteConfirmModal.style.opacity = '0';
+    setTimeout(() => {
+        deleteConfirmModal.style.display = 'none';
+    }, 0);
+    
+    // Добавляем анимацию удаления к элементам
+    const listItem = document.querySelector(`.cheatsheet-item[data-id="${cheatsheetToDelete}"]`);
+    const gridItem = document.querySelector(`.grid-item[data-id="${cheatsheetToDelete}"]`);
+    
+    if (listItem) listItem.classList.add('deleting');
+    if (gridItem) gridItem.classList.add('deleting');
+    
+    // Удаляем шпаргалку из массива сразу (без задержки)
+    cheatsheets = cheatsheets.filter(c => c.id !== cheatsheetToDelete);
+    
+    // Сохраняем в localStorage
+    saveToStorage();
+    
+    // Обновляем интерфейс (но без перерисовки элементов, которые в процессе анимации)
+    updateStats();
+    
+    // Если удаляли просматриваемую шпаргалку, показываем список
+    if (cheatsheetView.dataset.id === cheatsheetToDelete) {
+        showListView();
+    }
+    
+    // Показываем уведомление с возможностью отмены
+    showUndoableToast('Шпаргалка удалена', cheatsheetToDelete);
+    
+    // Сбрасываем ID через короткую задержку
+    setTimeout(() => {
+        cheatsheetToDelete = null;
+        // Перерисовываем список только после завершения анимации
+        renderCheatsheets();
+    }, 500); // Соответствует длительности анимации
+}
+function showUndoableToast(message, cheatsheetId) {
+    // Сохраняем копию удаленной шпаргалки
+    const deletedCheatsheet = cheatsheets.find(c => c.id === cheatsheetId);
+    if (!deletedCheatsheet) return;
+    
+    lastDeletedCheatsheet = deletedCheatsheet;
+    
+    // Создаем уведомление с кнопкой отмены
+    const toast = document.createElement('div');
+    toast.className = 'toast success';
+    toast.dataset.id = cheatsheetId;
+    
+    toast.innerHTML = `
+        <div class="toast-content">
+            <i class="fas fa-trash"></i> ${message}
+            <span id="undoCountdown">5</span>с
+        </div>
+        <button class="toast-undo" id="undoDeleteBtn">
+            <i class="fas fa-undo"></i> Отменить
+        </button>
+        <button class="toast-close">&times;</button>
+    `;
+    
+    toastContainer.appendChild(toast);
+    
+    // Запускаем таймер для автоматического скрытия
+    let countdown = 5;
+    const countdownElement = toast.querySelector('#undoCountdown');
+    
+    const countdownInterval = setInterval(() => {
+        countdown--;
+        countdownElement.textContent = countdown;
+        
+        if (countdown <= 0) {
+            clearInterval(countdownInterval);
+            if (toast.parentNode) {
+                toast.remove();
+                lastDeletedCheatsheet = null;
+            }
+        }
+    }, 1000);
+    
+    // Обработчик кнопки отмены
+    const undoBtn = toast.querySelector('#undoDeleteBtn');
+    undoBtn.addEventListener('click', () => {
+        undoDelete(deletedCheatsheet);
+        clearInterval(countdownInterval);
+        toast.remove();
+    });
+    
+    // Обработчик закрытия
+    const closeBtn = toast.querySelector('.toast-close');
+    closeBtn.addEventListener('click', () => {
+        clearInterval(countdownInterval);
+        toast.remove();
+        lastDeletedCheatsheet = null;
+    });
+    
+    // Автоматическое удаление через 5 секунд
+    undoTimeout = setTimeout(() => {
+        if (toast.parentNode) {
+            toast.remove();
+            lastDeletedCheatsheet = null;
+        }
+    }, 5000);
+}
+function undoDelete(cheatsheet) {
+    if (!cheatsheet) return;
+    
+    // Убираем класс удаления с элементов (если они еще есть в DOM)
+    const listItem = document.querySelector(`.cheatsheet-item[data-id="${cheatsheet.id}"]`);
+    const gridItem = document.querySelector(`.grid-item[data-id="${cheatsheet.id}"]`);
+    
+    if (listItem) listItem.classList.remove('deleting');
+    if (gridItem) gridItem.classList.remove('deleting');
+    
+    // Восстанавливаем шпаргалку в массив
+    cheatsheets.unshift(cheatsheet);
+    
+    // Сохраняем в localStorage
+    saveToStorage();
+    
+    // Обновляем интерфейс
+    updateStats();
+    renderCheatsheets();
+    
+    // Показываем уведомление о восстановлении
+    showToast('Шпаргалка восстановлена', 'success');
+    
+    // Показываем восстановленную шпаргалку
+    const restoredItem = document.querySelector(`.cheatsheet-item[data-id="${cheatsheet.id}"]`);
+    if (restoredItem) {
+        restoredItem.click();
+    }
+    
+    lastDeletedCheatsheet = null;
+}
+const undoToastStyles = `
+.toast .toast-content i.fa-trash {
+    margin-right: 8px;
+    color: var(--danger-color);
 }
 
-// Вызов функции предзагрузки изображений при загрузке страницы
-window.onload = preloadImages;
-// В обработчике кнопки "Картинная галерея"
+.toast #undoCountdown {
+    display: inline-block;
+    background-color: rgba(255, 71, 87, 0.2);
+    color: var(--danger-color);
+    padding: 2px 6px;
+    border-radius: 12px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin-left: 8px;
+    min-width: 24px;
+    text-align: center;
+}
 
-// Добавить в конец файла
-// В script.js добавить
-// Кнопка в блоке результатов
-const reportErrorBtn = document.createElement('button');
-reportErrorBtn.className = 'report-btn';
-reportErrorBtn.textContent = 'Сообщить об ошибке';
-document.querySelector('.buttons').appendChild(reportErrorBtn);
+.toast-undo {
+    background: none;
+    border: none;
+    color: var(--primary-color);
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 12px;
+    margin-right: 8px;
+    border-radius: var(--radius-sm);
+    transition: var(--transition);
+}
 
-// Элементы модального окна
-const reportModal = document.querySelector('.report-modal');
-const closeReportBtn = document.querySelector('.close-report-btn');
+.toast-undo:hover {
+    background-color: rgba(67, 97, 238, 0.1);
+    transform: translateY(-1px);
+}
 
-// Обработчики
-reportErrorBtn.addEventListener('click', () => {
-    document.getElementById('reportScore').value = userScore;
-    document.getElementById('reportQuestion').value = questionCount + 1;
-    document.getElementById('reportAnswers').value = userAnswers.join('\n');
-    reportModal.style.display = 'block';
-});
-
-closeReportBtn.addEventListener('click', () => {
-    reportModal.style.display = 'none';
-});
-
-window.addEventListener('click', (e) => {
-    if (e.target === reportModal) {
-        reportModal.style.display = 'none';
+.toast-undo i {
+    font-size: 0.9rem;
+}
+`;
+const styleSheet = document.createElement('style');
+styleSheet.textContent = undoToastStyles;
+document.head.appendChild(styleSheet);
+let lastDeletedCheatsheet = null;
+let undoTimeout = null;
+function showDeleteConfirmation() {
+    const cheatsheetId = cheatsheetView.dataset.id;
+    const cheatsheet = cheatsheets.find(c => c.id === cheatsheetId);
+    
+    if (!cheatsheet) return;
+    
+    // Сохраняем ID шпаргалки для удаления
+    cheatsheetToDelete = cheatsheetId;
+    
+    // Подсвечиваем удаляемую шпаргалку в списке
+    const listItem = document.querySelector(`.cheatsheet-item[data-id="${cheatsheetId}"]`);
+    const gridItem = document.querySelector(`.grid-item[data-id="${cheatsheetId}"]`);
+    
+    if (listItem) listItem.classList.add('deleting-highlight');
+    if (gridItem) gridItem.classList.add('deleting-highlight');
+    
+    // Красивое описание для удаления
+    const taskTypes = {
+        1: "задание с кратким ответом",
+        2: "задание на анализ текста",
+        3: "задание на соответствие",
+        4: "задание с развернутым ответом",
+        5: "задание на решение задач"
+    };
+    
+    const taskType = taskTypes[cheatsheet.taskNumber] || "задание";
+    
+    deleteConfirmText.innerHTML = `
+        <strong>${cheatsheet.title}</strong> будет удалена без возможности восстановления.<br>
+        Это ${taskType} по предмету <strong>${cheatsheet.subject}</strong>.
+    `;
+    
+    // Форматируем даты красиво
+    const createdDate = new Date(cheatsheet.createdAt).toLocaleDateString('ru-RU', {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+    });
+    
+    const updatedDate = new Date(cheatsheet.updatedAt).toLocaleDateString('ru-RU', {
+        day: 'numeric',
+        month: 'long',
+        hour: '2-digit',
+        minute: '2-digit'
+    });
+    
+    // Добавляем красивые детали
+    deleteConfirmDetails.innerHTML = `
+        <div class="confirm-details-item">
+            <span class="confirm-details-label">
+                <i class="fas fa-book"></i> Предмет
+            </span>
+            <span class="confirm-details-value" style="color: var(--primary-color); font-weight: 700;">
+                ${cheatsheet.subject}
+            </span>
+        </div>
+        <div class="confirm-details-item">
+            <span class="confirm-details-label">
+                <i class="fas fa-tasks"></i> Номер задания
+            </span>
+            <span class="confirm-details-value" style="background: linear-gradient(135deg, var(--secondary-color), var(--secondary-light)); color: white; padding: 4px 12px; border-radius: 20px;">
+                ${cheatsheet.taskNumber}
+            </span>
+        </div>
+        <div class="confirm-details-item">
+            <span class="confirm-details-label">
+                <i class="fas fa-calendar-plus"></i> Создано
+            </span>
+            <span class="confirm-details-value">${createdDate}</span>
+        </div>
+        <div class="confirm-details-item">
+            <span class="confirm-details-label">
+                <i class="fas fa-history"></i> Обновлено
+            </span>
+            <span class="confirm-details-value">${updatedDate}</span>
+        </div>
+        <div class="confirm-details-item">
+            <span class="confirm-details-label">
+                <i class="fas fa-text-height"></i> Размер
+            </span>
+            <span class="confirm-details-value">
+                ${cheatsheet.content.length} символов, 
+                ${Math.ceil(cheatsheet.content.split(' ').length)} слов
+            </span>
+        </div>
+    `;
+    
+    // Показываем модальное окно
+    deleteConfirmModal.style.display = 'flex';
+    setTimeout(() => {
+        deleteConfirmModal.style.opacity = '1';
+        confirmDeleteBtn.focus();
+    }, 10);
+}
+// Обновление фильтров
+function updateFilters() {
+    currentFilter.subject = subjectFilter.value;
+    currentFilter.task = taskFilter.value;
+    currentFilter.search = searchInput.value.toLowerCase().trim();
+    
+    updateCurrentSubjectText();
+    renderCheatsheets(); // Уже есть
+    
+    // Обновляем активный элемент, если есть
+    if (currentView === 'view' && cheatsheetView.dataset.id) {
+        const activeCheatsheet = cheatsheets.find(c => c.id === cheatsheetView.dataset.id);
+        if (activeCheatsheet && getFilteredCheatsheets().some(c => c.id === activeCheatsheet.id)) {
+            // Если активная шпаргалка проходит фильтр, обновляем её отображение
+            viewCheatsheet(activeCheatsheet);
+        } else {
+            // Иначе возвращаемся к списку
+            showListView();
+        }
     }
-});
+}
 
-// Обработка успешной отправки формы
-const form = document.querySelector('.report-content form');
-form.addEventListener('submit', async (e) => {
+// Обновление текста текущего предмета
+function updateCurrentSubjectText() {
+    if (currentFilter.subject === 'all') {
+        currentSubject.textContent = 'Все шпаргалки';
+    } else {
+        currentSubject.textContent = currentFilter.subject;
+    }
+}
+function nextStep() {
+    if (currentStep === 1) {
+        // Проверяем, выбраны ли предмет и задание
+        if (!selectedSubject || !selectedTask) {
+            showToast('Выберите предмет и номер задания', 'error');
+            return;
+        }
+        
+        // Заполняем скрытые select'ы для обратной совместимости
+        if (subjectSelect) subjectSelect.value = selectedSubject;
+        if (taskNumberSelect) taskNumberSelect.value = selectedTask;
+        
+        // Переходим к шагу 2
+        goToStep(2);
+    } else if (currentStep === 2) {
+        // Проверяем содержание
+        if (!contentTextarea.value.trim()) {
+            showToast('Введите содержание шпаргалки', 'error');
+            return;
+        }
+        
+        // Обновляем предпросмотр
+        updatePreview();
+        
+        // Переходим к шагу 3
+        goToStep(3);
+    }
+}
+function prevStep() {
+    if (currentStep === 2) {
+        goToStep(1);
+    } else if (currentStep === 3) {
+        goToStep(2);
+    }
+}
+function goToStep(step) {
+    // Скрываем все секции
+    document.querySelectorAll('.form-section').forEach(section => {
+        section.style.display = 'none';
+    });
+    
+    // Обновляем степпер
+    document.querySelectorAll('.stepper-step').forEach(stepEl => {
+        stepEl.classList.remove('active');
+        if (parseInt(stepEl.dataset.step) <= step) {
+            stepEl.classList.add('active');
+        }
+    });
+    
+    // Показываем нужную секцию
+    document.getElementById(`${['basic', 'content', 'preview'][step-1]}Section`).style.display = 'block';
+    
+    // Обновляем кнопки
+    prevStepBtn.style.display = step > 1 ? 'flex' : 'none';
+    nextStepBtn.style.display = step < 3 ? 'flex' : 'none';
+    saveBtn.style.display = step === 3 ? 'flex' : 'none';
+    
+    // Обновляем заголовок
+    modalTitle.textContent = step === 1 ? 'Новая шпаргалка' : 
+                           step === 2 ? 'Содержание шпаргалки' : 
+                           'Предпросмотр и сохранение';
+    
+    currentStep = step;
+    
+    // Если это последний шаг, обновляем статистику символов
+    if (step === 2) {
+        updateTextStats();
+    }
+}
+
+// Обновление счетчика символов
+function updateCharCount() {
+    const length = contentTextarea.value.length;
+    charCount.textContent = length;
+}
+function applyFormatting(format) {
+    const textarea = contentTextarea;
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const selectedText = textarea.value.substring(start, end);
+    const lineStart = textarea.value.lastIndexOf('\n', start - 1) + 1;
+    const lineEnd = textarea.value.indexOf('\n', end);
+    const currentLine = lineEnd === -1 
+        ? textarea.value.substring(lineStart)
+        : textarea.value.substring(lineStart, lineEnd);
+    
+    let formattedText = '';
+    
+    switch(format) {
+        case 'bold':
+            formattedText = `**${selectedText}**`;
+            break;
+        case 'italic':
+            formattedText = `*${selectedText}*`;
+            break;
+        case 'header':
+            // Если строка уже начинается с #, удаляем заголовок
+            if (currentLine.startsWith('# ')) {
+                formattedText = currentLine.substring(2);
+                textarea.setRangeText(formattedText, lineStart, lineEnd === -1 ? textarea.value.length : lineEnd, 'end');
+            } else {
+                formattedText = `# ${currentLine}`;
+                textarea.setRangeText(formattedText, lineStart, lineEnd === -1 ? textarea.value.length : lineEnd, 'end');
+            }
+            textarea.focus();
+            textarea.dispatchEvent(new Event('input'));
+            return;
+        case 'list':
+            // Если выделен текст, применяем к каждой строке
+            if (selectedText) {
+                formattedText = selectedText.split('\n').map(line => `• ${line}`).join('\n');
+            } else {
+                // Если курсор в начале строки, добавляем маркер
+                if (currentLine.startsWith('• ')) {
+                    formattedText = currentLine.substring(2);
+                    textarea.setRangeText(formattedText, lineStart, lineEnd === -1 ? textarea.value.length : lineEnd, 'end');
+                } else {
+                    formattedText = `• ${currentLine}`;
+                    textarea.setRangeText(formattedText, lineStart, lineEnd === -1 ? textarea.value.length : lineEnd, 'end');
+                }
+                textarea.focus();
+                textarea.dispatchEvent(new Event('input'));
+                return;
+            }
+            break;
+        case 'code':
+            formattedText = `\`${selectedText}\``;
+            break;
+        case 'clear':
+            formattedText = selectedText.replace(/\*\*|\*|`{1,3}|^[•\-]\s+/gm, '');
+            break;
+    }
+    
+    textarea.setRangeText(formattedText, start, end, 'end');
+    textarea.focus();
+    textarea.dispatchEvent(new Event('input'));
+}
+
+
+function updateTextStats() {
+    const text = contentTextarea.value;
+    const charCountElement = document.getElementById('charCount');
+    const wordCountElement = document.getElementById('wordCount');
+    const lineCountElement = document.getElementById('lineCount');
+    
+    // Символы
+    const chars = text.length;
+    charCountElement.textContent = chars;
+    
+    // Слова
+    const words = text.trim() ? text.trim().split(/\s+/).length : 0;
+    wordCountElement.textContent = words;
+    
+    // Строки
+    const lines = text ? text.split('\n').length : 0;
+    lineCountElement.textContent = lines;
+}
+// Закрытие модального окна
+function closeEditModal() {
+    // Проверяем, открыто ли окно
+    if (editModal.style.display !== 'flex') return;
+    
+    isEditModalOpen = false;
+    editModal.style.opacity = '0';
+    setTimeout(() => {
+        editModal.style.display = 'none';
+        editingId = null;
+        selectedSubject = '';
+        selectedTask = '';
+        
+        // Сбрасываем активные кнопки
+        document.querySelectorAll('.subject-btn, .task-btn').forEach(btn => {
+            btn.classList.remove('active');
+        });
+        
+        // Сбрасываем форму
+        cheatsheetForm.reset();
+        
+        // Сбрасываем шаги
+        goToStep(1);
+    }, 0);
+}
+function updatePreview() {
+    // Обновляем статистику текста
+    updateTextStats();
+    
+    // Обновляем предпросмотр
+    document.getElementById('previewSubject').textContent = selectedSubject;
+    document.getElementById('previewTask').textContent = `Задание ${selectedTask}`;
+    
+    const title = titleInput.value.trim() || `${selectedSubject}, задание ${selectedTask}`;
+    document.getElementById('previewTitle').textContent = title;
+    
+    // Форматируем содержимое с помощью formatContent для правильного отображения
+    const formattedContent = formatContent(contentTextarea.value);
+    document.getElementById('previewContent').innerHTML = formattedContent;
+    
+    // Обновляем теги
+    const tagsContainer = document.getElementById('previewTags');
+    const tags = tagsInput.value.split(',').map(tag => tag.trim()).filter(tag => tag);
+    
+    if (tags.length > 0) {
+        tagsContainer.innerHTML = tags.map(tag => 
+            `<span class="preview-tag">${tag}</span>`
+        ).join('');
+    } else {
+        tagsContainer.innerHTML = '<span class="preview-tag">без тегов</span>';
+    }
+}
+// Сохранение шпаргалки
+
+function openHelpModal() {
+    helpModal.style.display = 'flex';
+    setTimeout(() => helpModal.style.opacity = '1', 10);
+}
+
+// Закрытие модального окна с подсказками
+function closeHelpModal() {
+    // Проверяем, открыто ли окно
+    if (helpModal.style.display !== 'flex') return;
+    
+    helpModal.style.opacity = '0';
+    setTimeout(() => {
+        helpModal.style.display = 'none';
+    },0);
+}
+function debounceButtonClick(button, callback, delay = 300) {
+    let isProcessing = false;
+    
+    button.addEventListener('click', function(e) {
+        if (isProcessing) {
+            e.preventDefault();
+            e.stopPropagation();
+            return;
+        }
+        
+        isProcessing = true;
+        
+        // Визуальная обратная связь
+        button.classList.add('processing');
+        
+        // Выполняем callback
+        if (typeof callback === 'function') {
+            callback(e);
+        }
+        
+        // Сбрасываем через delay миллисекунд
+        setTimeout(() => {
+            isProcessing = false;
+            button.classList.remove('processing');
+        }, delay);
+    });
+}
+// Обновление статистики (расширенная версия)
+function updateStats() {
+    const total = cheatsheets.length;
+    
+    // Обновляем общее количество с правильным склонением
+    const word = getWordForm(total, ['шпаргалка', 'шпаргалки', 'шпаргалок']);
+    document.getElementById('totalCheatsheets').textContent = total;
+    document.querySelector('.stats-label').textContent = word;
+    
+    // Показываем статистику по предметам
+    if (total > 0) {
+        const subjectCounts = {};
+        cheatsheets.forEach(c => {
+            subjectCounts[c.subject] = (subjectCounts[c.subject] || 0) + 1;
+        });
+        
+        // Сортируем по количеству
+        const sortedSubjects = Object.entries(subjectCounts)
+            .sort(([,a], [,b]) => b - a)
+            .slice(0, 3); // Показываем только топ-3
+        
+        if (sortedSubjects.length > 0) {
+            const statsText = sortedSubjects.map(([subject, count]) => 
+                `${subject}: ${count}`
+            ).join(', ');
+            
+            subjectStats.textContent = statsText;
+            subjectStats.style.display = 'block';
+        } else {
+            subjectStats.style.display = 'none';
+        }
+    } else {
+        subjectStats.style.display = 'none';
+    }
+    
+    // Обновляем внешний вид контейнера статистики
+    statsContainer.classList.toggle('has-stats', total > 0);
+}
+
+// Функция для склонения слов
+function getWordForm(number, forms) {
+    const n = Math.abs(number) % 100;
+    const n1 = n % 10;
+    
+    if (n > 10 && n < 20) return forms[2];
+    if (n1 > 1 && n1 < 5) return forms[1];
+    if (n1 === 1) return forms[0];
+    return forms[2];
+}
+
+// Обновляем функцию openEditModal
+function openEditModal(cheatsheet = null) {
+    // Сбрасываем форму
+    isEditModalOpen = true;
+    currentStep = 1;
+    selectedSubject = '';
+    selectedTask = '';
+    
+    document.querySelectorAll('.subject-btn, .task-btn').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    
+    if (cheatsheet) {
+        // Редактирование существующей
+        editingId = cheatsheet.id;
+        modalTitle.textContent = 'Редактировать шпаргалку';
+        
+        // Выбираем предмет
+        const subjectBtn = document.querySelector(`.subject-btn[data-subject="${cheatsheet.subject}"]`);
+        if (subjectBtn) {
+            subjectBtn.classList.add('active');
+            selectedSubject = cheatsheet.subject;
+        }
+        
+        // Выбираем задание
+        const taskBtn = document.querySelector(`.task-btn[data-task="${cheatsheet.taskNumber}"]`);
+        if (taskBtn) {
+            taskBtn.classList.add('active');
+            selectedTask = String(cheatsheet.taskNumber);
+        }
+        
+        titleInput.value = cheatsheet.title || '';
+        contentTextarea.value = cheatsheet.content;
+        tagsInput.value = cheatsheet.tags ? cheatsheet.tags.join(', ') : '';
+        
+        // Заполняем скрытые поля для обратной совместимости
+        if (subjectSelect) subjectSelect.value = cheatsheet.subject;
+        if (taskNumberSelect) taskNumberSelect.value = String(cheatsheet.taskNumber);
+    } else {
+        // Создание новой
+        editingId = null;
+        modalTitle.textContent = 'Новая шпаргалка';
+        cheatsheetForm.reset();
+        
+        // Сбрасываем скрытые селекты
+        if (subjectSelect) subjectSelect.value = '';
+        if (taskNumberSelect) taskNumberSelect.value = '';
+    }
+    
+    // Обновляем подзаголовок
+    updateModalSubtitle();
+    
+    // Сбрасываем к шагу 1
+    goToStep(1);
+    
+    // Показываем модальное окно
+    editModal.style.display = 'flex';
+    setTimeout(() => {
+        editModal.style.opacity = '1';
+        contentTextarea.focus();
+    }, 10);
+}
+
+// Обновляем функцию saveCheatsheet для поддержки тегов
+function saveCheatsheet(e) {
     e.preventDefault();
     
-    try {
-        const response = await fetch(e.target.action, {
-            method: 'POST',
-            body: new FormData(e.target),
-            headers: { Accept: 'application/json' }
-        });
-        
-        if (response.ok) {
-            showSuccessToast();
-            reportModal.style.display = 'none';
-            form.reset();
-        } else {
-            showErrorToast();
-        }
-    } catch (error) {
-        showErrorToast();
+    // Валидация
+    if (!selectedSubject || !selectedTask) {
+        showToast('Выберите предмет и номер задания', 'error');
+        goToStep(1);
+        return;
     }
+    
+    const title = titleInput.value.trim();
+    const content = contentTextarea.value.trim();
+    const tags = tagsInput.value.split(',').map(tag => tag.trim()).filter(tag => tag);
+    
+    if (!content) {
+        showToast('Введите содержание шпаргалки', 'error');
+        goToStep(2);
+        return;
+    }
+    
+    // Преобразуем selectedTask в число
+    const taskNumber = parseInt(selectedTask);
+    
+    let updatedCheatsheet;
+    
+    if (editingId) {
+        // Обновление существующей
+        const index = cheatsheets.findIndex(c => c.id === editingId);
+        if (index !== -1) {
+            cheatsheets[index] = {
+                ...cheatsheets[index],
+                subject: selectedSubject,
+                taskNumber: taskNumber,
+                title: title || `${selectedSubject}, задание ${selectedTask}`,
+                content,
+                tags,
+                updatedAt: new Date().toISOString()
+            };
+            updatedCheatsheet = cheatsheets[index];
+        }
+    } else {
+        // Создание новой
+        const newCheatsheet = {
+            id: Date.now().toString(),
+            subject: selectedSubject,
+            taskNumber: taskNumber,
+            title: title || `${selectedSubject}, задание ${selectedTask}`,
+            content,
+            tags,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+        };
+        
+        cheatsheets.unshift(newCheatsheet);
+        updatedCheatsheet = newCheatsheet;
+    }
+    
+    // Сохраняем в localStorage
+    saveToStorage();
+    
+    // Обновляем интерфейс
+    updateStats();
+    renderCheatsheets();
+    closeEditModal();
+    
+    // Если редактировали шпаргалку, которая сейчас открыта в режиме просмотра, обновляем её
+    if (editingId && cheatsheetView.dataset.id === editingId && updatedCheatsheet) {
+        viewCheatsheet(updatedCheatsheet);
+    }
+    
+    // Показываем уведомление
+    showToast(
+        editingId ? 'Шпаргалка обновлена' : 'Шпаргалка создана',
+        'success'
+    );
+}
+
+
+// Обновляем событие input для contentTextarea
+contentTextarea.addEventListener('input', function() {
+    updateTextStats();
+    updatePreview();
 });
-
-function showSuccessToast() {
-    const toast = document.createElement('div');
-    toast.className = 'success-toast';
-    toast.innerHTML = `
-        <div class="toast-content">
-            <span class="toast-message">Отчёт успешно отправлен!</span>
-        </div>
-    `;
-    
-    document.body.appendChild(toast);
-    
-    setTimeout(() => {
-        toast.remove();
-    }, 3000);
+// Сохранение в localStorage
+function saveToStorage() {
+    try {
+        localStorage.setItem('egeCheatsheets', JSON.stringify(cheatsheets));
+        return true;
+    } catch (error) {
+        if (error.name === 'QuotaExceededError') {
+            showToast('Превышен лимит хранилища. Удалите некоторые шпаргалки.', 'error');
+        }
+        return false;
+    }
 }
 
-function showErrorToast() {
-    const toast = document.createElement('div');
-    toast.className = 'error-toast'; // Добавьте аналогичные стили для ошибок
-    toast.textContent = 'Ошибка отправки. Попробуйте ещё раз.';
-    document.body.appendChild(toast);
+// Отображение шпаргалок
+function renderCheatsheets() {
+    let filteredCheatsheets = getFilteredCheatsheets();
+    totalCheatsheets.textContent = filteredCheatsheets.length;
+    if (filteredCheatsheets.length === 0) {
+        showEmptyState();
+        // Очищаем список
+        cheatsheetList.innerHTML = '';
+        cheatsheetGrid.innerHTML = '';
+        return;
+    }
+    if (currentView !== 'view') {
+        showListView();
+    }
     
-    setTimeout(() => {
-        toast.remove();
-    }, 3000);
-}
-
-
-// Добавить в начало файла
-const galleryBtn = document.querySelector('.gallery-btn');
-const galleryModal = document.querySelector('.gallery-modal');
-const closeGalleryBtn = document.querySelector('.close-gallery-btn');
-const imageModal = document.querySelector('.image-modal');
-const closeImageModal = document.querySelector('.close-image-modal');
-
-// Инициализация галереи
-function initGallery() {
-    const galleryGrid = document.getElementById('galleryGrid');
-    galleryGrid.innerHTML = '';
+    // Очищаем списки
+    cheatsheetList.innerHTML = '';
+    cheatsheetGrid.innerHTML = '';
     
-    galleryImages.forEach((image, index) => {
-        const galleryItem = document.createElement('div');
-        galleryItem.className = 'gallery-item';
-        galleryItem.innerHTML = `<img src="${image.src}" alt="${image.description}">`;
-        
-        galleryItem.addEventListener('click', () => {
-            
-            // Добавьте проверку на существование элементов
-            const modal = document.querySelector('.image-modal');
-            const modalImg = modal.querySelector('.modal-image');
-            const desc = modal.querySelector('.image-description');
-            modalImg.style.display = 'flex';
-            if (modalImg && desc) {
-                modalImg.src = image.src;
-                if (isQuizCompleted) {
-                    desc.textContent = image.description;
-                    desc.classList.remove('locked-description');
-                } else {
-                    desc.innerHTML = '<span class="lock-icon">🔒</span><span class="locked-text"> Пройди квиз до конца, чтобы открыть описание!</span>';
-                    desc.classList.add('locked-description');
-                }
-                modal.style.display = 'block';
-                
-                setTimeout(() => {
-                    modal.classList.add('active');
-                }, 50);
-            }
-            modal.addEventListener('click', function modalClickHandler(event) {
-                // Проверяем, что кликнули именно на фон (а не на содержимое)
-                const content = modal.querySelector('.image-modal-content');
-                const isClickInside = content.contains(event.target);
-                if (!isClickInside) { // Клик вне контента
-                    modal.classList.remove('active');
-                    setTimeout(() => {
-                        modal.style.display = 'none';
-                    }, 300);
-                    
-                    modal.removeEventListener('click', modalClickHandler);
-                }
-            });
-        });
-        
-        galleryGrid.appendChild(galleryItem);
+    // Добавляем шпаргалки
+    filteredCheatsheets.forEach(cheatsheet => {
+        renderCheatsheetItem(cheatsheet);
+        renderGridItem(cheatsheet);
     });
 }
 
-// Добавьте обработчик закрытия модального окна
-document.querySelector('.close-image-modal').addEventListener('click', () => {
-    const modal = document.querySelector('.image-modal');
-    modal.classList.remove('active');
-    setTimeout(() => {
-        modal.style.display = 'none';
-    }, 300);
-});
-
-// Обработчики событий
-galleryBtn.addEventListener('click', () => {
-    document.body.classList.add('gallery-open'); // Добавить класс
-    galleryModal.classList.add('active');
-    initGallery();
-});
-
-// Общая функция закрытия галереи
-function closeGallery() {
-    document.body.classList.remove('gallery-open'); // Убрать класс
-    galleryModal.classList.remove('active');
-}
-
-// Обработчики для всех способов закрытия
-document.querySelector('.gallery-close-btn').addEventListener('click', closeGallery);
-document.querySelector('.close-gallery-btn').addEventListener('click', closeGallery);
-
-// Закрытие по клику вне контента
-document.querySelector('.gallery-modal').addEventListener('click', (e) => {
-    if (e.target.classList.contains('gallery-modal')) {
-        closeGallery();
-    }
-});
-closeGalleryBtn.addEventListener('click', closeGallery);
-
-function openImageModal(src, description) {
-    document.querySelector('.modal-image').src = src;
-    document.querySelector('.image-description').textContent = description;
-    imageModal.classList.add('active');
-}
-
-
-galleryGrid.addEventListener('click', (e) => {
-    if (e.target.tagName === 'IMG') {
-        const img = galleryImages.find(i => i.src === e.target.src);
-        if (img) openImageModal(img.src, img.description);
-    }
-});
-// Стало
-window.addEventListener('click', (e) => {
-    if (e.target === imageModal) {
-        const modal = document.querySelector('.image-modal');
-        modal.classList.remove('active');
-        setTimeout(() => {
-            modal.style.display = 'none';
-        }, 300);
-    }
-});
-function updateGalleryButtonState() {
-    const galleryBtn = document.querySelector('.gallery-btn');
-    if (isQuizCompleted) {
-        galleryBtn.classList.add('completed');
-        galleryBtn.title = "Галерея доступна!";
-    } else {
-        galleryBtn.classList.remove('completed');
-        galleryBtn.title = "Пройдите квест для доступа";
-    }
-}
-function updateGalleryDescription() {
-    const galleryDesc = document.getElementById('galleryDescription');
+// Рендер элемента списка
+// Рендер элемента списка (без превью текста)
+function renderCheatsheetItem(cheatsheet) {
+    const item = document.createElement('div');
+    item.className = 'cheatsheet-item';
+    item.dataset.id = cheatsheet.id;
     
-    if (isQuizCompleted) {
-        galleryDesc.textContent = "🎉 Поздравляем! Теперь вы можете видеть эксклюзивные описания картин. Нажмите на любую картину, чтобы узнать интересные факты!";
-        galleryDesc.classList.remove('locked');
-        galleryDesc.classList.add('unlocked');
-    } else {
-        galleryDesc.textContent = "🔒 Пройдите весь квест до конца, чтобы разблокировать подробные описания картин. Сейчас доступен только предпросмотр!";
-        galleryDesc.classList.remove('unlocked');
-        galleryDesc.classList.add('locked');
-    }
-}
-function showGalleryUnlockToast() {
-    const toast = document.createElement('div');
-    toast.className = 'unlock-toast active';
-    toast.innerHTML = `
-        <div class="toast-content">
-            <strong>Достижение разблокировано!</strong>
-            <p>Полная версия галереи теперь доступна</p>
+    // Форматируем дату
+    const date = formatDate(cheatsheet.updatedAt || cheatsheet.createdAt);
+    
+    // Определяем иконку предмета
+    const subjectIcons = {
+        'Математика': 'fa-calculator',
+        'Русский язык': 'fa-language',
+        'Физика': 'fa-atom',
+        'Химия': 'fa-flask',
+        'Биология': 'fa-dna',
+        'Информатика': 'fa-laptop-code',
+        'История': 'fa-landmark',
+        'Обществознание': 'fa-users',
+        'Английский язык': 'fa-globe-europe',
+        'Литература': 'fa-book-open',
+        'География': 'fa-globe-americas'
+    };
+    
+    const iconClass = subjectIcons[cheatsheet.subject] || 'fa-book';
+    
+    // Теги для отображения в meta
+    const tagsDisplay = cheatsheet.tags && cheatsheet.tags.length > 0 
+        ? `<div class="cheatsheet-tags">${cheatsheet.tags.slice(0, 3).map(tag => 
+            `<span class="cheatsheet-tag">${tag}</span>`).join('')}</div>`
+        : '';
+    
+
+    
+    item.innerHTML = `
+        <div class="cheatsheet-item-header">
+            <div class="cheatsheet-subject-icon">
+                <i class="fas ${iconClass}"></i>
+            </div>
+            <div class="cheatsheet-info">
+                <div class="cheatsheet-title">${cheatsheet.title}</div>
+                <div class="cheatsheet-subject-task">
+                    <span class="cheatsheet-subject">${cheatsheet.subject}</span>
+                    <span class="cheatsheet-task">Задание ${cheatsheet.taskNumber}</span>
+                </div>
+                
+            </div>
+        </div>
+        <div class="cheatsheet-meta">
+            <span>${date}</span>
+            <span class="cheatsheet-tags-meta">${tagsDisplay}</span>
         </div>
     `;
-    if (unlockSound) unlockSound.play();
-    document.body.appendChild(toast);
     
-    // Автоматическое скрытие через 4 секунды
+    item.addEventListener('click', () => {
+        document.querySelectorAll('.cheatsheet-item').forEach(el => {
+            el.classList.remove('active');
+        });
+        item.classList.add('active');
+        viewCheatsheet(cheatsheet);
+    });
+    
+    cheatsheetList.appendChild(item);
+}
+function formatContent(content) {
+    if (!content) return '';
+    
+    let formatted = content;
+    
+    // Сначала обрабатываем блоки кода, чтобы не трогать их содержимое
+    // Блок кода: ```код```
+    formatted = formatted.replace(/```\s*([\s\S]*?)\s*```/g, '<pre><code>$1</code></pre>');
+    
+    // Обрабатываем остальное форматирование построчно
+    let lines = formatted.split('\n');
+    let resultLines = [];
+    let inList = false;
+    let listItems = [];
+    
+    for (let line of lines) {
+        // Проверяем, не является ли строка блоком кода
+        if (line.includes('```')) {
+            if (inList && listItems.length > 0) {
+                resultLines.push(`<ul class="formatted-list">${listItems.join('')}</ul>`);
+                listItems = [];
+                inList = false;
+            }
+            resultLines.push(line);
+            continue;
+        }
+        
+        // Заголовки: # Заголовок, ## Подзаголовок
+        if (line.startsWith('## ')) {
+            if (inList && listItems.length > 0) {
+                resultLines.push(`<ul class="formatted-list">${listItems.join('')}</ul>`);
+                listItems = [];
+                inList = false;
+            }
+            line = `<h4>${line.substring(3)}</h4>`;
+            resultLines.push(line);
+        }
+        else if (line.startsWith('# ')) {
+            if (inList && listItems.length > 0) {
+                resultLines.push(`<ul class="formatted-list">${listItems.join('')}</ul>`);
+                listItems = [];
+                inList = false;
+            }
+            line = `<h3>${line.substring(2)}</h3>`;
+            resultLines.push(line);
+        }
+        // Горизонтальная линия
+        else if (line === '---') {
+            if (inList && listItems.length > 0) {
+                resultLines.push(`<ul class="formatted-list">${listItems.join('')}</ul>`);
+                listItems = [];
+                inList = false;
+            }
+            line = '<hr>';
+            resultLines.push(line);
+        }
+        // Элемент списка
+        else if (line.startsWith('• ') || line.startsWith('- ')) {
+            const listSymbol = line.startsWith('• ') ? '•' : '-';
+            if (!inList) {
+                inList = true;
+            }
+            
+            // Убираем маркер списка и обрабатываем форматирование внутри
+            let itemText = line.substring(2);
+            itemText = itemText.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+            itemText = itemText.replace(/\*(.*?)\*/g, '<em>$1</em>');
+            itemText = itemText.replace(/`(.*?)`/g, '<code>$1</code>');
+            
+            listItems.push(`<li>${itemText}</li>`);
+        }
+        // Не элемент списка, но список активен
+        else if (inList && line.trim() !== '' && !line.startsWith('• ') && !line.startsWith('- ')) {
+            if (listItems.length > 0) {
+                resultLines.push(`<ul class="formatted-list">${listItems.join('')}</ul>`);
+                listItems = [];
+            }
+            inList = false;
+            
+            // Добавляем текущую строку
+            line = line.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+            line = line.replace(/\*(.*?)\*/g, '<em>$1</em>');
+            line = line.replace(/`(.*?)`/g, '<code>$1</code>');
+            resultLines.push(line);
+        }
+        // Не элемент списка и список не активен
+        else if (!inList && line.trim() !== '') {
+            // Жирный текст: **текст**
+            line = line.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+            // Курсив: *текст*
+            line = line.replace(/\*(.*?)\*/g, '<em>$1</em>');
+            // Код: `текст`
+            line = line.replace(/`(.*?)`/g, '<code>$1</code>');
+            resultLines.push(line);
+        }
+        // Пустая строка
+        else if (line.trim() === '') {
+            if (inList && listItems.length > 0) {
+                resultLines.push(`<ul class="formatted-list">${listItems.join('')}</ul>`);
+                listItems = [];
+                inList = false;
+            }
+            resultLines.push('<br>');
+        }
+    }
+    
+    // Закрываем список, если он остался открытым
+    if (inList && listItems.length > 0) {
+        resultLines.push(`<ul class="formatted-list">${listItems.join('')}</ul>`);
+    }
+    
+    formatted = resultLines.join('\n');
+    
+    return formatted;
+}
+// Рендер элемента сетки
+// Рендер элемента сетки
+function renderGridItem(cheatsheet) {
+    const item = document.createElement('div');
+    item.className = 'grid-item';
+    item.dataset.id = cheatsheet.id;
+    
+    // Форматируем дату
+    const date = formatDateShort(cheatsheet.updatedAt || cheatsheet.createdAt);
+    
+    // Убираем форматирование из превью
+    const cleanPreview = cheatsheet.content
+        .replace(/\*\*(.*?)\*\*/g, '$1')
+        .replace(/\*(.*?)\*/g, '$1')
+        .replace(/`(.*?)`/g, '$1')
+        .replace(/```\s*([\s\S]*?)\s*```/g, '$1')
+        .replace(/^•\s+/gm, '')
+        .replace(/\n/g, ' ');
+    
+    const preview = cleanPreview.length > 120 
+        ? cleanPreview.substring(0, 120) + '...' 
+        : cleanPreview;
+    
+    item.innerHTML = `
+        <div class="grid-title">${cheatsheet.title}</div>
+        <div class="grid-preview">${preview}</div>
+        <div class="grid-meta">
+            <span>${cheatsheet.subject} • Задание ${cheatsheet.taskNumber}</span>
+            <span>${date}</span>
+        </div>
+    `;
+    
+    item.addEventListener('click', () => viewCheatsheet(cheatsheet));
+    cheatsheetGrid.appendChild(item);
+}
+
+// Просмотр шпаргалки
+function viewCheatsheet(cheatsheet) {
+    currentView = 'view';
+    
+    // Обновляем данные
+    viewTitle.textContent = cheatsheet.title;
+    viewSubject.textContent = cheatsheet.subject;
+    viewTask.textContent = `Задание ${cheatsheet.taskNumber}`;
+    viewDate.textContent = formatDate(cheatsheet.updatedAt || cheatsheet.createdAt);
+    
+    // Форматируем содержимое
+    const formattedContent = formatContent(cheatsheet.content);
+    viewContent.innerHTML = formattedContent;
+    
+    // Сохраняем ID для редактирования/удаления
+    cheatsheetView.dataset.id = cheatsheet.id;
+    
+    // Показываем режим просмотра
+    showCheatsheetView();
+    
+    // Обновляем активный элемент в списке
+    document.querySelectorAll('.cheatsheet-item, .grid-item').forEach(el => {
+        el.classList.remove('active');
+        if (el.dataset.id === cheatsheet.id) {
+            el.classList.add('active');
+        }
+    });
+}
+
+
+// Показать пустое состояние
+function showEmptyState() {
+    emptyState.style.display = 'flex';
+    cheatsheetGrid.style.display = 'none';
+    cheatsheetView.style.display = 'none';
+    closeViewBtn.style.display = 'none';
+}
+
+// Показать список
+function showListView() {
+    currentView = 'list';
+    emptyState.style.display = 'none';
+    cheatsheetGrid.style.display = 'grid';
+    cheatsheetView.style.display = 'none';
+    closeViewBtn.style.display = 'none';
+}
+
+// Показать просмотр шпаргалки
+function showCheatsheetView() {
+    emptyState.style.display = 'none';
+    cheatsheetGrid.style.display = 'none';
+    cheatsheetView.style.display = 'block';
+    closeViewBtn.style.display = 'flex';
+}
+
+// Редактирование текущей шпаргалки
+function editCurrentCheatsheet() {
+    const cheatsheetId = cheatsheetView.dataset.id;
+    const cheatsheet = cheatsheets.find(c => c.id === cheatsheetId);
+    
+    if (cheatsheet) {
+        openEditModal(cheatsheet);
+    }
+}
+
+// Удаление текущей шпаргалки
+
+
+// Экспорт шпаргалок
+function exportCheatsheets(cheatsheetsToExport = null) {
+    const exportData = cheatsheetsToExport || cheatsheets;
+    
+    if (exportData.length === 0) {
+        showToast('Нет шпаргалок для экспорта', 'warning');
+        return;
+    }
+    
+    const data = {
+        version: '1.0',
+        exportedAt: new Date().toISOString(),
+        count: exportData.length,
+        cheatsheets: exportData
+    };
+    
+    const dataStr = JSON.stringify(data, null, 2);
+    const blob = new Blob([dataStr], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `шпаргалки_еге_${new Date().toISOString().split('T')[0]}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    
+    URL.revokeObjectURL(url);
+    showToast(`Экспортировано ${exportData.length} шпаргалок`, 'success');
+}
+function exportSelectedCheatsheets(selectedIds) {
+    if (!selectedIds || selectedIds.length === 0) {
+        showToast('Не выбраны шпаргалки для экспорта', 'warning');
+        return false;
+    }
+    
+    // Фильтруем шпаргалки по выбранным ID
+    const selectedCheatsheets = cheatsheets.filter(cheatsheet => 
+        selectedIds.includes(cheatsheet.id)
+    );
+    
+    if (selectedCheatsheets.length === 0) {
+        showToast('Выбранные шпаргалки не найдены', 'error');
+        return false;
+    }
+    
+    // Создаем объект для экспорта
+    const exportData = {
+        version: '1.1',
+        exportedAt: new Date().toISOString(),
+        count: selectedCheatsheets.length,
+        exportType: 'selected',
+        selectedIds: selectedIds,
+        cheatsheets: selectedCheatsheets
+    };
+    
+    // Преобразуем в JSON
+    const dataStr = JSON.stringify(exportData, null, 2);
+    const blob = new Blob([dataStr], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    
+    // Создаем ссылку для скачивания
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `выбранные_шпаргалки_${new Date().toISOString().split('T')[0]}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    
+    // Освобождаем память
+    URL.revokeObjectURL(url);
+    
+    showToast(`Экспортировано ${selectedCheatsheets.length} выбранных шпаргалок`, 'success');
+    return true;
+}
+function exportFilteredCheatsheets() {
+    const filteredCheatsheets = getFilteredCheatsheets();
+    
+    if (filteredCheatsheets.length === 0) {
+        showToast('Нет отфильтрованных шпаргалок для экспорта', 'warning');
+        return false;
+    }
+    
+    const exportData = {
+        version: '1.1',
+        exportedAt: new Date().toISOString(),
+        count: filteredCheatsheets.length,
+        exportType: 'filtered',
+        filter: { ...currentFilter },
+        cheatsheets: filteredCheatsheets
+    };
+    
+    const dataStr = JSON.stringify(exportData, null, 2);
+    const blob = new Blob([dataStr], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `отфильтрованные_шпаргалки_${new Date().toISOString().split('T')[0]}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    
+    URL.revokeObjectURL(url);
+    showToast(`Экспортировано ${filteredCheatsheets.length} отфильтрованных шпаргалок`, 'success');
+    return true;
+}
+
+
+// Импорт шпаргалок
+function importCheatsheets() {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.json';
+    
+    input.onchange = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        
+        try {
+            const text = await file.text();
+            const data = JSON.parse(text);
+            
+            // Проверяем формат
+            let importedCheatsheets;
+            if (data.cheatsheets && Array.isArray(data.cheatsheets)) {
+                importedCheatsheets = data.cheatsheets;
+            } else if (Array.isArray(data)) {
+                importedCheatsheets = data;
+            } else {
+                throw new Error('Неверный формат файла');
+            }
+            
+            // Добавляем новые ID
+            importedCheatsheets.forEach(c => {
+                c.id = Date.now() + Math.random().toString(36).substr(2, 9);
+                if (!c.createdAt) c.createdAt = new Date().toISOString();
+                if (!c.updatedAt) c.updatedAt = new Date().toISOString();
+            });
+            
+            // Добавляем к существующим
+            cheatsheets = [...importedCheatsheets, ...cheatsheets];
+            saveToStorage();
+            updateStats();
+            renderCheatsheets();
+            
+            showToast(`Импортировано ${importedCheatsheets.length} шпаргалок`, 'success');
+        } catch (error) {
+            showToast('Ошибка при импорте файла', 'error');
+        }
+    };
+    
+    input.click();
+}
+
+// Переключение темы
+function toggleTheme() {
+    const isDark = !document.body.classList.contains('light-theme');
+    
+    if (isDark) {
+        document.body.classList.add('light-theme');
+        themeToggle.innerHTML = '<i class="fas fa-sun"></i>';
+        localStorage.setItem('theme', 'light');
+    } else {
+        document.body.classList.remove('light-theme');
+        themeToggle.innerHTML = '<i class="fas fa-moon"></i>';
+        localStorage.setItem('theme', 'dark');
+    }
+}
+
+// Форматирование даты
+function formatDate(dateString) {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diff = now - date;
+    
+    // Если сегодня
+    if (diff < 86400000) {
+        return date.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+    }
+    
+    // Если вчера
+    if (diff < 172800000) {
+        return 'Вчера, ' + date.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+    }
+    
+    // Старше
+    return date.toLocaleDateString('ru-RU', {
+        day: 'numeric',
+        month: 'short',
+        year: date.getFullYear() !== now.getFullYear() ? 'numeric' : undefined
+    });
+}
+
+function formatDateShort(dateString) {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diff = now - date;
+    
+    // Если сегодня
+    if (diff < 86400000) {
+        return 'сегодня';
+    }
+    
+    // Если вчера
+    if (diff < 172800000) {
+        return 'вчера';
+    }
+    
+    // Если на этой неделе
+    if (diff < 604800000) {
+        const days = ['вс', 'пн', 'вт', 'ср', 'чт', 'пт', 'сб'];
+        return days[date.getDay()];
+    }
+    
+    // Старше
+    return date.toLocaleDateString('ru-RU', {
+        day: 'numeric',
+        month: 'short'
+    });
+}
+
+// Обновление статистики
+
+
+// Показать уведомление
+function showToast(message, type = 'info') {
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    toast.innerHTML = `
+        <div class="toast-content">${message}</div>
+        <button class="toast-close">&times;</button>
+    `;
+    
+    toastContainer.appendChild(toast);
+    
+    // Закрытие
+    toast.querySelector('.toast-close').addEventListener('click', () => {
+        toast.remove();
+    });
+    
+    // Автоматическое закрытие
     setTimeout(() => {
-        toast.classList.remove('active');
-        setTimeout(() => toast.remove(), 500);
-    }, 4000);
+        if (toast.parentNode) {
+            toast.remove();
+        }
+    }, 5000);
+}
+
+// Сохраняем данные при закрытии вкладки
+window.addEventListener('beforeunload', () => {
+    if (contentTextarea.value.trim() && editingId && isEditModalOpen) {
+        saveCheatsheet({ preventDefault: () => {} });
+    }
+});
+// Функции для работы с экспортом
+function openExportModal() {
+    // Обновляем счетчики
+    exportAllCount.textContent = cheatsheets.length;
+    
+    const filteredCheatsheets = getFilteredCheatsheets();
+    exportFilteredCount.textContent = filteredCheatsheets.length;
+    
+    // Считаем только те выбранные, которые есть в отфильтрованных
+    const filteredSelectedCount = Array.from(selectedCheatsheets).filter(id => 
+        filteredCheatsheets.some(c => c.id === id)
+    ).length;
+    exportSelectedCount.textContent = filteredSelectedCount;
+    
+    // Заполняем чекбоксы
+    populateExportCheckboxes();
+    
+    // Сбрасываем выбор типа экспорта
+    if (exportAllRadio) exportAllRadio.checked = true;
+    updateExportSelection();
+    
+    // Сбрасываем стили прокрутки
+    const modalBody = exportModal.querySelector('.modal-body');
+    if (modalBody) {
+        modalBody.classList.remove('scrollable');
+    }
+    
+    // Показываем модальное окно
+    exportModal.style.display = 'flex';
+    setTimeout(() => {
+        exportModal.style.opacity = '1';
+    }, 10);
+}
+
+function closeExportModal() {
+    // Проверяем, открыто ли окно
+    if (exportModal.style.display !== 'flex') return;
+    
+    exportModal.style.opacity = '0';
+    setTimeout(() => {
+        exportModal.style.display = 'none';
+        
+        // Сбрасываем стили прокрутки
+        const modalBody = exportModal.querySelector('.modal-body');
+        if (modalBody) {
+            modalBody.classList.remove('scrollable');
+            modalBody.style.overflowY = '';
+            modalBody.style.maxHeight = '';
+        }
+        
+        // Сбрасываем стили блока выбора
+        if (exportSelection) {
+            exportSelection.style.maxHeight = '';
+            exportSelection.style.overflowY = '';
+        }
+    }, 0);
+}
+
+
+// Обновляем функцию populateExportCheckboxes
+function populateExportCheckboxes() {
+    const filteredCheatsheets = getFilteredCheatsheets();
+    
+    if (!exportCheckboxes) return;
+    
+    exportCheckboxes.innerHTML = '';
+    
+    if (filteredCheatsheets.length === 0) {
+        exportCheckboxes.innerHTML = '<div class="export-no-items">Нет шпаргалок для выбора</div>';
+        return;
+    }
+    
+    // Создаем контейнер для чекбоксов
+    const checkboxesContainer = document.createElement('div');
+    checkboxesContainer.className = 'export-checkboxes-list';
+    
+    // Добавляем каждый чекбокс
+    filteredCheatsheets.forEach(cheatsheet => {
+        const checkboxItem = document.createElement('div');
+        checkboxItem.className = 'export-checkbox-item';
+        
+        const isSelected = selectedCheatsheets.has(cheatsheet.id);
+        if (isSelected) {
+            checkboxItem.classList.add('selected');
+        }
+        
+        const date = formatDateShort(cheatsheet.updatedAt || cheatsheet.createdAt);
+        
+        checkboxItem.innerHTML = `
+            <input type="checkbox" id="export_${cheatsheet.id}" 
+                   value="${cheatsheet.id}" ${isSelected ? 'checked' : ''}>
+            <label for="export_${cheatsheet.id}" class="export-checkbox-content">
+                <div class="export-checkbox-main">
+                    <div class="export-checkbox-subject">${cheatsheet.subject}</div>
+                    <div class="export-checkbox-title">${cheatsheet.title}</div>
+                </div>
+                <div class="export-checkbox-meta">
+                    <span class="export-checkbox-task">${cheatsheet.taskNumber}</span>
+                    <span class="export-checkbox-date">${date}</span>
+                </div>
+            </label>
+        `;
+        
+        checkboxesContainer.appendChild(checkboxItem);
+        
+        // Обработчик клика на весь элемент
+                // Обработчик клика на весь элемент
+        checkboxItem.addEventListener('click', (e) => {
+            const checkbox = checkboxItem.querySelector('input[type="checkbox"]');
+            const label = checkboxItem.querySelector('label');
+            
+            // Проверяем, на какой элемент был клик
+            const clickedElement = e.target;
+            
+            // Если кликнули на сам чекбокс
+            if (clickedElement === checkbox) {
+                // Ничего не делаем - событие change сработает автоматически
+                return;
+            }
+            
+            // Если кликнули на label или его дочерние элементы
+            if (clickedElement === label || label.contains(clickedElement)) {
+                // Клик на label автоматически изменит состояние связанного чекбокса
+                // благодаря атрибуту for, поэтому ничего не делаем
+                return;
+            }
+            
+            // Если кликнули на сам элемент checkboxItem (но не на чекбокс и не на label)
+            // Тогда переключаем чекбокс вручную
+            checkbox.checked = !checkbox.checked;
+            checkbox.dispatchEvent(new Event('change'));
+        });
+        
+        // Обработчик изменения чекбокса
+        const checkbox = checkboxItem.querySelector('input[type="checkbox"]');
+        checkbox.addEventListener('change', (e) => {
+            e.stopPropagation();
+            if (checkbox.checked) {
+                selectedCheatsheets.add(cheatsheet.id);
+            
+            } else {
+                selectedCheatsheets.delete(cheatsheet.id);
+            
+            }
+            updateExportCheckboxes();
+            exportSelectedCount.textContent = selectedCheatsheets.size;
+        });
+    });
+    
+    // Создаем контейнер для кнопок
+    const actionsDiv = document.createElement('div');
+    actionsDiv.className = 'export-checkbox-actions';
+    
+    // Определяем, все ли отфильтрованные выбраны
+    const allFilteredSelected = filteredCheatsheets.length > 0 && 
+        filteredCheatsheets.every(c => selectedCheatsheets.has(c.id));
+    
+    actionsDiv.innerHTML = `
+        <button type="button" class="btn-text" id="selectAllBtn">
+            <i class="fas ${allFilteredSelected ? 'fa-square' : 'fa-check-square'}"></i> 
+            ${allFilteredSelected ? 'Снять выделение' : 'Выбрать все'}
+        </button>
+        <button type="button" class="btn-text" id="selectFilteredBtn">
+            <i class="fas fa-filter"></i> Только отфильтрованные
+        </button>
+    `;
+    
+    exportCheckboxes.appendChild(actionsDiv);
+    exportCheckboxes.appendChild(checkboxesContainer);
+    
+    // Обработчики для кнопок
+    document.getElementById('selectAllBtn').addEventListener('click', () => {
+        const allCurrentlySelected = filteredCheatsheets.every(c => 
+            selectedCheatsheets.has(c.id)
+        );
+        
+        if (allCurrentlySelected) {
+            // Снимаем выделение со всех отфильтрованных
+            filteredCheatsheets.forEach(cheatsheet => {
+                selectedCheatsheets.delete(cheatsheet.id);
+            });
+        } else {
+            // Выбираем все отфильтрованные
+            filteredCheatsheets.forEach(cheatsheet => {
+                selectedCheatsheets.add(cheatsheet.id);
+            });
+        }
+        updateExportCheckboxes();
+        exportSelectedCount.textContent = selectedCheatsheets.size;
+    });
+    
+    document.getElementById('selectFilteredBtn').addEventListener('click', () => {
+        // Очищаем предыдущий выбор
+        selectedCheatsheets.clear();
+        // Выбираем только отфильтрованные
+        filteredCheatsheets.forEach(cheatsheet => {
+            selectedCheatsheets.add(cheatsheet.id);
+        });
+        updateExportCheckboxes();
+        exportSelectedCount.textContent = selectedCheatsheets.size;
+    });
+}
+function updateExportCheckboxes() {
+    const checkboxes = exportCheckboxes.querySelectorAll('input[type="checkbox"]');
+    const filteredCheatsheets = getFilteredCheatsheets();
+    const allSelected = filteredCheatsheets.length > 0 && 
+        filteredCheatsheets.every(c => selectedCheatsheets.has(c.id));
+    
+    // Обновляем кнопку "Выбрать все"
+    const selectAllBtn = document.getElementById('selectAllBtn');
+    if (selectAllBtn) {
+        selectAllBtn.innerHTML = `
+            <i class="fas ${allSelected ? 'fa-square' : 'fa-check-square'}"></i> 
+            ${allSelected ? 'Снять выделение' : 'Выбрать все'}
+        `;
+    }
+    
+    // Обновляем состояние всех чекбоксов
+    checkboxes.forEach(checkbox => {
+        const cheatsheetId = checkbox.value;
+        // Проверяем, находится ли шпаргалка в отфильтрованном списке
+        const isInFiltered = filteredCheatsheets.some(c => c.id === cheatsheetId);
+        
+        if (isInFiltered) {
+            // Обновляем состояние чекбокса в соответствии с selectedCheatsheets
+            checkbox.checked = selectedCheatsheets.has(cheatsheetId);
+        }
+        
+        const checkboxItem = checkbox.closest('.export-checkbox-item');
+        if (checkboxItem) {
+            if (checkbox.checked) {
+                checkboxItem.classList.add('selected');
+            } else {
+                checkboxItem.classList.remove('selected');
+            }
+        }
+    });
+}
+function confirmExport() {
+    if (exportAllRadio && exportAllRadio.checked) {
+        // Экспорт всех шпаргалок
+        exportCheatsheets(cheatsheets);
+    } else if (exportFilteredRadio && exportFilteredRadio.checked) {
+        // Экспорт отфильтрованных шпаргалок
+        const filteredCheatsheets = getFilteredCheatsheets();
+        if (filteredCheatsheets.length === 0) {
+            showToast('Нет отфильтрованных шпаргалок для экспорта', 'warning');
+            return;
+        }
+        exportCheatsheets(filteredCheatsheets);
+    } else if (exportSelectedRadio && exportSelectedRadio.checked) {
+        // Экспорт выбранных шпаргалок
+        const checkboxes = exportCheckboxes.querySelectorAll('input[type="checkbox"]:checked');
+        if (checkboxes.length === 0) {
+            showToast('Выберите хотя бы одну шпаргалку для экспорта', 'warning');
+            return;
+        }
+        
+        const selectedIds = Array.from(checkboxes).map(cb => cb.value);
+        const selectedCheatsheetsToExport = cheatsheets.filter(c => selectedIds.includes(c.id));
+        
+        exportCheatsheets(selectedCheatsheetsToExport);
+    }
+    
+    closeExportModal();
+}
+
+function getFilteredCheatsheets() {
+    return cheatsheets.filter(cheatsheet => {
+        if (currentFilter.subject !== 'all' && cheatsheet.subject !== currentFilter.subject) {
+            return false;
+        }
+        
+        if (currentFilter.task !== 'all' && cheatsheet.taskNumber !== parseInt(currentFilter.task)) {
+            return false;
+        }
+        
+        if (currentFilter.search) {
+            const searchText = currentFilter.search;
+            const inTitle = cheatsheet.title.toLowerCase().includes(searchText);
+            const inContent = cheatsheet.content.toLowerCase().includes(searchText);
+            const inSubject = cheatsheet.subject.toLowerCase().includes(searchText);
+            
+            if (!inTitle && !inContent && !inSubject) {
+                return false;
+            }
+        }
+        
+        return true;
+    });
+}
+function updateExportSelection() {
+    if (exportSelectedRadio && exportSelectedRadio.checked) {
+        exportSelection.style.display = 'block';
+        // Убираем фиксированную высоту и прокрутку у блока выбора
+        exportSelection.style.maxHeight = 'none';
+        exportSelection.style.overflowY = 'visible';
+        
+        // Добавляем прокрутку основному контенту модального окна
+        const modalBody = exportModal.querySelector('.modal-body');
+        if (modalBody) {
+            modalBody.style.overflowY = 'auto';
+            modalBody.style.maxHeight = 'calc(90vh)';
+        }
+    } else {
+        exportSelection.style.display = 'none';
+        // Восстанавливаем стили для других режимов
+        exportSelection.style.maxHeight = '';
+        exportSelection.style.overflowY = '';
+        
+        const modalBody = exportModal.querySelector('.modal-body');
+        if (modalBody) {
+            modalBody.style.overflowY = '';
+            modalBody.style.maxHeight = '';
+        }
+    }
 }

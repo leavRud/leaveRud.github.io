@@ -1,249 +1,452 @@
 <!DOCTYPE html>
-<html lang="en">
-
-    <head>
-        <meta charset="UTF-8">
-        <meta name="yandex-verification" content="edd1839cc42a6775" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-        <meta name="description" content="Веб-квест 'Кто хочет стать искусствоведом' - проверьте свои знания о картинах и художниках!">
-        <meta name="keywords" content="квест, картины, художники, тест, искусство, Державинский лицей, картинная галерея, МОУ Державинский лицей, Кто хочет стать искусствоведом, музей">
-        <meta name="author" content="Чебаков Максим">
-        <meta name="robots" content="index, follow">
-        <title>Кто хочет стать искусствоведом</title>
-        <link rel="stylesheet" href="style.css">
-        <link rel="apple-touch-icon" sizes="57x57" href="images/icon/apple-icon-57x57.png">
-        <link rel="apple-touch-icon" sizes="60x60" href="images/icon/apple-icon-60x60.png">
-        <link rel="apple-touch-icon" sizes="72x72" href="images/icon/apple-icon-72x72.png">
-        <link rel="apple-touch-icon" sizes="76x76" href="images/icon/apple-icon-76x76.png">
-        <link rel="apple-touch-icon" sizes="114x114" href="images/icon/apple-icon-114x114.png">
-        <link rel="apple-touch-icon" sizes="120x120" href="images/icon/apple-icon-120x120.png">
-        <link rel="apple-touch-icon" sizes="144x144" href="images/icon/apple-icon-144x144.png">
-        <link rel="apple-touch-icon" sizes="152x152" href="images/icon/apple-icon-152x152.png">
-        <link rel="apple-touch-icon" sizes="180x180" href="images/icon/apple-icon-180x180.png">
-        <link rel="icon" type="image/png" sizes="192x192"  href="images/icon/android-icon-192x192.png">
-        <link rel="icon" type="image/png" sizes="32x32" href="images/icon/favicon-32x32.png">
-        <link rel="icon" type="image/png" sizes="96x96" href="images/icon/favicon-96x96.png">
-        <link rel="icon" type="image/png" sizes="16x16" href="images/icon/favicon-16x16.png">
-        <link rel="manifest" href="manifest.json">
-        <meta name="msapplication-TileColor" content="#ffffff">
-        <meta name="msapplication-TileImage" content="images/icon/ms-icon-144x144.png">
-        <meta name="theme-color" content="#ffffff">
-        <meta property="og:title" content="Мои результаты квеста">
-        <meta property="og:description" content="Проверьте свои знания о картинах и художниках!">
-        <meta property="og:image" content="https://leavrud.github.io/leaveRud.github.io/#/images/logo.png"> <!-- Укажите полный URL к изображению -->
-        <meta property="og:url" content="https://leavrud.github.io/leaveRud.github.io/#"> <!-- Укажите полный URL вашего сайта -->
-        <meta property="og:type" content="website">
-        <meta property="og:site_name" content="Державинский лицей">
-        <meta property="og:site_name" content="Державинский лицей">
-    </head>
-
-    <!-- В index.html изменить тег body -->
-    <body onload="document.body.classList.add('loaded')">
-        <main class="main">
-            <header class="header">
-                <!-- Header is deactivated in style.css -->
-                
-            </header>
-
-            <div class="container">
-                <section class="quiz-section">
-                    <div class="x-close-btn"></div>
-
-                    <div class="quiz-box">
-                        
-
-                        <!-- Модальное окно для картинки -->
-                        <div id="imageModal" class="modal">
-                            <span id="closeModalBtn" class="cloose-btn">&times;</span>
-                            <img id="modalImage" src="images/qst1.jpg" >
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Шпаргалки ЕГЭ</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="manifest" href="manifest.json">
+</head>
+<body class="dark-theme">
+    <div class="app-container">
+        <!-- Боковая панель -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div>
+                    <h1><i class="fas fa-graduation-cap"></i> Шпаргалки Чебачкова</h1>
+                    <div class="stats" id="statsContainer">
+                        <span id="totalCheatsheets">0</span>
+                        <span class="stats-label">всего</span>
+                        <div class="stats-breakdown">
+                            <span id="subjectStats"></span>
                         </div>
-                        <h1 id="quiz-header1" class="quiz-header1">Кто хочет стать искусствоведом</h1>
-                        <div class="quiz-header" id="quiz-header">   
-                            <span class="header-score"></span>
-                        </div>
-
-                        <div class="question-text" id="question-text"></div>
-                        <div class="buttons-container">    
-                            <button id="hint-btn" class="hint-btn">Подсказку</button> <!-- Кнопка подсказки -->
-                            <button id="openImageBtn" class="openImageBtn">Картина</button> <!-- Кнопка картинки -->
-                        </div>
-                        <div id="hint-text" class="hint-text"></div>
-                        <div class="option-list"></div>
-
-                        <div class="quiz-footer" id="quiz-footer">
-                            <span class="questions-total"></span>
-                            <button id="explanationBtn" class="explanation-btn">Пояснение</button>
-                            <button class="next-btn">Следующий</button>
-                        </div>
-                        
-                        <!-- Экран с пояснением -->
-                        <!-- Экран с пояснением -->
-                        <div id="explanationModal" class="explanation-modal">
-                            <div class="explanation-content">
-                                <div id="explanationImageContainer"></div> <!-- Заменяем img на div -->
-                                <p id="explanationText"></p>
-                                <button id="closeExplanationBtn" class="close-explanation-btn">Вернуться</button>
-                            </div>
-                        </div>
-                        
                     </div>
-                    
-
-                    <div class="result-box" id="results">
-                        
-                        <h2>Результаты квеста</h2>
-                        <div class="percent-container">
-                            <div class="circular-progress">
-                                <span class="progress-value"></span>
-                            </div>
-
-                            <span class="score-text"></span>
-                        </div>
-
-                        <div class="buttons">
-                            <button class="homepage-btn">Главная Страница</button>
-                            <button class="try-again-btn">Попробовать еще раз</button>
-                            <button class="save-result-btn">Сохранить результат</button>
-                        </div>
-                        <div class="contacts-info">
-                            <p class="contact-message">Свои предложения и пожелания по работе сайта можете отправить сюда:</p>
-                            <div class="contacts-info1">
-                                <a href="https://vk.com/leavrud_l" target="_blank" class="contact-link">ВКонтакте</a>
-                                <a href="https://t.me/mortersis" target="_blank" class="contact-link">Телеграм</a>
-                                <a href="mailto:maksimcebakov1@gmail.com" class="contact-link">Email</a>
-                            </div>
-                        </div>
-
-                    </div>
-                </section>
-
-                <section class="home">
-                    <div class="home-content">
-                       <!-- <img src="images/logo.png" alt="Логотип сайта" class="logo-image">-->
-                        <h1 class="named">Арт-квиз</h1>
-                        <p>Cайт с квизом из 10 вопросов сделанный для картинной галереи МОУ "Державинский лицей"</p>
-                        <p>🎯 Угадывай картины, узнавай истории, собирай баллы. После квиза тебя ждет полная галерея с эксклюзивными описаниями</p>
-                        <button id="startBtn" class="start-btn">Начать квиз</button>
-                        <button class="gallery-btn" title="Неполная галерея">Картинная галерея</button>
-                    </div>
-                </section>
+                </div>
             </div>
-            <div class="gradient-follow" id="gradient"></div>    
+            
+            <button class="btn btn-primary btn-new" id="newCheatsheetBtn">
+                <i class="fas fa-plus"></i> Новая шпаргалка
+            </button>
+            
+            <div class="filters">
+                <div class="search-box">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="searchInput" placeholder="Поиск...">
+                </div>
+                
+                <div class="filter-row">
+                    <select id="subjectFilter" class="filter-select">
+                        <option value="all">Все предметы</option>
+                        <option value="Математика">Математика</option>
+                        <option value="Русский язык">Русский язык</option>
+                        <option value="Физика">Физика</option>
+                        <option value="Химия">Химия</option>
+                        <option value="Биология">Биология</option>
+                        <option value="Информатика">Информатика</option>
+                        <option value="История">История</option>
+                        <option value="Обществознание">Обществознание</option>
+                        <option value="Английский язык">Английский язык</option>
+                        <option value="Литература">Литература</option>
+                        <option value="География">География</option>
+                    </select>
+                    
+                    <select id="taskFilter" class="filter-select">
+                        <option value="all">Все задания</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="cheatsheet-list" id="cheatsheetList">
+                <!-- Список шпаргалок будет здесь -->
+            </div>
+            
+            <div class="sidebar-footer">
+                <button class="btn-icon" id="exportBtn" title="Экспорт">
+                    <i class="fas fa-download"></i>
+                </button>
+                <button class="btn-icon" id="importBtn" title="Импорт">
+                    <i class="fas fa-upload"></i>
+                </button>
+                <button class="btn-icon" id="themeToggle" title="Сменить тему">
+                    <i class="fas fa-moon"></i>
+                </button>
+            </div>
+        </aside>
+        
+        <!-- Основное содержание -->
+        <main class="main-content">
+            <div class="content-header">
+                <h2 id="currentSubject">Все шпаргалки</h2>
+                <div class="controls">
+                    <button class="btn-icon" id="closeViewBtn" style="display: none;">
+                        <i class="fas fa-arrow-left"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="content-area" id="contentArea">
+                <!-- Здесь будет либо список, либо содержимое шпаргалки -->
+                <div class="empty-state" id="emptyState">
+                    <div class="empty-icon">
+                        <i class="fas fa-book-open"></i>
+                    </div>
+                    <h3>Шпаргалок пока нет</h3>
+                    <p>Создайте свою первую шпаргалку</p>
+                    <button class="btn btn-primary" id="emptyNewBtn">
+                        <i class="fas fa-plus"></i> Создать
+                    </button>
+                </div>
+                
+                <div class="cheatsheet-grid" id="cheatsheetGrid" style="display: none;">
+                    <!-- Сетка шпаргалок -->
+                </div>
+                
+                <div class="cheatsheet-view" id="cheatsheetView" style="display: none;">
+                    <!-- Просмотр отдельной шпаргалки -->
+                    <div class="view-header">
+                        <div class="view-title">
+                            <h3 id="viewTitle"></h3>
+                            <div class="view-meta">
+                                <span class="subject-badge" id="viewSubject"></span>
+                                <span class="task-badge" id="viewTask"></span>
+                                <span class="date" id="viewDate"></span>
+                            </div>
+                        </div>
+                        <div class="view-actions">
+                            <button class="btn-icon" id="editBtn" title="Редактировать">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn-icon" id="deleteBtn" title="Удалить">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="view-content" id="viewContent"></div>
+                </div>
+            </div>
         </main>
-
-        <div class="popup-info">
-            <h2><span class="icon">🧭</span> Гид по квизу</h2>
-            <div class="guide-item">
-                <div class="guide-header">
-                    <span class="guide-icon">📘</span>
-                    <h3>Основное управление</h3>
-                </div>
-                <p class="guide-text">Нажмите <b>Продолжить</b>, чтобы начать квест.</p>
-                <p class="guide-text">Нажмите <b>Картина</b>, чтобы увидеть картину.</p>
+    </div>
+    
+    <!-- Модальное окно создания/редактирования -->
+     <!-- Модальное окно выбора типа экспорта -->
+    <div class="modal" id="exportModal" style="display: none;">
+        <div class="modal-content medium">
+            <div class="modal-header">
+                <h3><i class="fas fa-download"></i> Выберите что экспортировать</h3>
+                <button class="btn-icon close-modal" id="closeExportModalBtn">
+                    <i class="fas fa-times"></i>
+                </button>
             </div>
-            
-            <div class="visual-divider"></div>
-            
-            <div class="guide-item">
-                <div class="guide-header">
-                    <span class="guide-icon">💡</span>
-                    <h3>Советы</h3>
-                </div>
-                <p class="guide-text">Используйте <b>Подсказку</b> если застряли</p>
-                <span class="guide-text">После ответа на вопрос нажмите на <b>Пояснение</b>, чтобы получить пояснение к вопросу.</span>
-            </div>
-            <div class="visual-divider"></div>
-            <div class="guide-item">
-                <div class="guide-header">
-                    <span class="guide-icon">📊</span>
-                    <h3>Логика очков</h3>
-                </div>
-                <p class="guide-text">За каждый вопрос +1 бал Если использовали <b>Подсказку</b>, то +0,5 баллов. Всего 10 баллов</p>
-                
-            </div>
-            <!-- В гид по квизу добавить новый блок -->
-            <div class="guide-item">
-                <div class="guide-header">
-                    <span class="guide-icon">🖼️</span>
-                    <h3>Система галереи</h3>
-                </div>
-                <p class="guide-text">Все картины из вопросов. Эксклюзивные факты (доступны после квиза)</p>
-                <p class="guide-text">🔍 Нажимай на картины чтобы увидеть скрытые детали</p>
-            </div>
-            <div class="btn-group">
-                <button class="info-btn exit-btn">Вернуться</button>
-                <a href="#" class="info-btn continue-btn">Продолжить</a>
-            </div>
-        </div>
-        <div id="saveResultModal" class="save-result-modal">
-            <div class="save-result-content">
-                <h3>Выберите формат для сохранения:</h3>
-                <button id="saveAsImageBtn" class="save-format-btn">Сохранить как изображение</button>
-                <button id="shareResultBtn" class="save-format-btn">Поделиться</button>
-                <button id="closeSaveModalBtn" class="close-save-modal-btn">Закрыть</button>
-            </div>
-        </div>
-        <!-- Модальное окно для выбора способа поделиться -->
-        <div id="shareOptionsModal" class="share-options-modal">
-            <div class="share-options-content">
-                <h3>Поделиться через:</h3>
-                <button id="shareVK" class="share-option-btn">ВКонтакте Демо</button>
-                <button id="shareTelegram" class="share-option-btn">Telegram</button>
-                <button id="shareWhatsApp" class="share-option-btn">WhatsApp</button>
-                <button id="copyLink" class="share-option-btn">Скопировать ссылку</button>
-                <button id="closeShareOptionsModal" class="close-share-options-btn">Закрыть</button>
-                
-                
-            </div>
-        </div>
-        <!-- В index.html добавить -->
-        <div class="report-modal">
-            <div class="report-content">
-                <span class="close-report-btn">&times;</span>
-                <h3>Сообщить об ошибке</h3>
-                <form action="https://formspree.io/f/xqapqegd" method="POST">
-                    <input type="hidden" name="score" id="reportScore">
-                    <input type="hidden" name="current_question" id="reportQuestion">
-                    <input type="hidden" name="user_answers" id="reportAnswers">
-                    
-                    <div class="form-group">
-                        <label>Ваш email (необязательно):</label>
-                        <input type="email" name="email" placeholder="example@mail.com">
+            <div class="modal-body">
+                <div class="export-options">
+                    <div class="export-option">
+                        <input type="radio" id="exportAll" name="exportType" value="all" checked>
+                        <label for="exportAll">
+                            <div class="export-option-icon">
+                                <i class="fas fa-layer-group"></i>
+                            </div>
+                            <div class="export-option-content">
+                                <h4>Все шпаргалки</h4>
+                                <p>Экспортировать все сохранённые шпаргалки</p>
+                                <div class="export-count" id="exportAllCount">0</div>
+                            </div>
+                        </label>
                     </div>
                     
-                    <div class="form-group">
-                        <label>Описание ошибки:</label>
-                        <textarea name="message" required placeholder="Опишите подробно, что произошло..."></textarea>
+                    <div class="export-option">
+                        <input type="radio" id="exportFiltered" name="exportType" value="filtered">
+                        <label for="exportFiltered">
+                            <div class="export-option-icon">
+                                <i class="fas fa-filter"></i>
+                            </div>
+                            <div class="export-option-content">
+                                <h4>Отфильтрованные</h4>
+                                <p>Экспортировать шпаргалки с текущими фильтрами</p>
+                                <div class="export-count" id="exportFilteredCount">0</div>
+                            </div>
+                        </label>
                     </div>
                     
-                    <button type="submit">Отправить</button>
+                    <div class="export-option">
+                        <input type="radio" id="exportSelected" name="exportType" value="selected">
+                        <label for="exportSelected">
+                            <div class="export-option-icon">
+                                <i class="fas fa-check-square"></i>
+                            </div>
+                            <div class="export-option-content">
+                                <h4>Выбранные</h4>
+                                <p>Выбрать конкретные шпаргалки для экспорта</p>
+                                <div class="export-count" id="exportSelectedCount">0</div>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+                
+                <!-- Контейнер для выбора шпаргалок (показывается только для выбранных) -->
+                <div class="export-selection" id="exportSelection" style="display: none;">
+                    <h4>Выберите шпаргалки:</h4>
+                    <div class="export-checkboxes" id="exportCheckboxes">
+                        <!-- Чекбоксы будут добавлены через JavaScript -->
+                    </div>
+                </div>
+                
+                <div class="form-actions">
+                    <button class="btn btn-secondary" id="cancelExportBtn">
+                        <i class="fas fa-times"></i> Отмена
+                    </button>
+                    <button class="btn btn-primary" id="confirmExportBtn">
+                        <i class="fas fa-download"></i> Экспортировать
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal" id="editModal" style="display: none;">
+        <div class="modal-content large">
+            <div class="modal-header">
+                <div class="modal-header-content">
+                    <h3 id="modalTitle">Новая шпаргалка</h3>
+                    <div class="modal-subtitle">
+                        <i class="fas fa-info-circle"></i>
+                        <span id="modalSubtitle">Заполните информацию о шпаргалке</span>
+                    </div>
+                </div>
+                <button class="btn-icon close-modal" id="closeModalBtn">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div class="modal-body">
+                <div class="form-stepper">
+                    <div class="stepper-step active" data-step="1">
+                        <span class="step-number">1</span>
+                        <span class="step-label">Основное</span>
+                    </div>
+                    <div class="stepper-line"></div>
+                    <div class="stepper-step" data-step="2">
+                        <span class="step-number">2</span>
+                        <span class="step-label">Содержание</span>
+                    </div>
+                </div>
+                
+                <form id="cheatsheetForm">
+                    <div class="form-section" id="basicSection">
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label class="form-label">
+                                    <i class="fas fa-book"></i> Предмет
+                                    <span class="required">*</span>
+                                </label>
+                                <div class="subject-grid" id="subjectGrid">
+                                    <!-- Предметы будут заполнены JavaScript -->
+                                </div>
+                                <div class="form-hint">Выберите предмет из списка</div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label">
+                                    <i class="fas fa-tasks"></i> Номер задания (ЕГЭ)
+                                    <span class="required">*</span>
+                                </label>
+                                <div class="task-grid" id="taskGrid">
+                                    <input type="hidden" id="subject" name="subject">
+                                    <input type="hidden" id="taskNumber" name="taskNumber">
+                                </div>
+                                <div class="form-hint">Выберите номер задания от 1 до 27</div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">
+                                <i class="fas fa-heading"></i> Заголовок
+                            </label>
+                            <input type="text" id="title" placeholder="Краткое описание (необязательно)" 
+                                class="title-input" maxlength="100">
+                            <div class="form-hint">Оставьте пустым для автоматического создания заголовка</div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-section" id="contentSection" style="display: none;">
+                        <div class="form-group">
+                            <label class="form-label">
+                                <i class="fas fa-file-alt"></i> Содержание шпаргалки
+                                <span class="required">*</span>
+                            </label>
+                            <div class="editor-toolbar">
+                                <button type="button" class="format-btn" data-format="bold" title="Жирный">
+                                    <i class="fas fa-bold"></i>
+                                </button>
+                                <button type="button" class="format-btn" data-format="italic" title="Курсив">
+                                    <i class="fas fa-italic"></i>
+                                </button>
+                                <button type="button" class="format-btn" data-format="header" title="Заголовок">
+                                    <i class="fas fa-heading"></i>
+                                </button>
+                                <button type="button" class="format-btn" data-format="list" title="Список">
+                                    <i class="fas fa-list"></i>
+                                </button>
+                                <button type="button" class="format-btn" data-format="code" title="Формула/код">
+                                    <i class="fas fa-code"></i>
+                                </button>
+                                <button type="button" class="format-btn" data-format="clear" title="Очистить форматирование">
+                                    <i class="fas fa-eraser"></i>
+                                </button>
+                            </div>
+                            <textarea id="content" placeholder="Введите текст шпаргалки..." rows="12" required
+                                    class="content-editor"></textarea>
+                            
+                            <div class="editor-footer">
+                                <div class="char-info">
+                                    <i class="fas fa-text-height"></i>
+                                    <span id="charCount">0</span> символов
+                                    <span class="char-info-separator">•</span>
+                                    <span id="wordCount">0</span> слов
+                                    <span class="char-info-separator">•</span>
+                                    <span id="lineCount">0</span> строк
+                                </div>
+                                <div class="content-tips">
+                                    <button type="button" class="btn-text" id="formatHelpBtn">
+                                        <i class="fas fa-lightbulb"></i> Подсказки по написанию
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">
+                                <i class="fas fa-tags"></i> Теги (через запятую)
+                            </label>
+                            <input type="text" id="tags" placeholder="формула, теория, алгоритм" 
+                                class="tags-input">
+                            <div class="tags-example">
+                                Примеры: <span class="tag-example">формула</span>
+                                <span class="tag-example">алгоритм</span>
+                                <span class="tag-example">теория</span>
+                                <span class="tag-example">сложное</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-section" id="previewSection" style="display: none;">
+                        <div class="preview-header">
+                            <h4><i class="fas fa-eye"></i> Предпросмотр</h4>
+                            <button type="button" class="btn-text" id="editPreviewBtn">
+                                <i class="fas fa-edit"></i> Редактировать
+                            </button>
+                        </div>
+                        <div class="preview-card">
+                            <div class="preview-subject" id="previewSubject">Математика</div>
+                            <div class="preview-task" id="previewTask">Задание 1</div>
+                            <h5 class="preview-title" id="previewTitle">Новая шпаргалка</h5>
+                            <div class="preview-content" id="previewContent"></div>
+                            <div class="preview-tags" id="previewTags"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" id="prevStepBtn" style="display: none;">
+                            <i class="fas fa-arrow-left"></i> Назад
+                        </button>
+                        <div class="form-actions-right">
+                            <button type="button" class="btn btn-secondary" id="cancelBtn">Отмена</button>
+                            <button type="button" class="btn" id="nextStepBtn">Далее</button>
+                            <button type="submit" class="btn btn-primary" id="saveBtn" style="display: none;">
+                                <i class="fas fa-save"></i> Сохранить шпаргалку
+                            </button>
+                        </div>
+                    </div>
                 </form>
             </div>
         </div>
-        <div class="gallery-modal">
-            <span class="gallery-close-btn">&times;</span>
-            <div class="gallery-container">
-                <h2>Картинная галерея квиза</h2>
-                <p id="galleryDescription">ℹ️ Здесь все картины что используются в квизе. Нажми на картину чтобы узнать интересные факты!</p>
-                <div class="gallery-grid" id="galleryGrid"></div>
-                <button class="close-gallery-btn">Закрыть галерею</button>
+    </div>
+    <!-- Модальное окно подтверждения удаления -->
+    <div class="modal" id="deleteConfirmModal" style="display: none;">
+        <div class="modal-content confirm-modal">
+            <div class="confirm-icon">
+                <i class="fas fa-exclamation-triangle"></i>
+            </div>
+            
+            <div class="confirm-content">
+                <h3>Удалить шпаргалку?</h3>
+                <p id="deleteConfirmText">Эта шпаргалка будет удалена без возможности восстановления.</p>
+                
+                <div class="confirm-details" id="deleteConfirmDetails">
+                    <!-- Детали удаляемой шпаргалки будут здесь -->
+                </div>
+                
+                <div class="confirm-actions">
+                    <button class="btn btn-secondary" id="cancelDeleteBtn">
+                        <i class="fas fa-times"></i> Отмена
+                    </button>
+                    <button class="btn btn-danger" id="confirmDeleteBtn">
+                        <i class="fas fa-trash"></i> Удалить навсегда
+                    </button>
+                </div>
             </div>
         </div>
-        <div class="image-modal">
-            <span class="close-image-modal">&times;</span>
-            <div class="image-modal-content">
-                <img class="modal-image" src="" alt="">
-                <p class="image-description"></p>
+    </div>
+    <div class="modal" id="helpModal" style="display: none;">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3><i class="fas fa-lightbulb"></i> Подсказки по написанию</h3>
+            <button class="btn-icon close-modal" id="closeHelpModalBtn">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="modal-body">
+            <div class="help-grid">
+                <div class="help-card">
+                    <div class="help-icon">
+                        <i class="fas fa-list-ol"></i>
+                    </div>
+                    <h4>Структура</h4>
+                    <p>Разделяйте материал на логические блоки, используйте заголовки и подзаголовки</p>
+                </div>
+                <div class="help-card">
+                    <div class="help-icon">
+                        <i class="fas fa-code"></i>
+                    </div>
+                    <h4>Формулы</h4>
+                    <p>Выделяйте формулы отдельными строками или используйте кнопку "Формула/код"</p>
+                </div>
+                <div class="help-card">
+                    <div class="help-icon">
+                        <i class="fas fa-th-list"></i>
+                    </div>
+                    <h4>Списки</h4>
+                    <p>Используйте маркированные списки для перечислений и алгоритмов</p>
+                </div>
+                <div class="help-card">
+                    <div class="help-icon">
+                        <i class="fas fa-key"></i>
+                    </div>
+                    <h4>Ключевые слова</h4>
+                    <p>Выделяйте жирным ключевые термины и определения</p>
+                </div>
+            </div>
+            
+            <div class="help-example">
+                <h5>Пример хорошо оформленной шпаргалки:</h5>
+                <pre>
+<strong>Формулы сокращенного умножения:</strong>
+
+1. (a + b)² = a² + 2ab + b²
+2. (a - b)² = a² - 2ab + b²
+3. a² - b² = (a - b)(a + b)
+
+<em>Пример:</em>
+(2x + 3)² = 4x² + 12x + 9
+
+<strong>Важно:</strong> Формулы нужно знать наизусть!
+                </pre>
             </div>
         </div>
-        <div class="loading-spinner">
-            <div class="spinner"></div>
-        </div>
-        <div class="notification-container"></div>
-        <script src="questions.js"></script>
-        <!-- В index.html ПЕРЕД закрывающим тегом </body> -->
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-        <!-- Добавить этот скрипт ПОСЛЕ создания элемента gradient -->
-        <script src="script.js"></script>
-    </body>
+    </div>
+</div>
+    <!-- Уведомления -->
+    <div class="toast-container" id="toastContainer"></div>
+    
+    <script src="script.js"></script>
+</body>
 </html>
