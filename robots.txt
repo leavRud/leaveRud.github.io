@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://leavrud.github.io/leaveRud.github.io/sitemap.xml
