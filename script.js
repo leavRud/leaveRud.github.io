@@ -1,4 +1,4 @@
-// Данные приложения
+// ===== ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ =====
 let cheatsheets = JSON.parse(localStorage.getItem('egeCheatsheets')) || [];
 let editingId = null;
 let currentView = 'list'; // 'list', 'grid', 'view'
@@ -14,6 +14,8 @@ let customSubjects = JSON.parse(localStorage.getItem('egeCustomSubjects')) || []
 let currentStep = 1;
 let selectedSubject = '';
 let selectedTask = '';
+
+// DOM элементы будут инициализированы позже
 let helpModal = null;
 let closeHelpModalBtn = null;
 let prevStepBtn = null;
@@ -29,6 +31,60 @@ let tagsInput = null;
 let statsContainer = null;
 let subjectStats = null;
 let contentTextarea = null;
+
+// Основные DOM элементы
+let cheatsheetList = null;
+let cheatsheetGrid = null;
+let contentArea = null;
+let emptyState = null;
+let totalCheatsheets = null;
+let searchInput = null;
+let subjectFilter = null;
+let taskFilter = null;
+let currentSubject = null;
+let closeViewBtn = null; // Объявляем здесь
+let cheatsheetView = null;
+let viewTitle = null;
+let viewSubject = null;
+let viewTask = null;
+let viewDate = null;
+let viewContent = null;
+let editBtn = null;
+let deleteBtn = null;
+let newCheatsheetBtn = null;
+let emptyNewBtn = null;
+let editModal = null;
+let closeModalBtn = null;
+let cancelBtn = null;
+let modalTitle = null;
+let cheatsheetForm = null;
+let subjectSelect = null;
+let taskNumberSelect = null;
+let titleInput = null;
+let saveBtn = null;
+let exportBtn = null;
+let importBtn = null;
+let themeToggle = null;
+let toastContainer = null;
+let deleteConfirmModal = null;
+let cancelDeleteBtn = null;
+let confirmDeleteBtn = null;
+let deleteConfirmText = null;
+let deleteConfirmDetails = null;
+let cheatsheetToDelete = null;
+let exportModal = null;
+let closeExportModalBtn = null;
+let cancelExportBtn = null;
+let confirmExportBtn = null;
+let exportAllRadio = null;
+let exportFilteredRadio = null;
+let exportSelectedRadio = null;
+let exportSelection = null;
+let exportCheckboxes = null;
+let exportAllCount = null;
+let exportFilteredCount = null;
+let exportSelectedCount = null;
+let charCount = null;
 
 // Константы для настройки
 const PREVIEW_MAX_LENGTH = 120;
@@ -67,10 +123,12 @@ document.addEventListener('DOMContentLoaded', function() {
     setTimeout(updateCheatsheetListHeight, 100);
     
     const observer = new MutationObserver(updateCheatsheetListHeight);
-    const cheatsheetList = document.querySelector('.cheatsheet-list');
     if (cheatsheetList) {
         observer.observe(cheatsheetList, { childList: true });
     }
+    
+    // Инициализация PWA
+    initPWA();
 });
 
 // Функция для инициализации DOM элементов
@@ -85,7 +143,7 @@ function initDOMElements() {
     subjectFilter = document.getElementById('subjectFilter');
     taskFilter = document.getElementById('taskFilter');
     currentSubject = document.getElementById('currentSubject');
-    closeViewBtn = document.getElementById('closeViewBtn');
+    closeViewBtn = document.getElementById('closeViewBtn'); // Инициализируем здесь
     cheatsheetView = document.getElementById('cheatsheetView');
     viewTitle = document.getElementById('viewTitle');
     viewSubject = document.getElementById('viewSubject');
@@ -159,9 +217,6 @@ function initDOMElements() {
                 });
         });
     }
-    
-    // Инициализация PWA
-    initPWA();
 }
 
 // Функция для инициализации PWA
@@ -2222,8 +2277,9 @@ function mobileViewCheatsheet(cheatsheet) {
     mainContent.classList.add('mobile-active');
     
     // Меняем кнопку "Назад"
-    const closeBtn = document.getElementById('closeViewBtn');
-    closeBtn.classList.add('mobile-back-btn');
+    if (closeViewBtn) {
+        closeViewBtn.classList.add('mobile-back-btn');
+    }
     
     // Показываем шпаргалку обычным способом
     viewCheatsheet(cheatsheet);
@@ -2245,9 +2301,10 @@ function mobileShowListView() {
     const mainContent = document.querySelector('.main-content');
     mainContent.classList.remove('mobile-active');
     
-    // Возвращаем обычную кнопку
-    const closeBtn = document.getElementById('closeViewBtn');
-    closeBtn.classList.remove('mobile-back-btn');
+    // Возвращаем обычную кнопку (используем уже инициализированную переменную)
+    if (closeViewBtn) {
+        closeViewBtn.classList.remove('mobile-back-btn');
+    }
     
     // Разблокируем прокрутку
     document.body.style.overflow = '';
@@ -2262,13 +2319,21 @@ function mobileShowListView() {
 
 // Обновляем обработчики кликов на шпаргалки
 function setupMobileView() {
-    if (!isMobileDevice() && closeViewBtn) {
+    // Проверяем, инициализирована ли переменная closeViewBtn
+    if (!closeViewBtn) {
+        // Если нет, пытаемся найти элемент
+        closeViewBtn = document.getElementById('closeViewBtn');
+    }
+    
+    // Только если closeViewBtn существует
+    if (closeViewBtn && !isMobileDevice()) {
         closeViewBtn.style.display = 'none';
     }
+    
     // Делегирование событий для списка
-    const cheatsheetList = document.getElementById('cheatsheetList');
-    if (cheatsheetList) {
-        cheatsheetList.addEventListener('click', function(e) {
+    const cheatsheetListElement = document.getElementById('cheatsheetList');
+    if (cheatsheetListElement) {
+        cheatsheetListElement.addEventListener('click', function(e) {
             const cheatsheetItem = e.target.closest('.cheatsheet-item');
             if (!cheatsheetItem) return;
             
@@ -2284,9 +2349,9 @@ function setupMobileView() {
     }
     
     // Для сетки
-    const cheatsheetGrid = document.getElementById('cheatsheetGrid');
-    if (cheatsheetGrid) {
-        cheatsheetGrid.addEventListener('click', function(e) {
+    const cheatsheetGridElement = document.getElementById('cheatsheetGrid');
+    if (cheatsheetGridElement) {
+        cheatsheetGridElement.addEventListener('click', function(e) {
             const gridItem = e.target.closest('.grid-item');
             if (!gridItem) return;
             
@@ -2302,7 +2367,6 @@ function setupMobileView() {
     }
     
     // Обновляем кнопку "Назад" для мобильных
-    const closeViewBtn = document.getElementById('closeViewBtn');
     if (closeViewBtn) {
         closeViewBtn.addEventListener('click', function() {
             if (isMobileDevice() && document.querySelector('.main-content').classList.contains('mobile-active')) {
@@ -2310,6 +2374,7 @@ function setupMobileView() {
             }
         });
     }
+    
     document.addEventListener('keydown', function(e) {
         if (e.key === 'Escape' && isMobileDevice() && 
             document.querySelector('.main-content').classList.contains('mobile-active')) {
