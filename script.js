@@ -994,7 +994,7 @@ function applyFormatting(format) {
             }
             break;
         case 'code':
-            formattedText = `\`${selectedText}\``;
+            formattedText = `\`\`\`${selectedText}\`\`\``;
             break;
         case 'clear':
             formattedText = selectedText.replace(/\*\*|\*|`{1,3}|^[•\-]\s+/gm, '');
@@ -1483,7 +1483,7 @@ function formatContent(content) {
             let itemText = line.substring(2);
             itemText = itemText.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
             itemText = itemText.replace(/\*(.*?)\*/g, '<em>$1</em>');
-            itemText = itemText.replace(/`(.*?)`/g, '<code>$1</code>');
+            itemText = itemText.replace(/\`\`\`(.*?)\`\`\`/g, '<code>$1</code>');
             
             listItems.push(`<li>${itemText}</li>`);
         }
@@ -1498,7 +1498,7 @@ function formatContent(content) {
             // Добавляем текущую строку
             line = line.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
             line = line.replace(/\*(.*?)\*/g, '<em>$1</em>');
-            line = line.replace(/`(.*?)`/g, '<code>$1</code>');
+            line = line.replace(/\`\`\`(.*?)\`\`\`/g, '<code>$1</code>');
             resultLines.push(line);
         }
         // Не элемент списка и список не активен
@@ -1508,7 +1508,7 @@ function formatContent(content) {
             // Курсив: *текст*
             line = line.replace(/\*(.*?)\*/g, '<em>$1</em>');
             // Код: `текст`
-            line = line.replace(/`(.*?)`/g, '<code>$1</code>');
+            line = line.replace(/\`\`\`(.*?)\`\`\`/g, '<code>$1</code>');
             resultLines.push(line);
         }
         // Пустая строка
