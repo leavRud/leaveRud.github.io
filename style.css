@@ -1,5 +1,6 @@
 /* ===== CSS VARIABLES ===== */
 :root {
+  --app-height: 100vh;
   /* Цветовая палитра */
   --primary-color: #4361ee;
   --primary-dark: #3a56d4;
@@ -2359,15 +2360,35 @@ body.dark-theme .formatted-list li::before {
 
 /* Планшеты в портретной ориентации (768px и меньше) */
 @media (max-width: 768px) {
-      .app-container {
+    .app-container {
+    height: var(--app-height);
+    height: 100dvh; /* Для современных браузеров */
+    overflow: hidden;
     flex-direction: column;
     min-height: 100vh;
   }
   
   .sidebar {
     width: 100%;
+    height: 60vh;
+    height: 60dvh;
+    max-height: calc(var(--app-height) * 0.6);
+  }
+  .main-content {
+    height: 40vh;
+    height: 40dvh;
+    max-height: calc(var(--app-height) * 0.4);
+  }
+  .main-content.mobile-active {
+    height: var(--app-height);
+    height: 100dvh;
+    max-height: var(--app-height);
   }
   
+  .cheatsheet-list {
+    height: calc(100% - 200px); /* Адаптивная высота */
+    max-height: none !important;
+  }
   .cheatsheet-list {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
@@ -4167,4 +4188,22 @@ body.mobile-modal-open .sidebar {
 @keyframes fadeIn {
     from { opacity: 0; }
     to { opacity: 1; }
+}
+/* Для iOS Safari */
+@supports (-webkit-touch-callout: none) {
+  .app-container {
+    height: -webkit-fill-available;
+  }
+}
+
+/* Для всех мобильных браузеров */
+html, body {
+  height: 100%;
+  overflow: hidden;
+}
+
+body {
+  position: fixed;
+  width: 100%;
+  height: 100%;
 }

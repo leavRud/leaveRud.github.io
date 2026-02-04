@@ -7,6 +7,7 @@ let currentFilter = {
     task: 'all',
     search: ''
 };
+
 let isEditModalOpen = false;
 let selectedCheatsheets = new Set();
 let customSubjects = JSON.parse(localStorage.getItem('egeCustomSubjects')) || [];
