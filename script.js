@@ -13,178 +13,42 @@ let customSubjects = JSON.parse(localStorage.getItem('egeCustomSubjects')) || []
 let currentStep = 1;
 let selectedSubject = '';
 let selectedTask = '';
-let helpModal = document.getElementById('helpModal');
-let closeHelpModalBtn = document.getElementById('closeHelpModalBtn');
-let prevStepBtn = document.getElementById('prevStepBtn');
-let nextStepBtn = document.getElementById('nextStepBtn');
-let subjectGrid = document.getElementById('subjectGrid');
-let taskGrid = document.getElementById('taskGrid');
-let formatBtns = document.querySelectorAll('.format-btn');
-let previewSection = document.getElementById('previewSection');
-let editPreviewBtn = document.getElementById('editPreviewBtn');
-let modalSubtitle = document.getElementById('modalSubtitle');
-let formatHelpBtn = document.getElementById('formatHelpBtn');
-let tagsInput = document.getElementById('tags');
-let statsContainer = document.getElementById('statsContainer');
-let subjectStats = document.getElementById('subjectStats');
-// DOM элементы
+let helpModal = null;
+let closeHelpModalBtn = null;
+let prevStepBtn = null;
+let nextStepBtn = null;
+let subjectGrid = null;
+let taskGrid = null;
+let formatBtns = null;
+let previewSection = null;
+let editPreviewBtn = null;
+let modalSubtitle = null;
+let formatHelpBtn = null;
+let tagsInput = null;
+let statsContainer = null;
+let subjectStats = null;
+
 // Константы для настройки
 const PREVIEW_MAX_LENGTH = 120;
 const LIST_MAX_TAGS = 2;
-const cheatsheetList = document.getElementById('cheatsheetList');
-const cheatsheetGrid = document.getElementById('cheatsheetGrid');
-const contentArea = document.getElementById('contentArea');
-const emptyState = document.getElementById('emptyState');
-const totalCheatsheets = document.getElementById('totalCheatsheets');
-const searchInput = document.getElementById('searchInput');
-const subjectFilter = document.getElementById('subjectFilter');
-const taskFilter = document.getElementById('taskFilter');
-const currentSubject = document.getElementById('currentSubject');
-const closeViewBtn = document.getElementById('closeViewBtn');
-const cheatsheetView = document.getElementById('cheatsheetView');
-const viewTitle = document.getElementById('viewTitle');
-const viewSubject = document.getElementById('viewSubject');
-const viewTask = document.getElementById('viewTask');
-const viewDate = document.getElementById('viewDate');
-const viewContent = document.getElementById('viewContent');
-const editBtn = document.getElementById('editBtn');
-const deleteBtn = document.getElementById('deleteBtn');
-const newCheatsheetBtn = document.getElementById('newCheatsheetBtn');
-const emptyNewBtn = document.getElementById('emptyNewBtn');
-const editModal = document.getElementById('editModal');
-const closeModalBtn = document.getElementById('closeModalBtn');
-const cancelBtn = document.getElementById('cancelBtn');
-const modalTitle = document.getElementById('modalTitle');
-const cheatsheetForm = document.getElementById('cheatsheetForm');
-const subjectSelect = document.getElementById('subject');
-const taskNumberSelect = document.getElementById('taskNumber');
-const titleInput = document.getElementById('title');
-const contentTextarea = document.getElementById('content');
-const charCount = document.getElementById('charCount');
-const saveBtn = document.getElementById('saveBtn');
-const exportBtn = document.getElementById('exportBtn');
-const importBtn = document.getElementById('importBtn');
-const themeToggle = document.getElementById('themeToggle');
-const toastContainer = document.getElementById('toastContainer');
-const deleteConfirmModal = document.getElementById('deleteConfirmModal');
-const cancelDeleteBtn = document.getElementById('cancelDeleteBtn');
-const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
-const deleteConfirmText = document.getElementById('deleteConfirmText');
-const deleteConfirmDetails = document.getElementById('deleteConfirmDetails');
-let cheatsheetToDelete = null;
-// Элементы модального окна экспорта
-const exportModal = document.getElementById('exportModal');
-const closeExportModalBtn = document.getElementById('closeExportModalBtn');
-const cancelExportBtn = document.getElementById('cancelExportBtn');
-const confirmExportBtn = document.getElementById('confirmExportBtn');
-const exportAllRadio = document.getElementById('exportAll');
-const exportFilteredRadio = document.getElementById('exportFiltered');
-const exportSelectedRadio = document.getElementById('exportSelected');
-const exportSelection = document.getElementById('exportSelection');
-const exportCheckboxes = document.getElementById('exportCheckboxes');
-const exportAllCount = document.getElementById('exportAllCount');
-const exportFilteredCount = document.getElementById('exportFilteredCount');
-const exportSelectedCount = document.getElementById('exportSelectedCount');
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./sw.js')
-      .then(registration => {
-        console.log('ServiceWorker зарегистрирован:', registration.scope);
-      })
-      .catch(error => {
-        console.log('Ошибка регистрации ServiceWorker:', error);
-      });
-  });
-}
-// Замените существующий код для PWA установки на этот:
 
-// PWA установка
-let deferredPrompt;
-let installBtn;
-
-window.addEventListener('DOMContentLoaded', () => {
-    installBtn = document.getElementById('installBtn');
-    
-    if (!installBtn) {
-        // Создаем кнопку если её нет
-        installBtn = document.createElement('div');
-        installBtn.id = 'installBtn';
-        installBtn.className = 'pwa-install-btn';
-        installBtn.style.cssText = 'display: none; position: fixed; bottom: 20px; right: 20px; z-index: 1000;';
-        installBtn.innerHTML = `
-            <button class="btn btn-primary">
-                <i class="fas fa-download"></i> Установить
-            </button>
-        `;
-        document.body.appendChild(installBtn);
-    }
-});
-
-window.addEventListener('beforeinstallprompt', (e) => {
-    // Не предотвращаем по умолчанию сразу
-    deferredPrompt = e;
-    
-    // Показываем кнопку через 5 секунд
-    setTimeout(() => {
-        if (installBtn && deferredPrompt) {
-            installBtn.style.display = 'block';
-            showToast('Приложение можно установить на устройство', 'info');
-        }
-    }, 5000);
-    
-    // Обработчик для кнопки
-    installBtn.addEventListener('click', async () => {
-        if (!deferredPrompt) return;
-        
-        // Показываем диалог установки
-        deferredPrompt.prompt();
-        
-        // Ждем ответа пользователя
-        const choiceResult = await deferredPrompt.userChoice;
-        
-        if (choiceResult.outcome === 'accepted') {
-            showToast('Приложение установлено!', 'success');
-        } else {
-            showToast('Установка отменена', 'warning');
-        }
-        
-        deferredPrompt = null;
-        installBtn.style.display = 'none';
-    });
-});
-
-// Скрываем кнопку после установки
-window.addEventListener('appinstalled', () => {
-    if (installBtn) {
-        installBtn.style.display = 'none';
-    }
-    showToast('Приложение успешно установлено!', 'success');
-});
-
-// Скрываем кнопку после установки
-window.addEventListener('appinstalled', () => {
-  installBtn.style.display = 'none';
-  console.log('Приложение установлено');
-});
 // Инициализация приложения
 document.addEventListener('DOMContentLoaded', function() {
-    if (!subjectGrid || !taskGrid || !editModal) {
-        console.error('Не найдены необходимые DOM элементы');
-        return;
-    }
+    // Инициализируем DOM элементы после загрузки страницы
+    initDOMElements();
     initTaskNumbers();
     initSubjects();
     updateStats();
     renderCheatsheets();
     setupEventListeners();
-    // Инициализация PWA кнопки
-    initPWA();
+    
     // Проверяем тему
     const savedTheme = localStorage.getItem('theme');
     if (savedTheme === 'light') {
         document.body.classList.add('light-theme');
         themeToggle.innerHTML = '<i class="fas fa-sun"></i>';
     }
+    
     if (saveBtn) {
         debounceButtonClick(saveBtn, saveCheatsheet);
     }
@@ -196,20 +60,112 @@ document.addEventListener('DOMContentLoaded', function() {
     if (confirmExportBtn) {
         debounceButtonClick(confirmExportBtn, confirmExport);
     }
+    
     setupMobileView();
     setTimeout(updateCheatsheetListHeight, 100);
+    
     const observer = new MutationObserver(updateCheatsheetListHeight);
     const cheatsheetList = document.querySelector('.cheatsheet-list');
     if (cheatsheetList) {
         observer.observe(cheatsheetList, { childList: true });
     }
-    // Скрываем кнопку закрытия просмотра на десктопах
-    if (!isMobileDevice()) {
-        document.getElementById('closeViewBtn').style.display = 'none';
-    }
 });
+
+// Функция для инициализации DOM элементов
+function initDOMElements() {
+    // Основные элементы
+    cheatsheetList = document.getElementById('cheatsheetList');
+    cheatsheetGrid = document.getElementById('cheatsheetGrid');
+    contentArea = document.getElementById('contentArea');
+    emptyState = document.getElementById('emptyState');
+    totalCheatsheets = document.getElementById('totalCheatsheets');
+    searchInput = document.getElementById('searchInput');
+    subjectFilter = document.getElementById('subjectFilter');
+    taskFilter = document.getElementById('taskFilter');
+    currentSubject = document.getElementById('currentSubject');
+    closeViewBtn = document.getElementById('closeViewBtn');
+    cheatsheetView = document.getElementById('cheatsheetView');
+    viewTitle = document.getElementById('viewTitle');
+    viewSubject = document.getElementById('viewSubject');
+    viewTask = document.getElementById('viewTask');
+    viewDate = document.getElementById('viewDate');
+    viewContent = document.getElementById('viewContent');
+    editBtn = document.getElementById('editBtn');
+    deleteBtn = document.getElementById('deleteBtn');
+    newCheatsheetBtn = document.getElementById('newCheatsheetBtn');
+    emptyNewBtn = document.getElementById('emptyNewBtn');
+    editModal = document.getElementById('editModal');
+    closeModalBtn = document.getElementById('closeModalBtn');
+    cancelBtn = document.getElementById('cancelBtn');
+    modalTitle = document.getElementById('modalTitle');
+    cheatsheetForm = document.getElementById('cheatsheetForm');
+    subjectSelect = document.getElementById('subject');
+    taskNumberSelect = document.getElementById('taskNumber');
+    titleInput = document.getElementById('title');
+    contentTextarea = document.getElementById('content');
+    charCount = document.getElementById('charCount');
+    saveBtn = document.getElementById('saveBtn');
+    exportBtn = document.getElementById('exportBtn');
+    importBtn = document.getElementById('importBtn');
+    themeToggle = document.getElementById('themeToggle');
+    toastContainer = document.getElementById('toastContainer');
+    deleteConfirmModal = document.getElementById('deleteConfirmModal');
+    cancelDeleteBtn = document.getElementById('cancelDeleteBtn');
+    confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
+    deleteConfirmText = document.getElementById('deleteConfirmText');
+    deleteConfirmDetails = document.getElementById('deleteConfirmDetails');
+    
+    // Экспорт
+    exportModal = document.getElementById('exportModal');
+    closeExportModalBtn = document.getElementById('closeExportModalBtn');
+    cancelExportBtn = document.getElementById('cancelExportBtn');
+    confirmExportBtn = document.getElementById('confirmExportBtn');
+    exportAllRadio = document.getElementById('exportAll');
+    exportFilteredRadio = document.getElementById('exportFiltered');
+    exportSelectedRadio = document.getElementById('exportSelected');
+    exportSelection = document.getElementById('exportSelection');
+    exportCheckboxes = document.getElementById('exportCheckboxes');
+    exportAllCount = document.getElementById('exportAllCount');
+    exportFilteredCount = document.getElementById('exportFilteredCount');
+    exportSelectedCount = document.getElementById('exportSelectedCount');
+    
+    // Редактор
+    helpModal = document.getElementById('helpModal');
+    closeHelpModalBtn = document.getElementById('closeHelpModalBtn');
+    prevStepBtn = document.getElementById('prevStepBtn');
+    nextStepBtn = document.getElementById('nextStepBtn');
+    subjectGrid = document.getElementById('subjectGrid');
+    taskGrid = document.getElementById('taskGrid');
+    formatBtns = document.querySelectorAll('.format-btn');
+    previewSection = document.getElementById('previewSection');
+    editPreviewBtn = document.getElementById('editPreviewBtn');
+    modalSubtitle = document.getElementById('modalSubtitle');
+    formatHelpBtn = document.getElementById('formatHelpBtn');
+    tagsInput = document.getElementById('tags');
+    statsContainer = document.getElementById('statsContainer');
+    subjectStats = document.getElementById('subjectStats');
+    
+    // Инициализация Service Worker
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('./sw.js')
+                .then(registration => {
+                    console.log('ServiceWorker зарегистрирован:', registration.scope);
+                })
+                .catch(error => {
+                    console.log('Ошибка регистрации ServiceWorker:', error);
+                });
+        });
+    }
+    
+    // Инициализация PWA
+    initPWA();
+}
+
+// Функция для инициализации PWA
 function initPWA() {
-    installBtn = document.getElementById('installBtn');
+    let deferredPrompt;
+    let installBtn = document.getElementById('installBtn');
     
     if (!installBtn) {
         installBtn = document.createElement('div');
@@ -225,7 +181,7 @@ function initPWA() {
     }
     
     window.addEventListener('beforeinstallprompt', (e) => {
-        e.preventDefault();
+        // Не вызываем preventDefault() здесь
         deferredPrompt = e;
         
         // Показываем кнопку через 3 секунды
@@ -259,8 +215,10 @@ function initPWA() {
         if (installBtn) {
             installBtn.style.display = 'none';
         }
+        showToast('Приложение успешно установлено!', 'success');
     });
 }
+
 function initSubjects() {
     const subjects = [
         { id: 'Математика', icon: 'fa-calculator', color: '#4361ee' },
@@ -1599,7 +1557,6 @@ function showEmptyState() {
     closeViewBtn.style.display = 'none';
 }
 
-// Показать список
 function showListView() {
     if (isMobileDevice()) {
         return mobileShowListView();
@@ -1608,7 +1565,10 @@ function showListView() {
     emptyState.style.display = 'none';
     cheatsheetGrid.style.display = 'grid';
     cheatsheetView.style.display = 'none';
-    closeViewBtn.style.display = 'none';
+    // Проверяем, что closeViewBtn существует
+    if (closeViewBtn) {
+        closeViewBtn.style.display = 'none';
+    }
 }
 
 // Показать просмотр шпаргалки
@@ -2306,6 +2266,9 @@ function mobileShowListView() {
 
 // Обновляем обработчики кликов на шпаргалки
 function setupMobileView() {
+    if (!isMobileDevice() && closeViewBtn) {
+        closeViewBtn.style.display = 'none';
+    }
     // Делегирование событий для списка
     const cheatsheetList = document.getElementById('cheatsheetList');
     if (cheatsheetList) {
