@@ -96,6 +96,34 @@ if ('serviceWorker' in navigator) {
       });
   });
 }
+// PWA установка
+let deferredPrompt;
+const installBtn = document.getElementById('installBtn');
+
+window.addEventListener('beforeinstallprompt', (e) => {
+  // Предотвращаем автоматическое отображение
+  e.preventDefault();
+  deferredPrompt = e;
+  installBtn.style.display = 'block';
+  
+  installBtn.addEventListener('click', () => {
+    // Показываем предложение установки
+    deferredPrompt.prompt();
+    deferredPrompt.userChoice.then((choiceResult) => {
+      if (choiceResult.outcome === 'accepted') {
+        console.log('Пользователь установил приложение');
+      }
+      deferredPrompt = null;
+      installBtn.style.display = 'none';
+    });
+  });
+});
+
+// Скрываем кнопку после установки
+window.addEventListener('appinstalled', () => {
+  installBtn.style.display = 'none';
+  console.log('Приложение установлено');
+});
 // Инициализация приложения
 document.addEventListener('DOMContentLoaded', function() {
     if (!subjectGrid || !taskGrid || !editModal) {
