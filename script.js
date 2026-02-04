@@ -329,8 +329,11 @@ function setupEventListeners() {
     }
     // Форма
     cheatsheetForm.addEventListener('submit', saveCheatsheet);
-    contentTextarea.addEventListener('input', updateCharCount);
-    
+    contentTextarea.addEventListener('input', function() {
+        updateCharCount();
+        updateTextStats();
+        updatePreview();
+    });
     // Фильтры
     searchInput.addEventListener('input', updateFilters);
     subjectFilter.addEventListener('change', updateFilters);
@@ -1255,13 +1258,6 @@ function saveCheatsheet(e) {
         'success'
     );
 }
-
-
-// Обновляем событие input для contentTextarea
-contentTextarea.addEventListener('input', function() {
-    updateTextStats();
-    updatePreview();
-});
 // Сохранение в localStorage
 function saveToStorage() {
     try {
