@@ -85,6 +85,17 @@ const exportCheckboxes = document.getElementById('exportCheckboxes');
 const exportAllCount = document.getElementById('exportAllCount');
 const exportFilteredCount = document.getElementById('exportFilteredCount');
 const exportSelectedCount = document.getElementById('exportSelectedCount');
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js')
+      .then(registration => {
+        console.log('ServiceWorker зарегистрирован:', registration.scope);
+      })
+      .catch(error => {
+        console.log('Ошибка регистрации ServiceWorker:', error);
+      });
+  });
+}
 // Инициализация приложения
 document.addEventListener('DOMContentLoaded', function() {
     if (!subjectGrid || !taskGrid || !editModal) {
