@@ -1473,7 +1473,10 @@ body.dark-theme .view-content ul li::before {
   color: var(--text-muted);
   font-size: 0.9rem;
 }
+.cheatsheet-list > div{
+    min-height: 140px;
 
+}
 .char-info i {
   color: var(--text-secondary);
 }
@@ -4038,8 +4041,9 @@ body.mobile-modal-open .sidebar {
   }
   
   .cheatsheet-item {
-    max-height: 35%;
+    max-height: 130px;
     padding: 14px;
+    min-height: 120px;
   }
   
   /* Уменьшаем отступы в фильтрах */

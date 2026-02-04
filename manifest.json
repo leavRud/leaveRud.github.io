@@ -4,8 +4,13 @@
   "description": "Приложение для создания и хранения шпаргалок для подготовки к ЕГЭ",
   "start_url": "./index.html",
   "display": "standalone",
+  "orientation": "any",
+  "categories": ["education", "productivity"],
   "background_color": "#0f0f23",
   "theme_color": "#4361ee",
+  "scope": "./",
+  "lang": "ru",
+  "dir": "ltr",
   "icons": [
     {
       "src": "./assets/web-app-manifest-192x192.png",
