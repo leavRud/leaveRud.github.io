@@ -38,5 +38,20 @@
       "type": "image/png",
       "form_factor": "narrow"
     }
+  ],
+  "prefer_related_applications": false,
+  "shortcuts": [
+    {
+      "name": "Новая шпаргалка",
+      "short_name": "Новая",
+      "description": "Создать новую шпаргалку",
+      "url": "/?new=true"
+    },
+    {
+      "name": "Все шпаргалки",
+      "short_name": "Все",
+      "description": "Просмотреть все шпаргалки",
+      "url": "/"
+    }
   ]
 }

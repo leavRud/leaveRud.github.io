@@ -96,27 +96,69 @@ if ('serviceWorker' in navigator) {
       });
   });
 }
+// Замените существующий код для PWA установки на этот:
+
 // PWA установка
 let deferredPrompt;
-const installBtn = document.getElementById('installBtn');
+let installBtn;
+
+window.addEventListener('DOMContentLoaded', () => {
+    installBtn = document.getElementById('installBtn');
+    
+    if (!installBtn) {
+        // Создаем кнопку если её нет
+        installBtn = document.createElement('div');
+        installBtn.id = 'installBtn';
+        installBtn.className = 'pwa-install-btn';
+        installBtn.style.cssText = 'display: none; position: fixed; bottom: 20px; right: 20px; z-index: 1000;';
+        installBtn.innerHTML = `
+            <button class="btn btn-primary">
+                <i class="fas fa-download"></i> Установить
+            </button>
+        `;
+        document.body.appendChild(installBtn);
+    }
+});
 
 window.addEventListener('beforeinstallprompt', (e) => {
-  // Предотвращаем автоматическое отображение
-  e.preventDefault();
-  deferredPrompt = e;
-  installBtn.style.display = 'block';
-  
-  installBtn.addEventListener('click', () => {
-    // Показываем предложение установки
-    deferredPrompt.prompt();
-    deferredPrompt.userChoice.then((choiceResult) => {
-      if (choiceResult.outcome === 'accepted') {
-        console.log('Пользователь установил приложение');
-      }
-      deferredPrompt = null;
-      installBtn.style.display = 'none';
+    // Не предотвращаем по умолчанию сразу
+    deferredPrompt = e;
+    
+    // Показываем кнопку через 5 секунд
+    setTimeout(() => {
+        if (installBtn && deferredPrompt) {
+            installBtn.style.display = 'block';
+            showToast('Приложение можно установить на устройство', 'info');
+        }
+    }, 5000);
+    
+    // Обработчик для кнопки
+    installBtn.addEventListener('click', async () => {
+        if (!deferredPrompt) return;
+        
+        // Показываем диалог установки
+        deferredPrompt.prompt();
+        
+        // Ждем ответа пользователя
+        const choiceResult = await deferredPrompt.userChoice;
+        
+        if (choiceResult.outcome === 'accepted') {
+            showToast('Приложение установлено!', 'success');
+        } else {
+            showToast('Установка отменена', 'warning');
+        }
+        
+        deferredPrompt = null;
+        installBtn.style.display = 'none';
     });
-  });
+});
+
+// Скрываем кнопку после установки
+window.addEventListener('appinstalled', () => {
+    if (installBtn) {
+        installBtn.style.display = 'none';
+    }
+    showToast('Приложение успешно установлено!', 'success');
 });
 
 // Скрываем кнопку после установки
@@ -135,7 +177,8 @@ document.addEventListener('DOMContentLoaded', function() {
     updateStats();
     renderCheatsheets();
     setupEventListeners();
-    
+    // Инициализация PWA кнопки
+    initPWA();
     // Проверяем тему
     const savedTheme = localStorage.getItem('theme');
     if (savedTheme === 'light') {
@@ -165,6 +208,59 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('closeViewBtn').style.display = 'none';
     }
 });
+function initPWA() {
+    installBtn = document.getElementById('installBtn');
+    
+    if (!installBtn) {
+        installBtn = document.createElement('div');
+        installBtn.id = 'installBtn';
+        installBtn.className = 'pwa-install-btn';
+        installBtn.style.cssText = 'display: none; position: fixed; bottom: 20px; right: 20px; z-index: 1000;';
+        installBtn.innerHTML = `
+            <button class="btn btn-primary" style="padding: 10px 20px; border-radius: 25px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+                <i class="fas fa-download"></i> Установить приложение
+            </button>
+        `;
+        document.body.appendChild(installBtn);
+    }
+    
+    window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        deferredPrompt = e;
+        
+        // Показываем кнопку через 3 секунды
+        setTimeout(() => {
+            if (installBtn && deferredPrompt) {
+                installBtn.style.display = 'block';
+                installBtn.style.animation = 'fadeIn 0.5s ease-in-out';
+            }
+        }, 3000);
+        
+        installBtn.querySelector('button').addEventListener('click', async () => {
+            if (!deferredPrompt) return;
+            
+            deferredPrompt.prompt();
+            
+            const choiceResult = await deferredPrompt.userChoice;
+            
+            if (choiceResult.outcome === 'accepted') {
+                console.log('Пользователь принял установку');
+            } else {
+                console.log('Пользователь отклонил установку');
+            }
+            
+            deferredPrompt = null;
+            installBtn.style.display = 'none';
+        });
+    });
+    
+    window.addEventListener('appinstalled', () => {
+        console.log('PWA установлен');
+        if (installBtn) {
+            installBtn.style.display = 'none';
+        }
+    });
+}
 function initSubjects() {
     const subjects = [
         { id: 'Математика', icon: 'fa-calculator', color: '#4361ee' },
