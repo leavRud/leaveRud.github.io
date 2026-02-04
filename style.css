@@ -178,6 +178,9 @@ body.light-theme .logo-light {
         width: 28px;
         height: 28px;
     }
+    .logo-text{
+        background: linear-gradient(135deg, var(--primary-color), var(--bg-hover));
+    }
 }
 /* ===== БОКОВАЯ ПАНЕЛЬ ===== */
 .sidebar {
