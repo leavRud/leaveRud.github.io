@@ -1672,7 +1672,6 @@ function viewCheatsheet(cheatsheet) {
     });
     
     // Обновляем навигационные стрелки
-    updateNavigationArrows();
 }
 
 
