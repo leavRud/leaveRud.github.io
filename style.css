@@ -119,7 +119,7 @@ body {
 
 /* ===== БОКОВАЯ ПАНЕЛЬ ===== */
 .sidebar {
-  width: 390px;
+  width: 400px;
   background-color: var(--bg-card);
   border-right: 1px solid var(--border-color);
   display: flex;
@@ -4042,7 +4042,13 @@ body.mobile-modal-open .sidebar {
     border: 2px solid var(--border-color);
   }
 }
-
+.pwa-install-btn {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 1000;
+    animation: fadeInUp 0.5s ease-out;
+}
 /* Очень маленькие телефоны - дополнительная адаптация */
 @media (max-width: 480px) {
   .btn-new {
@@ -4077,6 +4083,11 @@ body.mobile-modal-open .sidebar {
     grid-template-columns: 1fr;
     gap: 10px;
   }
+  .pwa-install-btn {
+
+    bottom: 60px;
+
+}
 }
 
 /* Пейзажная ориентация на телефонах */
@@ -4139,14 +4150,7 @@ body.mobile-modal-open .sidebar {
     display: flex !important;
   }
 }
-/* PWA Install Button */
-.pwa-install-btn {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    z-index: 1000;
-    animation: fadeInUp 0.5s ease-out;
-}
+
 
 .pwa-install-btn button {
     display: flex;
