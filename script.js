@@ -1799,6 +1799,7 @@ function importCheatsheets() {
 }
 
 // Переключение темы
+// Переключение темы
 function toggleTheme() {
     const isDark = !document.body.classList.contains('light-theme');
     
@@ -1810,6 +1811,16 @@ function toggleTheme() {
         document.body.classList.remove('light-theme');
         themeToggle.innerHTML = '<i class="fas fa-moon"></i>';
         localStorage.setItem('theme', 'dark');
+    }
+    
+    // Обновляем мобильную кнопку темы, если она существует
+    const mobileThemeToggle = document.getElementById('mobileThemeToggle');
+    if (mobileThemeToggle) {
+        if (isDark) {
+            mobileThemeToggle.innerHTML = '<i class="fas fa-sun"></i>';
+        } else {
+            mobileThemeToggle.innerHTML = '<i class="fas fa-moon"></i>';
+        }
     }
 }
 
