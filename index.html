@@ -79,6 +79,7 @@
                     
                     <select id="taskFilter" class="filter-select">
                         <option value="all">Все задания</option>
+                        <option value="0">Без номера</option>
                     </select>
                 </div>
             </div>
@@ -129,6 +130,8 @@
                 </div>
                 
                 <div class="cheatsheet-view" id="cheatsheetView" style="display: none;">
+                    <!-- Навигационные стрелки (только для десктопа) -->
+                    
                     <!-- Просмотр отдельной шпаргалки -->
                     <div class="view-header">
                         <div class="view-title">
@@ -276,10 +279,11 @@
                                     <span class="required">*</span>
                                 </label>
                                 <div class="task-grid" id="taskGrid">
-                                    <input type="hidden" id="subject" name="subject">
-                                    <input type="hidden" id="taskNumber" name="taskNumber">
+                                    <!-- Задания будут добавлены через JavaScript -->
                                 </div>
-                                <div class="form-hint">Выберите номер задания от 1 до 27</div>
+                                <div class="form-hint no-task-hint">
+                                    Выберите номер задания от 1 до 27 или "без номера" для общих тем
+                                </div>
                             </div>
                         </div>
                         
@@ -472,6 +476,19 @@
 </div>
     <!-- Уведомления -->
     <div class="toast-container" id="toastContainer"></div>
+    
+    <!-- Мобильное меню -->
+    <div class="mobile-menu" style="display: none;">
+        <button class="btn-icon" id="mobileExportBtn" title="Экспорт">
+            <i class="fas fa-download"></i>
+        </button>
+        <button class="btn-icon" id="mobileImportBtn" title="Импорт">
+            <i class="fas fa-upload"></i>
+        </button>
+        <button class="btn-icon" id="mobileThemeToggle" title="Сменить тему">
+            <i class="fas fa-moon"></i>
+        </button>
+    </div>
     
     <script src="script.js"></script>
     <!-- Кнопка установки PWA -->

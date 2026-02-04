@@ -277,6 +277,10 @@ function initPWA() {
 }
 
 function initSubjects() {
+    if (!subjectGrid) {
+        console.error('subjectGrid не найден');
+        return;
+    }
     const subjects = [
         { id: 'Математика', icon: 'fa-calculator', color: '#4361ee' },
         { id: 'Русский язык', icon: 'fa-language', color: '#7209b7' },
@@ -309,17 +313,29 @@ function initSubjects() {
     });
 }
 // Заполняем список номеров заданий
+// Заполняем список номеров заданий
 function initTaskNumbers() {
+    if (!taskGrid) {
+        console.error('taskGrid не найден');
+        return;
+    }
     const taskNumbers = Array.from({length: 27}, (_, i) => i + 1);
     
     // Для фильтра
-    taskFilter.innerHTML = '<option value="all">Все задания</option>' +
-        taskNumbers.map(num => `<option value="${num}">${num}</option>`).join('');
+    if (taskFilter) {
+        taskFilter.innerHTML = '<option value="all">Все задания</option>' +
+            '<option value="0">Без номера</option>' +
+            taskNumbers.map(num => `<option value="${num}">${num}</option>`).join('');
+    }
     
     // Для сетки
     taskGrid.innerHTML = taskNumbers.map(num => `
         <button type="button" class="task-btn" data-task="${num}">${num}</button>
-    `).join('');
+    `).join('') + `
+        <button type="button" class="task-btn no-task" data-task="0">
+            <i class="fas fa-ban"></i> Без номера
+        </button>
+    `;
     
     // Обработчики для кнопок заданий
     document.querySelectorAll('.task-btn').forEach(btn => {
@@ -332,16 +348,27 @@ function initTaskNumbers() {
     });
     
     // Инициализируем скрытые селекты для формы (добавляем)
-    taskNumberSelect.innerHTML = '<option value="" disabled selected>Выберите номер</option>' +
-        taskNumbers.map(num => `<option value="${num}">${num}</option>`).join('');
+    if (taskNumberSelect) {
+        taskNumberSelect.innerHTML = '<option value="" disabled selected>Выберите номер</option>' +
+            '<option value="0">Без номера</option>' +
+            taskNumbers.map(num => `<option value="${num}">${num}</option>`).join('');
+    }
 }
 function updateModalSubtitle() {
     if (selectedSubject && selectedTask) {
-        modalSubtitle.textContent = `${selectedSubject}, задание ${selectedTask}`;
+        if (selectedTask === '0') {
+            modalSubtitle.textContent = `${selectedSubject} (без номера задания)`;
+        } else {
+            modalSubtitle.textContent = `${selectedSubject}, задание ${selectedTask}`;
+        }
     } else if (selectedSubject) {
         modalSubtitle.textContent = `Выбран предмет: ${selectedSubject}`;
     } else if (selectedTask) {
-        modalSubtitle.textContent = `Выбрано задание: ${selectedTask}`;
+        if (selectedTask === '0') {
+            modalSubtitle.textContent = `Без номера задания`;
+        } else {
+            modalSubtitle.textContent = `Выбрано задание: ${selectedTask}`;
+        }
     } else {
         modalSubtitle.textContent = 'Заполните информацию о шпаргалке';
     }
@@ -870,10 +897,15 @@ function updateCurrentSubjectText() {
 }
 function nextStep() {
     if (currentStep === 1) {
-        // Проверяем, выбраны ли предмет и задание
-        if (!selectedSubject || !selectedTask) {
-            showToast('Выберите предмет и номер задания', 'error');
+        // Проверяем, выбран ли предмет
+        if (!selectedSubject) {
+            showToast('Выберите предмет', 'error');
             return;
+        }
+        
+        // Если не выбран номер задания, используем 0 (без номера)
+        if (!selectedTask) {
+            selectedTask = '0';
         }
         
         // Заполняем скрытые select'ы для обратной совместимости
@@ -1056,9 +1088,19 @@ function updatePreview() {
     
     // Обновляем предпросмотр
     document.getElementById('previewSubject').textContent = selectedSubject;
-    document.getElementById('previewTask').textContent = `Задание ${selectedTask}`;
     
-    const title = titleInput.value.trim() || `${selectedSubject}, задание ${selectedTask}`;
+    // Определяем текст задания
+    const previewTaskElement = document.getElementById('previewTask');
+    if (selectedTask === '0') {
+        previewTaskElement.textContent = 'Без номера';
+        previewTaskElement.className = 'preview-task no-task';
+    } else {
+        previewTaskElement.textContent = `Задание ${selectedTask}`;
+        previewTaskElement.className = 'preview-task';
+    }
+    
+    const title = titleInput.value.trim() || 
+        (selectedTask === '0' ? selectedSubject : `${selectedSubject}, задание ${selectedTask}`);
     document.getElementById('previewTitle').textContent = title;
     
     // Форматируем содержимое с помощью formatContent для правильного отображения
@@ -1196,10 +1238,17 @@ function openEditModal(cheatsheet = null) {
         }
         
         // Выбираем задание
-        const taskBtn = document.querySelector(`.task-btn[data-task="${cheatsheet.taskNumber}"]`);
+        let taskBtn;
+        if (cheatsheet.taskNumber === 0) {
+            taskBtn = document.querySelector('.task-btn.no-task');
+            selectedTask = '0';
+        } else {
+            taskBtn = document.querySelector(`.task-btn[data-task="${cheatsheet.taskNumber}"]`);
+            selectedTask = String(cheatsheet.taskNumber);
+        }
+        
         if (taskBtn) {
             taskBtn.classList.add('active');
-            selectedTask = String(cheatsheet.taskNumber);
         }
         
         titleInput.value = cheatsheet.title || '';
@@ -1239,10 +1288,15 @@ function saveCheatsheet(e) {
     e.preventDefault();
     
     // Валидация
-    if (!selectedSubject || !selectedTask) {
-        showToast('Выберите предмет и номер задания', 'error');
+    if (!selectedSubject) {
+        showToast('Выберите предмет', 'error');
         goToStep(1);
         return;
+    }
+    
+    // Если не выбран номер задания, используем 0 (без номера)
+    if (!selectedTask) {
+        selectedTask = '0';
     }
     
     const title = titleInput.value.trim();
@@ -1268,7 +1322,7 @@ function saveCheatsheet(e) {
                 ...cheatsheets[index],
                 subject: selectedSubject,
                 taskNumber: taskNumber,
-                title: title || `${selectedSubject}, задание ${selectedTask}`,
+                title: title || (taskNumber === 0 ? selectedSubject : `${selectedSubject}, задание ${taskNumber}`),
                 content,
                 tags,
                 updatedAt: new Date().toISOString()
@@ -1281,7 +1335,7 @@ function saveCheatsheet(e) {
             id: Date.now().toString(),
             subject: selectedSubject,
             taskNumber: taskNumber,
-            title: title || `${selectedSubject}, задание ${selectedTask}`,
+            title: title || (taskNumber === 0 ? selectedSubject : `${selectedSubject}, задание ${taskNumber}`),
             content,
             tags,
             createdAt: new Date().toISOString(),
@@ -1353,6 +1407,7 @@ function renderCheatsheets() {
 
 // Рендер элемента списка
 // Рендер элемента списка (без превью текста)
+// Рендер элемента списка
 function renderCheatsheetItem(cheatsheet) {
     const item = document.createElement('div');
     item.className = 'cheatsheet-item';
@@ -1378,13 +1433,16 @@ function renderCheatsheetItem(cheatsheet) {
     
     const iconClass = subjectIcons[cheatsheet.subject] || 'fa-book';
     
+    // Определяем текст задания
+    const taskText = cheatsheet.taskNumber === 0 
+        ? '<span class="cheatsheet-task no-task">Без номера</span>'
+        : `<span class="cheatsheet-task">Задание ${cheatsheet.taskNumber}</span>`;
+    
     // Теги для отображения в meta
     const tagsDisplay = cheatsheet.tags && cheatsheet.tags.length > 0 
         ? `<div class="cheatsheet-tags">${cheatsheet.tags.slice(0, 3).map(tag => 
             `<span class="cheatsheet-tag">${tag}</span>`).join('')}</div>`
         : '';
-    
-
     
     item.innerHTML = `
         <div class="cheatsheet-item-header">
@@ -1395,9 +1453,8 @@ function renderCheatsheetItem(cheatsheet) {
                 <div class="cheatsheet-title">${cheatsheet.title}</div>
                 <div class="cheatsheet-subject-task">
                     <span class="cheatsheet-subject">${cheatsheet.subject}</span>
-                    <span class="cheatsheet-task">Задание ${cheatsheet.taskNumber}</span>
+                    ${taskText}
                 </div>
-                
             </div>
         </div>
         <div class="cheatsheet-meta">
@@ -1533,6 +1590,7 @@ function formatContent(content) {
 }
 // Рендер элемента сетки
 // Рендер элемента сетки
+// Рендер элемента сетки
 function renderGridItem(cheatsheet) {
     const item = document.createElement('div');
     item.className = 'grid-item';
@@ -1540,6 +1598,11 @@ function renderGridItem(cheatsheet) {
     
     // Форматируем дату
     const date = formatDateShort(cheatsheet.updatedAt || cheatsheet.createdAt);
+    
+    // Определяем текст задания
+    const taskMeta = cheatsheet.taskNumber === 0 
+        ? `<span class="no-task-indicator">${cheatsheet.subject} • Без номера</span>`
+        : `<span>${cheatsheet.subject} • Задание ${cheatsheet.taskNumber}</span>`;
     
     // Убираем форматирование из превью
     const cleanPreview = cheatsheet.content
@@ -1558,7 +1621,7 @@ function renderGridItem(cheatsheet) {
         <div class="grid-title">${cheatsheet.title}</div>
         <div class="grid-preview">${preview}</div>
         <div class="grid-meta">
-            <span>${cheatsheet.subject} • Задание ${cheatsheet.taskNumber}</span>
+            ${taskMeta}
             <span>${date}</span>
         </div>
     `;
@@ -1567,6 +1630,7 @@ function renderGridItem(cheatsheet) {
     cheatsheetGrid.appendChild(item);
 }
 
+// Просмотр шпаргалки
 // Просмотр шпаргалки
 function viewCheatsheet(cheatsheet) {
     if (isMobileDevice() && !document.querySelector('.main-content').classList.contains('mobile-active')) {
@@ -1577,7 +1641,16 @@ function viewCheatsheet(cheatsheet) {
     // Обновляем данные
     viewTitle.textContent = cheatsheet.title;
     viewSubject.textContent = cheatsheet.subject;
-    viewTask.textContent = `Задание ${cheatsheet.taskNumber}`;
+    
+    // Определяем текст задания
+    if (cheatsheet.taskNumber === 0) {
+        viewTask.textContent = 'Без номера';
+        viewTask.className = 'task-badge no-task';
+    } else {
+        viewTask.textContent = `Задание ${cheatsheet.taskNumber}`;
+        viewTask.className = 'task-badge';
+    }
+    
     viewDate.textContent = formatDate(cheatsheet.updatedAt || cheatsheet.createdAt);
     
     // Форматируем содержимое
@@ -1597,6 +1670,9 @@ function viewCheatsheet(cheatsheet) {
             el.classList.add('active');
         }
     });
+    
+    // Обновляем навигационные стрелки
+    updateNavigationArrows();
 }
 
 
@@ -2182,8 +2258,15 @@ function getFilteredCheatsheets() {
             return false;
         }
         
-        if (currentFilter.task !== 'all' && cheatsheet.taskNumber !== parseInt(currentFilter.task)) {
-            return false;
+        if (currentFilter.task !== 'all') {
+            if (currentFilter.task === '0') {
+                // Фильтр "без номера"
+                if (cheatsheet.taskNumber !== 0) {
+                    return false;
+                }
+            } else if (cheatsheet.taskNumber !== parseInt(currentFilter.task)) {
+                return false;
+            }
         }
         
         if (currentFilter.search) {

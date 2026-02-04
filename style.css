@@ -199,7 +199,7 @@ body.light-theme .logo-light {
 }
 
 .sidebar-header {
-  padding: 28px;
+  padding: 20px;
   border-bottom: 1px solid var(--border-color);
   position: relative;
 }
@@ -4279,4 +4279,188 @@ body {
   position: fixed;
   width: 100%;
   height: 100%;
+}
+/* ===== СЕТКА НОМЕРОВ ЗАДАНИЙ ===== */
+.task-grid {
+    display: grid;
+    grid-template-columns: repeat(9, 1fr);
+    gap: 10px;
+    margin-top: 16px;
+}
+
+.task-btn {
+    padding: 14px 8px;
+    background-color: var(--bg-light);
+    border: 2px solid var(--border-color);
+    border-radius: var(--radius);
+    color: var(--text-primary);
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition);
+    text-align: center;
+    position: relative;
+}
+
+.task-btn:hover {
+    border-color: var(--primary-light);
+    transform: scale(1.05);
+}
+
+.task-btn.active {
+    border-color: var(--primary-color);
+    background-color: var(--primary-color);
+    color: white;
+    box-shadow: 0 4px 12px rgba(67, 97, 238, 0.3);
+}
+
+/* Кнопка "без номера" */
+.task-btn.no-task {
+    grid-column: span 3; /* Занимает 3 колонки вместо 1 */
+    background-color: var(--bg-card);
+    border-style: dashed;
+    border-color: var(--text-muted);
+}
+
+.task-btn.no-task:hover {
+    border-color: var(--accent-color);
+    background-color: var(--bg-hover);
+}
+
+.task-btn.no-task.active {
+    border-color: var(--accent-color);
+    background-color: var(--accent-color);
+    color: white;
+    box-shadow: 0 4px 12px rgba(247, 37, 133, 0.3);
+}
+
+/* Адаптивность для сетки заданий */
+@media (max-width: 1200px) {
+    .task-grid {
+        grid-template-columns: repeat(7, 1fr);
+    }
+    
+    .task-btn.no-task {
+        grid-column: span 2;
+    }
+}
+
+@media (max-width: 768px) {
+    .task-grid {
+        grid-template-columns: repeat(5, 1fr);
+        gap: 8px;
+    }
+    
+    .task-btn {
+        padding: 12px 6px;
+        font-size: 0.9rem;
+    }
+    
+    .task-btn.no-task {
+        grid-column: span 2;
+        padding: 12px 6px;
+    }
+}
+
+@media (max-width: 480px) {
+    .task-grid {
+        grid-template-columns: repeat(4, 1fr);
+    }
+    
+    .task-btn.no-task {
+        grid-column: span 2;
+    }
+}
+
+/* ===== СТИЛИ ДЛЯ ОТОБРАЖЕНИЯ "БЕЗ НОМЕРА" ===== */
+
+/* В списке шпаргалок */
+.cheatsheet-task.no-task {
+    background-color: var(--bg-light);
+    color: var(--text-muted);
+    border: 1px dashed var(--border-color);
+}
+
+/* В просмотре шпаргалки */
+.task-badge.no-task {
+    background: linear-gradient(135deg, var(--accent-color), var(--accent-light));
+    color: white;
+    box-shadow: 0 4px 12px rgba(247, 37, 133, 0.3);
+}
+
+/* В сетке (grid) */
+.grid-meta .no-task-indicator {
+    color: var(--text-muted);
+    font-style: italic;
+    font-size: 0.8rem;
+}
+
+/* В предпросмотре */
+.preview-task.no-task {
+    background: linear-gradient(135deg, var(--accent-color), var(--accent-light));
+    color: white;
+}
+/* ===== УЛУЧШЕНИЯ ДЛЯ "БЕЗ НОМЕРА" ===== */
+
+/* Индикация в фильтре */
+.filter-select option[value="0"] {
+    color: var(--accent-color);
+    font-style: italic;
+}
+
+/* Подсказка в форме */
+.form-hint.no-task-hint {
+    color: var(--accent-color);
+    font-style: italic;
+    margin-top: 8px;
+}
+
+/* Анимация для кнопки "без номера" */
+@keyframes pulseNoTask {
+    0% {
+        box-shadow: 0 0 0 0 rgba(247, 37, 133, 0.4);
+    }
+    70% {
+        box-shadow: 0 0 0 10px rgba(247, 37, 133, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(247, 37, 133, 0);
+    }
+}
+
+.task-btn.no-task.pulse {
+    animation: pulseNoTask 2s infinite;
+}
+
+/* Иконка в кнопке "без номера" */
+.task-btn.no-task i {
+    margin-right: 6px;
+    font-size: 0.9em;
+}
+
+/* Адаптивность для иконки */
+@media (max-width: 480px) {
+    .task-btn.no-task i {
+        margin-right: 4px;
+        font-size: 0.8em;
+    }
+    
+    .task-btn.no-task span {
+        font-size: 0.85rem;
+    }
+}
+/* Подсказка о выборе номера задания */
+.task-selection-hint {
+    margin-top: 12px;
+    padding: 12px;
+    background-color: var(--bg-light);
+    border-left: 3px solid var(--primary-color);
+    border-radius: var(--radius-sm);
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+
+.task-selection-hint i {
+    color: var(--primary-color);
+    margin-right: 8px;
 }
