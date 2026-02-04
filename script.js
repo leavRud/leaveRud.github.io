@@ -404,7 +404,6 @@ function setupEventListeners() {
     // Модальное окно экспорта
     closeExportModalBtn.addEventListener('click', closeExportModal);
     cancelExportBtn.addEventListener('click', closeExportModal);
-    confirmExportBtn.addEventListener('click', confirmExport);
     
     // Переключение типа экспорта
     exportAllRadio.addEventListener('change', updateExportSelection);
@@ -421,7 +420,6 @@ function setupEventListeners() {
     
     // Модальное окно подтверждения удаления
     cancelDeleteBtn.addEventListener('click', closeDeleteModal);
-    confirmDeleteBtn.addEventListener('click', confirmDeleteCheatsheet);
     
     document.addEventListener('keydown', function(e) {
         if (e.key === 'Escape') {
