@@ -28,6 +28,7 @@ let formatHelpBtn = null;
 let tagsInput = null;
 let statsContainer = null;
 let subjectStats = null;
+let contentTextarea = null;
 
 // Константы для настройки
 const PREVIEW_MAX_LENGTH = 120;
