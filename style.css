@@ -148,7 +148,7 @@ body.light-theme .logo-light {
 }
 
 .logo-text {
-    background: linear-gradient(135deg, var(--primary-color), var(--bg-dark));
+    background: linear-gradient(135deg, var(--primary-color), var(--bg-card));
     background-clip: text;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
