@@ -39,7 +39,7 @@
                     <h1 class="app-logo">
                         <img src="./assets/dark-theme-logo.png" alt="Шпаргалки Ч" class="logo-icon logo-dark">
                         <img src="./assets/light-theme-logo.png" alt="Шпаргалки Ч" class="logo-icon logo-light">
-                        <span class="logo-text">Шпаргалки Чебачкова</span>
+                        <span class="logo-text">Шпаргалке</span>
                     </h1>
                     <div class="stats" id="statsContainer">
                         <span id="totalCheatsheets">0</span>
@@ -113,6 +113,12 @@
             </div>
             
             <div class="content-area" id="contentArea">
+                <button class="nav-arrow nav-prev" id="prevArrow" aria-label="Предыдущая шпаргалка">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                    <button class="nav-arrow nav-next" id="nextArrow" aria-label="Следующая шпаргалка">
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
                 <!-- Здесь будет либо список, либо содержимое шпаргалки -->
                 <div class="empty-state" id="emptyState">
                     <div class="empty-icon">
@@ -130,8 +136,7 @@
                 </div>
                 
                 <div class="cheatsheet-view" id="cheatsheetView" style="display: none;">
-                    <!-- Навигационные стрелки (только для десктопа) -->
-                    
+                    <!-- Навигационные стрелки -->
                     <!-- Просмотр отдельной шпаргалки -->
                     <div class="view-header">
                         <div class="view-title">
@@ -492,9 +497,14 @@
     
     <script src="script.js"></script>
     <!-- Кнопка установки PWA -->
+<!-- Кнопка установки PWA -->
 <div class="pwa-install-btn" id="installBtn" style="display: none;">
+
+  <button class="pwa-close-btn" id="closeInstallBtn">
+    <i class="fas fa-times"></i>
   <button class="btn btn-primary">
     <i class="fas fa-download"></i> Установить приложение
+  </button>
   </button>
 </div>
 </body>

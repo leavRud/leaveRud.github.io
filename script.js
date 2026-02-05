@@ -14,7 +14,9 @@ let customSubjects = JSON.parse(localStorage.getItem('egeCustomSubjects')) || []
 let currentStep = 1;
 let selectedSubject = '';
 let selectedTask = '';
-
+let prevArrow = null;
+let nextArrow = null;
+let currentCheatsheetIndex = -1;
 // DOM элементы будут инициализированы позже
 let helpModal = null;
 let closeHelpModalBtn = null;
@@ -174,7 +176,9 @@ function initDOMElements() {
     confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
     deleteConfirmText = document.getElementById('deleteConfirmText');
     deleteConfirmDetails = document.getElementById('deleteConfirmDetails');
-    
+    // Стрелки навигации
+    prevArrow = document.getElementById('prevArrow');
+    nextArrow = document.getElementById('nextArrow');
     // Экспорт
     exportModal = document.getElementById('exportModal');
     closeExportModalBtn = document.getElementById('closeExportModalBtn');
@@ -228,28 +232,33 @@ function initPWA() {
         installBtn = document.createElement('div');
         installBtn.id = 'installBtn';
         installBtn.className = 'pwa-install-btn';
-        installBtn.style.cssText = 'display: none; position: fixed; bottom: 20px; right: 20px; z-index: 1000;';
         installBtn.innerHTML = `
-            <button class="btn btn-primary" style="padding: 10px 20px; border-radius: 25px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+            <button class="btn btn-primary">
                 <i class="fas fa-download"></i> Установить приложение
+            </button>
+            <button class="pwa-close-btn" id="closeInstallBtn">
+                <i class="fas fa-times"></i>
             </button>
         `;
         document.body.appendChild(installBtn);
     }
     
+    const closeInstallBtn = document.getElementById('closeInstallBtn');
+    if (closeInstallBtn) {
+        closeInstallBtn.addEventListener('click', () => {
+            installBtn.style.display = 'none';
+        });
+    }
+    
     window.addEventListener('beforeinstallprompt', (e) => {
-        // Не вызываем preventDefault() здесь
+        // Не вызываем preventDefault()
         deferredPrompt = e;
         
-        // Показываем кнопку через 3 секунды
-        setTimeout(() => {
-            if (installBtn && deferredPrompt) {
-                installBtn.style.display = 'block';
-                installBtn.style.animation = 'fadeIn 0.5s ease-in-out';
-            }
-        }, 3000);
+        // Показываем кнопку установки
+        installBtn.style.display = 'flex';
         
-        installBtn.querySelector('button').addEventListener('click', async () => {
+        // Устанавливаем обработчик для кнопки установки
+        installBtn.querySelector('.btn-primary').addEventListener('click', async () => {
             if (!deferredPrompt) return;
             
             deferredPrompt.prompt();
@@ -269,9 +278,7 @@ function initPWA() {
     
     window.addEventListener('appinstalled', () => {
         console.log('PWA установлен');
-        if (installBtn) {
-            installBtn.style.display = 'none';
-        }
+        installBtn.style.display = 'none';
         showToast('Приложение успешно установлено!', 'success');
     });
 }
@@ -409,6 +416,26 @@ function setupEventListeners() {
             });
         }
     }
+    if (prevArrow) {
+        prevArrow.addEventListener('click', showPrevCheatsheet);
+    }
+    
+    if (nextArrow) {
+        nextArrow.addEventListener('click', showNextCheatsheet);
+    }
+    
+    // Обработчики клавиш для навигации
+    document.addEventListener('keydown', function(e) {
+        if (currentView === 'view' && cheatsheetView.dataset.id) {
+            if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
+                e.preventDefault();
+                showPrevCheatsheet();
+            } else if (e.key === 'ArrowRight' || e.key === 'PageDown') {
+                e.preventDefault();
+                showNextCheatsheet();
+            }
+        }
+    });
     // Форма
     cheatsheetForm.addEventListener('submit', saveCheatsheet);
     contentTextarea.addEventListener('input', function() {
@@ -511,6 +538,50 @@ function setupEventListeners() {
         }
     });
 }
+// Обновите функции навигации с анимацией
+// Обновите функции навигации с анимацией
+function showPrevCheatsheet() {
+    if (prevArrow.classList.contains('disabled')) return;
+    
+    const filteredCheatsheets = getFilteredCheatsheets();
+    if (filteredCheatsheets.length === 0 || currentCheatsheetIndex <= 0) return;
+    
+    const prevIndex = currentCheatsheetIndex - 1;
+    const prevCheatsheet = filteredCheatsheets[prevIndex];
+    
+    if (prevCheatsheet) {
+        // Упрощенная анимация
+        cheatsheetView.classList.add('slide-left');
+        setTimeout(() => {
+            viewCheatsheet(prevCheatsheet);
+            setTimeout(() => {
+                cheatsheetView.classList.remove('slide-left');
+            }, 200);
+        }, 100);
+    }
+}
+
+function showNextCheatsheet() {
+    if (nextArrow.classList.contains('disabled')) return;
+    
+    const filteredCheatsheets = getFilteredCheatsheets();
+    if (filteredCheatsheets.length === 0 || currentCheatsheetIndex >= filteredCheatsheets.length - 1) return;
+    
+    const nextIndex = currentCheatsheetIndex + 1;
+    const nextCheatsheet = filteredCheatsheets[nextIndex];
+    
+    if (nextCheatsheet) {
+        // Упрощенная анимация
+        cheatsheetView.classList.add('slide-right');
+        setTimeout(() => {
+            viewCheatsheet(nextCheatsheet);
+            setTimeout(() => {
+                cheatsheetView.classList.remove('slide-right');
+            }, 200);
+        }, 100);
+    }
+}
+
 // Улучшенная функция закрытия модального окна при клике вне его
 function setupImprovedModalClose(modalElement, closeFunction) {
     let mouseDownInside = false;
@@ -873,7 +944,14 @@ function updateFilters() {
     
     updateCurrentSubjectText();
     renderCheatsheets(); // Уже есть
-    
+    // Обновляем навигацию если мы в режиме просмотра
+    if (currentView === 'view' && cheatsheetView.dataset.id) {
+        const activeCheatsheet = cheatsheets.find(c => c.id === cheatsheetView.dataset.id);
+        if (activeCheatsheet && getFilteredCheatsheets().some(c => c.id === activeCheatsheet.id)) {
+            // Обновляем навигацию
+            viewCheatsheet(activeCheatsheet);
+        }
+    }
     // Обновляем активный элемент, если есть
     if (currentView === 'view' && cheatsheetView.dataset.id) {
         const activeCheatsheet = cheatsheets.find(c => c.id === cheatsheetView.dataset.id);
@@ -1630,8 +1708,6 @@ function renderGridItem(cheatsheet) {
     cheatsheetGrid.appendChild(item);
 }
 
-// Просмотр шпаргалки
-// Просмотр шпаргалки
 function viewCheatsheet(cheatsheet) {
     if (isMobileDevice() && !document.querySelector('.main-content').classList.contains('mobile-active')) {
         return;
@@ -1641,6 +1717,25 @@ function viewCheatsheet(cheatsheet) {
     // Обновляем данные
     viewTitle.textContent = cheatsheet.title;
     viewSubject.textContent = cheatsheet.subject;
+    const filteredCheatsheets = getFilteredCheatsheets();
+    currentCheatsheetIndex = filteredCheatsheets.findIndex(c => c.id === cheatsheet.id);
+    
+    // Обновляем стрелки навигации
+    if (prevArrow && nextArrow) {
+        const showArrows = filteredCheatsheets.length > 1;
+        
+        if (showArrows) {
+            prevArrow.style.display = currentCheatsheetIndex > 0 ? 'flex' : 'none';
+            nextArrow.style.display = currentCheatsheetIndex < filteredCheatsheets.length - 1 ? 'flex' : 'none';
+            updateNavigationArrows();
+        } else {
+            prevArrow.style.display = 'none';
+            nextArrow.style.display = 'none';
+        }
+    }
+    
+    // Обновляем индикатор позиции
+    updateNavIndicator();
     
     // Определяем текст задания
     if (cheatsheet.taskNumber === 0) {
@@ -1670,10 +1765,63 @@ function viewCheatsheet(cheatsheet) {
             el.classList.add('active');
         }
     });
-    
-    // Обновляем навигационные стрелки
 }
-
+function updateNavIndicator() {
+    const filteredCheatsheets = getFilteredCheatsheets();
+    let indicator = document.getElementById('navIndicator');
+    
+    if (!indicator) {
+        // Создаем индикатор, если его нет
+        indicator = document.createElement('div');
+        indicator.id = 'navIndicator';
+        indicator.className = 'nav-indicator';
+        document.body.appendChild(indicator);
+    }
+    
+    if (filteredCheatsheets.length <= 1 || currentCheatsheetIndex === -1) {
+        indicator.style.display = 'none';
+        return;
+    }
+    
+    indicator.innerHTML = `
+        <i class="fas fa-map-marker-alt"></i>
+        ${currentCheatsheetIndex + 1} из ${filteredCheatsheets.length}
+    `;
+    indicator.style.display = 'flex';
+    
+    // Добавляем обработчик клика для быстрой навигации
+    indicator.onclick = function() {
+        // Показываем список шпаргалок с подсветкой текущей
+        showListView();
+        // Прокручиваем к текущей шпаргалке
+        const currentItem = document.querySelector(`.cheatsheet-item[data-id="${cheatsheetView.dataset.id}"]`);
+        if (currentItem) {
+            currentItem.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+    };
+}
+function updateNavigationArrows() {
+    const filteredCheatsheets = getFilteredCheatsheets();
+    
+    if (!prevArrow || !nextArrow) return;
+    
+    // Всегда показываем стрелочки (они визуально disabled когда нельзя)
+    prevArrow.style.display = 'flex';
+    nextArrow.style.display = 'flex';
+    
+    // Обновляем состояние disabled
+    if (currentCheatsheetIndex <= 0 || filteredCheatsheets.length <= 1) {
+        prevArrow.classList.add('disabled');
+    } else {
+        prevArrow.classList.remove('disabled');
+    }
+    
+    if (currentCheatsheetIndex >= filteredCheatsheets.length - 1 || filteredCheatsheets.length <= 1) {
+        nextArrow.classList.add('disabled');
+    } else {
+        nextArrow.classList.remove('disabled');
+    }
+}
 
 // Показать пустое состояние
 function showEmptyState() {
@@ -1684,14 +1832,20 @@ function showEmptyState() {
 }
 
 function showListView() {
-    if (isMobileDevice()) {
-        return mobileShowListView();
+    const indicator = document.getElementById('navIndicator');
+    if (indicator) {
+        indicator.style.display = 'none';
     }
+    
+    // Скрываем стрелки навигации
+    if (prevArrow) prevArrow.style.display = 'none';
+    if (nextArrow) nextArrow.style.display = 'none';
+    
     currentView = 'list';
     emptyState.style.display = 'none';
     cheatsheetGrid.style.display = 'grid';
     cheatsheetView.style.display = 'none';
-    // Проверяем, что closeViewBtn существует
+    
     if (closeViewBtn) {
         closeViewBtn.style.display = 'none';
     }
@@ -1703,6 +1857,27 @@ function showCheatsheetView() {
     cheatsheetGrid.style.display = 'none';
     cheatsheetView.style.display = 'block';
     closeViewBtn.style.display = 'flex';
+    
+    // Показываем стрелки навигации ТОЛЬКО в режиме просмотра
+    if (prevArrow && nextArrow) {
+        const filteredCheatsheets = getFilteredCheatsheets();
+        const cheatsheetId = cheatsheetView.dataset.id;
+        const currentIndex = filteredCheatsheets.findIndex(c => c.id === cheatsheetId);
+        
+        // Показываем только если есть более одной отфильтрованной шпаргалки
+        const showArrows = filteredCheatsheets.length > 1;
+        
+        if (showArrows) {
+            prevArrow.style.display = currentIndex > 0 ? 'flex' : 'none';
+            nextArrow.style.display = currentIndex < filteredCheatsheets.length - 1 ? 'flex' : 'none';
+            updateNavigationArrows();
+        } else {
+            prevArrow.style.display = 'none';
+            nextArrow.style.display = 'none';
+        }
+    }
+    
+    updateNavIndicator();
 }
 
 // Редактирование текущей шпаргалки
