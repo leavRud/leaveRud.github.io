@@ -148,13 +148,56 @@ body.light-theme .logo-light {
 }
 
 .logo-text {
-    background: linear-gradient(135deg, var(--primary-color), var(--bg-card));
+    background: linear-gradient(90deg, 
+        var(--primary-color), 
+        var(--secondary-color), 
+        var(--accent-color), 
+        var(--secondary-color), 
+        var(--primary-color));
+    background-size: 300% 100%;
     background-clip: text;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     font-weight: 800;
+    animation: gradientFlow 8s ease-in-out infinite;
+    position: relative;
 }
-
+.logo-text::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: inherit;
+    background-size: 300% 100%;
+    filter: blur(8px);
+    opacity: 0.3;
+    z-index: -1;
+    animation: gradientFlow 8s ease-in-out infinite reverse;
+    border-radius: 2px;
+}
+@keyframes gradientFlow {
+    0% {
+        background-position: 0% 50%;
+    }
+    50% {
+        background-position: 100% 50%;
+    }
+    100% {
+        background-position: 0% 50%;
+    }
+}
+body.light-theme .logo-text {
+    background: linear-gradient(90deg, 
+        var(--primary-color), 
+        var(--secondary-light), 
+        var(--accent-light), 
+        var(--secondary-light), 
+        var(--primary-color));
+    background-size: 300% 100%;
+    background-clip: text;
+}
 /* Для мобильных устройств */
 @media (max-width: 768px) {
     .app-logo {
@@ -178,13 +221,41 @@ body.light-theme .logo-light {
         width: 28px;
         height: 28px;
     }
-    .logo-text{
-        background: linear-gradient(135deg, var(--primary-color), var(--bg-hover));
-        background-clip: text;
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        font-weight: 800;
+    .logo-text {
+        animation: gradientFlow 5s ease-in-out infinite;
+        background-size: 200% 100%;
     }
+    
+    .logo-text::after {
+        filter: blur(4px);
+        opacity: 0.2;
+        animation: gradientFlow 5s ease-in-out infinite reverse;
+    }
+    
+    body.light-theme .logo-text {
+        background: linear-gradient(135deg, 
+            var(--primary-color), 
+            var(--bg-hover),
+            var(--primary-light),
+            var(--primary-color));
+        background-size: 200% 100%;
+    }
+}
+@keyframes fadeInGlow {
+    0% {
+        opacity: 0;
+        filter: blur(10px);
+    }
+    100% {
+        opacity: 1;
+        filter: blur(0);
+    }
+}
+
+.logo-text {
+    animation: 
+        fadeInGlow 1.5s ease-out,
+        gradientFlow 8s ease-in-out infinite 1.5s;
 }
 /* ===== БОКОВАЯ ПАНЕЛЬ ===== */
 .sidebar {
@@ -1133,12 +1204,21 @@ body.dark-theme .view-content ul li::before {
   align-items: center;
   justify-content: center;
   z-index: 1000;
-  padding: 20px;
+  padding: 20%;
   opacity: 0;
   animation: modalFadeIn 0.3s ease-out forwards;
   user-select: none;
 }
-
+@media (max-width: 1200px){
+    .modal{
+        padding: 10%;
+    }
+}
+@media (max-width: 500px){
+    .modal{
+        padding: 4%;
+    }
+}
 .modal-content {
   background-color: var(--bg-card);
   border-radius: var(--radius-xl);
@@ -2846,7 +2926,7 @@ body.dark-theme .formatted-list li::before {
   }
   
   .btn {
-    width: 90%;
+    width: 100%;
   }
   
   .preview-card {

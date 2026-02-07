@@ -1,5 +1,7 @@
 // sw.js
-const CACHE_NAME = 'ege-cheatsheets-v1';
+// В sw.js
+const CACHE_VERSION = 'v1.2.3';
+const CACHE_NAME = `ege-cheatsheets-${CACHE_VERSION}`;
 const urlsToCache = [
   './',
   './index.html',
