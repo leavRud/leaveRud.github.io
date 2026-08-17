@@ -165,7 +165,7 @@ function applyTheme(theme) {
   }
 }
 (function initTheme() {
-  const saved = localStorage.getItem('chessTheme') || 'light';
+  const saved = localStorage.getItem('chessTheme') || 'dark';
   applyTheme(saved);
 })();
 function toggleTheme() {
