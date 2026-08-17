@@ -3408,7 +3408,7 @@ function initAuth() {
 
   // Вход через Google/VK пока не реализован — заглушка с уведомлением.
   if (googleBtn) googleBtn.addEventListener('click', () => signInWithOAuthProvider('google'));
-  if (vkBtn) vkBtn.addEventListener('click', () => signInWithOAuthProvider('vk')); // 'vk' — slug вашего Custom Provider в Supabase
+  if (vkBtn) vkBtn.addEventListener('click', () => signInWithOAuthProvider('custom:vk')); // 'vk' — slug вашего Custom Provider в Supabase
 
   // Клик по фону (вне .modal) закрывает модалку, как обычный modal-overlay.
   const overlay = $id('authModal');
