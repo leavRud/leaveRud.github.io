@@ -3453,7 +3453,7 @@ async function initSupabaseSession() {
 async function signInWithOAuthProvider(provider) {
   const { error } = await sb.auth.signInWithOAuth({
     provider,
-    options: { redirectTo: window.location.origin }
+    options: { redirectTo: window.location.href.split('#')[0].split('?')[0] } // полный текущий путь, а не только домен — важно для GitHub Pages, где сайт живёт в подпапке /reponame/
   });
   if (error) showToast('Не удалось начать вход через ' + provider);
 }
