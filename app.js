@@ -8,10 +8,9 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 /* =========================================================================
-   НАСТРОЙКИ PROVOD.AI (через прокси)
+   НАСТРОЙКИ PROVOD.AI — ключ теперь только в secrets Edge Function
+   (supabase/functions/chat-proxy), в браузере его больше нет
    ========================================================================= */
-const PROVODAI_API_KEY = 'sk_42cd977e0266dda6f8e83c83f24847e16d4e11d026e9761b';
-const PROVODAI_BASE_URL = 'http://localhost:3000';
 const PROVODAI_MODEL = 'deepseek/deepseek-v4-pro';
 let temp = localStorage.getItem('chessTemperature');
 if (temp !== null) {
@@ -200,27 +199,15 @@ function pieceThemeFn(piece) {
 }
 
 /* =========================================================================
-   PROVOD.AI (через прокси)
+   PROVOD.AI (через Supabase Edge Function — работает на любом хостинге,
+   включая GitHub Pages, без локального прокси-сервера)
    ========================================================================= */
 async function provodChat(messages, { temperature = 0.6 } = {}) {
-  if (!PROVODAI_API_KEY || PROVODAI_API_KEY === 'YOUR_PROVODAI_API_KEY') {
-    throw new Error('API-ключ Provod.ai не задан!');
-  }
-  const response = await fetch(`${PROVODAI_BASE_URL}/api/chat`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      model: PROVODAI_MODEL,
-      messages,
-      temperature,
-    }),
+  const { data, error } = await sb.functions.invoke('chat-proxy', {
+    body: { model: PROVODAI_MODEL, messages, temperature },
   });
-  if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(`Provod.ai ошибка ${response.status}: ${errorText}`);
-  }
-  const data = await response.json();
-  return data.choices?.[0]?.message?.content ?? '';
+  if (error) throw new Error(`Provod.ai ошибка: ${error.message}`);
+  return data?.choices?.[0]?.message?.content ?? '';
 }
 
 /* =========================================================================
