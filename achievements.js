@@ -467,8 +467,6 @@ const Achievements = (function () {
     syncAchievementToSupabase(def.id);
     toastQueue.push(def);
     processToastQueue();
-    if (modalOpen) renderModal();
-    updateHomeBadge();
     // Пересчитываем процентные ("Коллекционер") достижения при каждой новой разблокировке
     if (!def.id.startsWith('meta_')) runChecks('meta', {});
   }
@@ -756,167 +754,25 @@ const Achievements = (function () {
   }
 
   /* ---------------------------------------------------------------------
-     UI: КНОПКА, МОДАЛЬНОЕ ОКНО
+     Сводные счётчики — используются Achievements View в боковой панели
+     (см. getSummary() ниже). Отдельная модалка/кнопки достижений убраны:
+     доступ к достижениям теперь только через раздел «Достижения» в настройках.
      --------------------------------------------------------------------- */
-  let modalOpen = false;
-  let activeCategory = 'all';
-
   function totalUnlockedCount() { return Object.keys(data.unlocked).length; }
   function totalCount() { return ACHIEVEMENTS.length; }
 
-  function buildModalSkeleton() {
-    if (document.getElementById('achievementsModal')) return;
-    const overlay = document.createElement('div');
-    overlay.id = 'achievementsModal';
-    overlay.className = 'modal-overlay hidden achv-modal-overlay';
-    overlay.innerHTML = `
-      <div class="modal neumorphic-raised wide achv-modal">
-        <div class="achv-modal-header">
-          <h2>🏆 Достижения</h2>
-          <button id="achvCloseBtn" class="settings-close-btn" type="button" aria-label="Закрыть">✕</button>
-        </div>
-        <p id="achvSummary" class="modal-sub"></p>
-        <div class="achv-overall-bar"><div id="achvOverallFill" class="achv-overall-fill"></div></div>
-        <div id="achvFilters" class="achv-filters"></div>
-        <div id="achvGrid" class="achv-grid"></div>
-      </div>`;
-    document.body.appendChild(overlay);
-    overlay.addEventListener('click', (e) => { if (e.target === overlay) closeModal(); });
-    document.getElementById('achvCloseBtn').addEventListener('click', closeModal);
-
-    const filters = document.getElementById('achvFilters');
-    const allChip = document.createElement('button');
-    allChip.type = 'button';
-    allChip.className = 'achv-filter-chip is-active';
-    allChip.dataset.cat = 'all';
-    allChip.textContent = 'Все';
-    filters.appendChild(allChip);
-    CATEGORIES.forEach((cat) => {
-      const chip = document.createElement('button');
-      chip.type = 'button';
-      chip.className = 'achv-filter-chip';
-      chip.dataset.cat = cat.id;
-      chip.textContent = `${cat.icon} ${cat.label}`;
-      filters.appendChild(chip);
-    });
-    filters.addEventListener('click', (e) => {
-      const chip = e.target.closest('.achv-filter-chip');
-      if (!chip) return;
-      if (window.playChessSound) window.playChessSound('ui');
-      activeCategory = chip.dataset.cat;
-      filters.querySelectorAll('.achv-filter-chip').forEach(c => c.classList.toggle('is-active', c === chip));
-      renderGrid();
-    });
-  }
-
-  function renderModal() {
-    buildModalSkeleton();
-    document.getElementById('achvSummary').textContent =
-      `Получено ${totalUnlockedCount()} из ${totalCount()} достижений.`;
-    const fill = document.getElementById('achvOverallFill');
-    if (fill) fill.style.width = Math.round((totalUnlockedCount() / totalCount()) * 100) + '%';
-    renderGrid();
-  }
-
-  function renderGrid() {
-    const grid = document.getElementById('achvGrid');
-    if (!grid) return;
-    const list = ACHIEVEMENTS
-      .filter(a => activeCategory === 'all' || a.category === activeCategory)
-      .slice()
-      .sort((a, b) => (isUnlocked(b.id) ? 1 : 0) - (isUnlocked(a.id) ? 1 : 0));
-    grid.innerHTML = list.map(defToCardHtml).join('');
-  }
-
-  function defToCardHtml(def) {
-    const unlocked = isUnlocked(def.id);
-    const hideInfo = def.secret && !unlocked;
-    const name = hideInfo ? '???' : def.name;
-    const desc = hideInfo ? 'Секретное достижение' : def.desc;
-    const icon = hideInfo ? '🔒' : def.icon;
-    const dateStr = unlocked ? new Date(data.unlocked[def.id].date).toLocaleDateString('ru-RU') : '';
-    let progressHtml = '';
-    if (def.progress && !hideInfo) {
-      const p = def.progress(data.stats);
-      const pct = Math.min(100, Math.round((p.current / p.goal) * 100));
-      progressHtml = `<div class="achv-progress"><div class="achv-progress-bar" style="width:${pct}%"></div></div>
-        <div class="achv-progress-label">${Math.min(p.current, p.goal)} / ${p.goal}</div>`;
-    }
-    return `<div class="achv-card ${unlocked ? 'is-unlocked' : 'is-locked'} ${def.secret ? 'is-secret' : ''}">
-      <div class="achv-card-icon">${icon}</div>
-      <div class="achv-card-name">${escapeHtmlLocal(name)}</div>
-      <div class="achv-card-desc">${escapeHtmlLocal(desc)}</div>
-      ${progressHtml}
-      ${unlocked ? `<div class="achv-card-date">Получено: ${dateStr}</div>` : ''}
-    </div>`;
-  }
-
-  function openModal() {
-    modalOpen = true;
-    renderModal();
-    document.getElementById('achievementsModal').classList.remove('hidden');
-  }
-  function closeModal() {
-    modalOpen = false;
-    const m = document.getElementById('achievementsModal');
-    if (m) m.classList.add('hidden');
-  }
-
-  function injectButtons() {
-    const addIconBtn = (afterId) => {
-      const anchor = document.getElementById(afterId);
-      if (!anchor || document.getElementById(afterId + 'AchvBtn')) return;
-      const btn = document.createElement('button');
-      btn.id = afterId + 'AchvBtn';
-      btn.className = anchor.className;
-      btn.type = 'button';
-      btn.title = 'Достижения';
-      btn.setAttribute('aria-label', 'Достижения');
-      btn.innerHTML = '<span class="achv-btn-emoji">🏆</span>';
-      anchor.insertAdjacentElement('afterend', btn);
-      btn.addEventListener('click', openModal);
-    };
-    addIconBtn('appSettingsBtn');
-    injectHomeButton();
-  }
-
-  // Капсула достижений на главном экране — крепится прямо под плашкой "Играть"
-  function injectHomeButton() {
-    if (document.getElementById('homeAchvBtn')) return;
-    const oval = document.querySelector('.home-oval');
-    const center = document.querySelector('.home-center');
-    if (!oval || !center) return;
-    const btn = document.createElement('button');
-    btn.id = 'homeAchvBtn';
-    btn.type = 'button';
-    btn.className = 'home-achv-btn';
-    btn.setAttribute('aria-label', 'Достижения');
-    btn.innerHTML =
-      '<span class="home-achv-icon">🏆</span>' +
-      '<span class="home-achv-text">Достижения</span>' +
-      '<span id="homeAchvCount" class="home-achv-count"></span>';
-    oval.insertAdjacentElement('afterend', btn);
-    btn.addEventListener('click', openModal);
-    updateHomeBadge();
-  }
-
-  function updateHomeBadge() {
-    const el = document.getElementById('homeAchvCount');
-    if (el) el.textContent = totalUnlockedCount() + ' / ' + totalCount();
-  }
-
   function init() {
-    injectButtons();
+    // Кнопки/модалка достижений больше не создаются — единственная точка
+    // входа теперь раздел «Достижения» в настройках (см. renderAchievementsGrid()
+    // и #view-achievements в app.js/index.html).
   }
 
   return {
     getAchievements: () => ACHIEVEMENTS.slice(),
     isUnlocked: (id) => isUnlocked(id),
     init, track, trackAnalysis, trackBestMoveView,
-    openModal, closeModal,
     getStats: () => ({ ...data.stats }),
-    // Краткая сводка прогресса — используется Achievements View в боковой
-    // панели (полный список с категориями/фильтрами остаётся в openModal()).
+    // Краткая сводка прогресса — используется Achievements View в боковой панели.
     getSummary: () => ({ unlocked: totalUnlockedCount(), total: totalCount() }),
     getUnlockDate: (id) => data.unlocked[id]?.date || null,
   };

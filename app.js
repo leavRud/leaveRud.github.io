@@ -7,6 +7,9 @@ const SUPABASE_URL = 'https://lmkomispucbysxidkcno.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imxta29taXNwdWNieXN4aWRrY25vIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY5MDE3MzEsImV4cCI6MjEwMjQ3NzczMX0.0VMFP0MdbZNyL-o9YCPot1zqbhF5hsMlUaMjmkak1PQ';
 const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+// Единая версия приложения — используется в "О приложении" и в отправке обратной связи.
+const APP_VERSION = '1.0.0';
+
 /* =========================================================================
    НАСТРОЙКИ PROVOD.AI — ключ теперь только в secrets Edge Function
    (supabase/functions/chat-proxy), в браузере его больше нет
@@ -235,6 +238,23 @@ function initStockfish() {
   } catch (e) { console.error(e); }
 }
 
+// Крайний случай: воркер Stockfish не ответил даже на 'stop' (реально завис
+// / выполняет неразрешимо тяжёлый поиск / вкладка потеряла фокус на долго
+// и таймеры браузера искажены). Пересоздаём воркер с нуля, чтобы очередь
+// анализа (engineChain) не была заблокирована навсегда одной сломанной
+// задачей — bgAnalysisState тоже сбрасывается, следующий вызов
+// startBackgroundAnalysis/analyzePosition запустится на чистом движке.
+function restartStockfishEngine() {
+  try { if (stockfish) stockfish.terminate(); } catch (e) { /* игнорируем */ }
+  stockfish = null;
+  isEngineReady = false;
+  bgAnalysisState.active = false;
+  bgAnalysisState.fen = null;
+  backgroundAnalysisPromise = null;
+  engineChain = Promise.resolve();
+  initStockfish();
+}
+
 function waitForEngine(timeout = 4000) {
   return new Promise((resolve) => {
     if (isEngineReady) return resolve(true);
@@ -258,23 +278,117 @@ function queueEngineTask(taskFn) {
    ========================================================================= */
 const analysisCache = new Map();
 
-// Кладёт результат анализа позиции в кэш. Формат значения соответствует ТЗ:
-// { fen, bestMove, score, pv, depth, multipv, timestamp }
-function cacheAnalysisResult(fen, result) {
-  if (!fen || !result) return;
-  analysisCache.set(fen, {
-    fen,
-    bestMove: result.bestMove || null,
-    score: result.score != null ? result.score : null,
-    pv: result.pv || null,
-    depth: result.depth || 0,
-    multipv: 1,
-    timestamp: Date.now(),
-  });
+// Целевые глубины для разных сценариев использования кэша. Наличие ЛЮБОЙ
+// записи в кэше больше не означает «позиция полностью проанализирована» —
+// запись считается достаточной только если её depth >= нужного порога для
+// конкретной задачи (чат, review, обычный запрос).
+const ANALYSIS_TARGET = {
+  chatMinDepth: 16,      // качество, нужное для ответа нейросети в чате
+  reviewBaseDepth: 14,   // базовая глубина для всех позиций партии при Review
+  reviewCriticalDepth: 20, // глубина для критических ходов при Review
+  weakChatMinDepth: 12,
+  weakReviewBaseDepth: 10,
+  weakReviewCriticalDepth: 14,
+};
+
+// Приоритеты приоритетной очереди «отложенного углубления» старых позиций.
+const PRIORITY = {
+  CURRENT: 100,
+  LAST_PLAYER_MOVE: 90,
+  LAST_AI_MOVE: 70,
+  CRITICAL_OLD: 60,
+  OTHER_OLD: 20,
+};
+
+// Очередь позиций, которым нужен более глубокий анализ, когда движок
+// освободится. Каждый элемент: { fen, priority, targetDepth }.
+const analysisQueue = [];
+
+function enqueueAnalysisTask(fen, priority, targetDepth) {
+  if (!fen || !targetDepth) return;
+  if (isAnalysisGoodEnough(fen, targetDepth)) return;
+  const existing = analysisQueue.find(t => t.fen === fen);
+  if (existing) {
+    existing.priority = Math.max(existing.priority, priority);
+    existing.targetDepth = Math.max(existing.targetDepth, targetDepth);
+  } else {
+    analysisQueue.push({ fen, priority, targetDepth });
+  }
+  analysisQueue.sort((a, b) => b.priority - a.priority);
 }
 
-// Полностью очищает кэш анализа. Вызывается при старте новой партии.
-function clearAnalysisCache() { analysisCache.clear(); }
+function dequeueAnalysisTask() { return analysisQueue.shift() || null; }
+
+// Есть ли уже в кэше результат нужного (или большего) качества для этой FEN.
+function isAnalysisGoodEnough(fen, minDepth) {
+  const cached = analysisCache.get(fen);
+  return !!cached && cached.depth >= (minDepth || 0);
+}
+
+// Грубая оценка «уверенности» в результате: смотрим не только на depth, но и
+// на то, насколько стабильна оценка между последними итерациями (см. ТЗ п.10).
+function computeAnalysisConfidence(entry) {
+  if (!entry || entry.depth < 12) return 'low';
+  const hist = (entry.scoreHistory || [])
+    .map(h => h.score)
+    .filter(s => s != null && Math.abs(s) < 90000); // исключаем мат-оценки из разброса
+  if (hist.length >= 2) {
+    const spread = Math.max(...hist) - Math.min(...hist);
+    if (spread > 80) return entry.depth >= 18 ? 'medium' : 'low';
+  }
+  if (entry.depth >= 20) return 'high';
+  if (entry.depth >= 14) return 'medium';
+  return 'low';
+}
+
+// Кладёт результат анализа позиции в кэш, но НЕ как простую перезапись —
+// более слабый (по depth/nodes) результат никогда не затирает уже
+// достигнутый более качественный. Формат записи расширен согласно ТЗ:
+// { fen, bestMove, score, pv, depth, seldepth, nodes, timeMs, multipv,
+//   scoreHistory, confidence, timestamp }
+function mergeAnalysisResult(fen, result) {
+  if (!fen || !result) return;
+  const prev = analysisCache.get(fen);
+  const candidate = {
+    fen,
+    bestMove: result.bestMove || (prev ? prev.bestMove : null),
+    score: result.score != null ? result.score : (prev ? prev.score : null),
+    pv: result.pv || (prev ? prev.pv : null),
+    depth: result.depth || 0,
+    seldepth: result.seldepth || (prev ? prev.seldepth : 0) || 0,
+    nodes: result.nodes || (prev ? prev.nodes : 0) || 0,
+    timeMs: result.timeMs || (prev ? prev.timeMs : 0) || 0,
+    multipv: result.multipv || (prev ? prev.multipv : 1) || 1,
+    timestamp: Date.now(),
+  };
+  // Правило из ТЗ: слабый ранний результат — промежуточный, а не окончательный,
+  // но он и не должен откатываться назад, если новый прогон оказался хуже.
+  if (prev && prev.depth > candidate.depth) return;
+  if (prev && prev.depth === candidate.depth && (prev.nodes || 0) > candidate.nodes) return;
+
+  const history = (prev && Array.isArray(prev.scoreHistory)) ? prev.scoreHistory.slice(-4) : [];
+  if (candidate.score != null && (!prev || prev.depth !== candidate.depth)) {
+    history.push({ depth: candidate.depth, score: candidate.score });
+  }
+  candidate.scoreHistory = history.slice(-5);
+  candidate.confidence = computeAnalysisConfidence(candidate);
+  analysisCache.set(fen, candidate);
+}
+
+// Оставлено для обратной совместимости с прежним именем/вызовами.
+function cacheAnalysisResult(fen, result) { mergeAnalysisResult(fen, result); }
+
+// Полностью очищает кэш анализа и очередь. Вызывается при старте новой партии.
+function clearAnalysisCache() { analysisCache.clear(); analysisQueue.length = 0; }
+
+// Переводит score (относительный к стороне, чей ход в данной FEN, как того
+// требует UCI) в единую шкалу «с точки зрения белых» — нужно для корректного
+// сравнения оценок ДО и ПОСЛЕ хода (см. ТЗ п.6).
+function scoreAbsoluteWhite(entry, fen) {
+  if (!entry || entry.score == null || !fen) return null;
+  const turn = fen.split(' ')[1];
+  return turn === 'w' ? entry.score : -entry.score;
+}
 
 /* =========================================================================
    ФОНОВЫЙ АНАЛИЗ ПОЗИЦИИ (Infinite Analysis)
@@ -296,17 +410,24 @@ const bgAnalysisState = { active: false, fen: null };
 // opts.infinite=true  -> "go infinite" (работает, пока не придёт 'stop')
 // opts.depth=N        -> "go depth N" (завершается сам по себе)
 // opts.movetime=N     -> "go movetime N" (завершается сам по себе, как раньше)
+// opts.onUpdate(snapshot) — необязательный колбэк, вызывается при каждом
+// новом depth (пока идёт go infinite/depth), чтобы вызывающий код мог
+// сохранять промежуточный результат в кэш ПО ХОДУ анализа, а не только
+// после остановки (см. ТЗ п.2 — постепенное углубление).
 function runEngineAnalysis(fen, opts = {}) {
   return new Promise((resolve) => {
-    if (!stockfish || !isEngineReady) { resolve({ bestMove: null, score: null, pv: null, depth: 0 }); return; }
-    const latest = { bestMove: null, score: null, pv: null, depth: 0 };
+    if (!stockfish || !isEngineReady) { resolve({ bestMove: null, score: null, pv: null, depth: 0, seldepth: 0, nodes: 0, timeMs: 0 }); return; }
+    const startedAt = Date.now();
+    const latest = { bestMove: null, score: null, pv: null, depth: 0, seldepth: 0, nodes: 0, timeMs: 0 };
     let resolved = false;
     const finish = (bestMoveFromUci) => {
       if (resolved) return;
       resolved = true;
       stockfish.removeEventListener('message', handler);
       clearTimeout(safetyTimer);
+      if (hardKillTimer) clearTimeout(hardKillTimer);
       if (bestMoveFromUci) latest.bestMove = bestMoveFromUci;
+      if (!latest.timeMs) latest.timeMs = Date.now() - startedAt;
       resolve(latest);
     };
     const handler = (e) => {
@@ -316,6 +437,9 @@ function runEngineAnalysis(fen, opts = {}) {
         const parts = msg.split(' ');
         const scoreIdx = parts.indexOf('score');
         const depthIdx = parts.indexOf('depth');
+        const seldepthIdx = parts.indexOf('seldepth');
+        const nodesIdx = parts.indexOf('nodes');
+        const timeIdx = parts.indexOf('time');
         const pvIdx = parts.indexOf('pv');
         if (scoreIdx !== -1 && parts[scoreIdx + 1] === 'cp') {
           const val = parseInt(parts[scoreIdx + 2], 10);
@@ -328,9 +452,24 @@ function runEngineAnalysis(fen, opts = {}) {
           const d = parseInt(parts[depthIdx + 1], 10);
           if (!Number.isNaN(d)) latest.depth = d;
         }
+        if (seldepthIdx !== -1) {
+          const sd = parseInt(parts[seldepthIdx + 1], 10);
+          if (!Number.isNaN(sd)) latest.seldepth = sd;
+        }
+        if (nodesIdx !== -1) {
+          const nd = parseInt(parts[nodesIdx + 1], 10);
+          if (!Number.isNaN(nd)) latest.nodes = nd;
+        }
+        if (timeIdx !== -1) {
+          const tm = parseInt(parts[timeIdx + 1], 10);
+          if (!Number.isNaN(tm)) latest.timeMs = tm;
+        }
         if (pvIdx !== -1 && parts[pvIdx + 1]) {
           latest.pv = parts.slice(pvIdx + 1).join(' ');
           latest.bestMove = parts[pvIdx + 1];
+        }
+        if (depthIdx !== -1 && typeof opts.onUpdate === 'function') {
+          opts.onUpdate({ ...latest });
         }
       }
       if (msg.startsWith('bestmove')) {
@@ -338,13 +477,33 @@ function runEngineAnalysis(fen, opts = {}) {
         finish(move && move !== '(none)' ? move : null);
       }
     };
-    // Страховка от зависания движка / утечки памяти:
-    // для бесконечного анализа — сами шлём 'stop' спустя разумный таймаут;
-    // для короткого анализа — считаем задачу завершённой по таймауту.
-    const safetyTimer = setTimeout(() => {
-      if (opts.infinite) { if (stockfish) stockfish.postMessage('stop'); }
-      else finish(null);
-    }, opts.infinite ? 120000 : (opts.movetime || (opts.depth ? opts.depth * 1200 : 3000)) + 5000);
+    // Страховка от зависания движка. ВАЖНО: у 'go depth N' в UCI нет
+    // ограничения по времени — движок будет считать до нужной глубины
+    // сколько потребуется. Поэтому по таймауту мы НЕ можем просто
+    // зарезолвить промис (как было раньше) — движок физически продолжит
+    // считать старую задачу, а следующая задача из очереди пришлёт ему
+    // новые position/go поверх незавершённого поиска, что путает движок и
+    // выглядит как «бесконечное думание» на одном из следующих ходов.
+    // Поэтому для ЛЮБОГО режима по таймауту сначала шлём 'stop' и ждём
+    // настоящий bestmove (движок сам корректно освобождается). И только
+    // если даже это не помогло (воркер реально завис) — жёстко резолвим и
+    // пересоздаём Stockfish, чтобы не заблокировать все последующие анализы
+    // навсегда.
+    let stopSent = false;
+    const requestStop = () => {
+      if (stopSent || resolved) return;
+      stopSent = true;
+      if (stockfish) stockfish.postMessage('stop');
+      hardKillTimer = setTimeout(() => {
+        if (resolved) return;
+        console.error('Stockfish не ответил на stop — перезапускаю движок.');
+        finish(null);
+        restartStockfishEngine();
+      }, 8000);
+    };
+    let hardKillTimer = null;
+    const safetyTimer = setTimeout(requestStop,
+      opts.infinite ? 120000 : (opts.movetime || (opts.depth ? opts.depth * 1500 : 3000)) + 8000);
 
     stockfish.addEventListener('message', handler);
     stockfish.postMessage('position fen ' + fen);
@@ -370,35 +529,73 @@ async function stopBackgroundAnalysis() {
   }
 }
 
-// Запускает фоновый анализ переданной позиции согласно текущей настройке
-// «Режим анализа». Если позиция уже есть в кэше — ничего не делает
-// (повторный запуск Stockfish запрещён требованиями). Не запускает анализ,
-// если движок ещё не создан — фоновый анализ подключится позже, когда
-// он понадобится (кэш просто останется неполным для этой позиции, и она
-// будет проанализирована «по требованию» через analyzePosition()).
+// Запускает ЖИВОЙ (progressive) фоновый анализ переданной позиции согласно
+// текущей настройке «Режим анализа». В отличие от прежней версии, НЕ
+// пропускает позицию из-за одного лишь факта присутствия в кэше — наличие
+// записи не означает завершённость анализа (см. ТЗ п.1). В standard-режиме
+// кэш обновляется постепенно по мере роста depth (opts.onUpdate), поэтому
+// даже мгновенный ход игрока не «замораживает» позицию на низком качестве —
+// то, что успело накопиться к моменту stop, уже лежит в кэше как
+// промежуточный (не окончательный) результат.
 function startBackgroundAnalysis(fen) {
-  if (!fen || analysisCache.has(fen)) return;
+  if (!fen) return;
   if (!stockfish) return;
   const weak = state.settings.analysisMode === 'weak';
   bgAnalysisState.active = true;
   bgAnalysisState.fen = fen;
-  backgroundAnalysisPromise = queueEngineTask(() => runEngineAnalysis(fen, weak ? { depth: 12 } : { infinite: true }))
-    .then((result) => { cacheAnalysisResult(fen, result); })
+  const opts = weak
+    ? { depth: 12 }
+    : { infinite: true, onUpdate: (snapshot) => mergeAnalysisResult(fen, snapshot) };
+  backgroundAnalysisPromise = queueEngineTask(() => runEngineAnalysis(fen, opts))
+    .then((result) => { mergeAnalysisResult(fen, result); })
     .catch(() => { /* игнорируем — просто останется без кэша */ })
     .finally(() => {
       bgAnalysisState.active = false;
       bgAnalysisState.fen = null;
       backgroundAnalysisPromise = null;
+      // В weak-режиме go depth 12 завершается сам по себе, движок реально
+      // освобождается — используем эту паузу, чтобы чуть подтянуть самую
+      // приоритетную позицию из очереди отложенного анализа.
+      if (weak) processAnalysisQueueOnce();
     });
 }
 
+// Забирает из очереди самую приоритетную задачу (если она ещё актуальна —
+// вдруг её уже дотянули до нужной глубины другим путём) и прогоняет
+// ограниченный по depth (самозавершающийся) анализ, результат которого
+// сливается в кэш через mergeAnalysisResult (слабее прежнего — не перезапишет).
+// Не await'ится вызывающим кодом — ставится в общую очередь движка и
+// выполняется, когда до неё дойдёт очередь (см. ТЗ п.3 — «когда CPU свободен»).
+async function processAnalysisQueueOnce() {
+  const task = dequeueAnalysisTask();
+  if (!task) return;
+  if (!stockfish || isAnalysisGoodEnough(task.fen, task.targetDepth)) return;
+  try {
+    const result = await queueEngineTask(() => runEngineAnalysis(task.fen, { depth: task.targetDepth }));
+    mergeAnalysisResult(task.fen, result);
+  } catch (e) { /* игнорируем — попробуем в следующий раз */ }
+}
+
 // Вызывается после каждого сделанного хода (см. onMoveMade): останавливает
-// анализ предыдущей позиции (сохраняя результат в кэш) и, если партия не
-// окончена, тут же запускает анализ новой позиции. Дожидается готовности
-// движка — на случай, если это самый первый вызов в сессии и Stockfish
-// ещё не успел ответить на 'uci'/'isready'.
+// анализ предыдущей позиции (сохраняя накопленный результат в кэш), ставит
+// эту предыдущую позицию в приоритетную очередь на ДОУГЛУБЛЕНИЕ (она ещё не
+// считается окончательно проанализированной — ТЗ п.3), и, если партия не
+// окончена, запускает живой анализ новой текущей позиции.
 async function advanceBackgroundAnalysis() {
+  const outgoingFen = bgAnalysisState.fen;
+  const moverColor = state.game ? (state.game.turn() === 'w' ? 'b' : 'w') : null; // кто только что сходил
   await stopBackgroundAnalysis();
+
+  if (outgoingFen) {
+    const isAiMove = (state.mode === 'ai' || state.mode === 'characters') && moverColor === state.aiColor;
+    const weak = state.settings.analysisMode === 'weak';
+    const baseDepth = weak ? ANALYSIS_TARGET.weakReviewBaseDepth : ANALYSIS_TARGET.reviewBaseDepth;
+    enqueueAnalysisTask(outgoingFen, isAiMove ? PRIORITY.LAST_AI_MOVE : PRIORITY.LAST_PLAYER_MOVE, baseDepth);
+  }
+  // Не блокируем ход — просто ставим попытку доуглубления в общую очередь
+  // движка перед запуском live-анализа новой позиции.
+  processAnalysisQueueOnce();
+
   if (state.isGameOver || !state.game) return;
   const ready = await waitForEngine(4000);
   if (!ready || state.isGameOver || !state.game) return;
@@ -435,24 +632,29 @@ async function searchBestMove(fen, { movetime = 700 } = {}) {
   }));
 }
 
-// Возвращает анализ позиции — из кэша (мгновенно), либо, если её сейчас
-// анализирует фоновый Infinite Analysis, останавливает его и забирает
-// свежий результат, либо (в крайнем случае) запускает разовый быстрый
-// анализ. Повторный запуск Stockfish для уже закэшированной позиции
+// Возвращает анализ позиции — из кэша (мгновенно), если он ДОСТАТОЧНО
+// качественный для запрошенной задачи (minDepth). Наличие записи в кэше
+// само по себе больше не гарантирует достаточность (ТЗ п.1): если depth
+// кэша ниже minDepth, движок доанализирует эту же позицию дальше и
+// результат сольётся в кэш через mergeAnalysisResult (не откатится назад).
+// Повторный запуск Stockfish «с нуля» для уже достаточно глубокой позиции
 // не выполняется.
-async function analyzePosition(fen, { movetime = 400 } = {}) {
+async function analyzePosition(fen, { movetime = 400, minDepth = 0 } = {}) {
   const cached = analysisCache.get(fen);
-  if (cached) return cached;
+  if (cached && cached.depth >= minDepth) return cached;
 
   // Останавливаем фоновый анализ (не важно, для этой позиции он идёт или
   // для другой) — движок должен быть свободен перед разовым запросом.
   await stopBackgroundAnalysis();
 
   const freshlyCached = analysisCache.get(fen);
-  if (freshlyCached) return freshlyCached;
+  if (freshlyCached && freshlyCached.depth >= minDepth) return freshlyCached;
 
-  const result = await queueEngineTask(() => runEngineAnalysis(fen, { movetime }));
-  cacheAnalysisResult(fen, result);
+  const targetDepth = Math.max(minDepth, freshlyCached ? freshlyCached.depth + 1 : 0);
+  const result = targetDepth > 0
+    ? await queueEngineTask(() => runEngineAnalysis(fen, { depth: targetDepth }))
+    : await queueEngineTask(() => runEngineAnalysis(fen, { movetime }));
+  mergeAnalysisResult(fen, result);
   return analysisCache.get(fen);
 }
 
@@ -890,6 +1092,8 @@ function initHomeFigures() {
     mouseCol: Math.floor(cols / 2),
     mouseRow: Math.floor(rows / 2),
     containerRect: rect,
+    lastMovedEnemy: null, // какая пешка ходила последней
+    lastMovedStreak: 0,   // сколько раз подряд ходила именно она
   };
 
   positionFigures();
@@ -922,9 +1126,9 @@ function stopHomeFigures() {
 /* ---- Вражеские пешки на главном экране ---- */
 let enemySpawnInterval = null;
 let enemyMoveInterval = null;
-const HOME_ENEMY_MAX = 200;
-const BASE_SPAWN_MS = 800;
-const FAST_SPAWN_MS = 300;
+const HOME_ENEMY_MAX = 90;
+const BASE_SPAWN_MS = 1400;
+const FAST_SPAWN_MS = 600;
 const BASE_MOVE_MS = 150;
 const FAST_MOVE_MS = 50;
 const HOME_ENEMY_KILL_RADIUS_FACTOR = 0.9;
@@ -965,10 +1169,10 @@ function restartEnemyTimers() {
   let newMove = BASE_MOVE_MS;
   
   const topRowsCount = figureState.enemies.filter(e => e.row === 0 || e.row === 1).length;
-  if (topRowsCount < 3) newSpawn = FAST_SPAWN_MS;
+  if (topRowsCount < 2) newSpawn = FAST_SPAWN_MS;
   
   const totalEnemies = figureState.enemies.length;
-  if (totalEnemies > 50) newMove = FAST_MOVE_MS;
+  if (totalEnemies > 30) newMove = FAST_MOVE_MS;
   
   // Если интервалы изменились — перезапускаем таймеры
   if (newSpawn !== currentSpawnMs || newMove !== currentMoveMs) {
@@ -1017,19 +1221,41 @@ function positionHomeEnemy(enemy) {
 
 let enemyMoveCursor = 0;
 
+const HOME_ENEMY_MAX_STREAK = 3; // одна и та же пешка не ходит более 3 раз подряд
+
 function advanceHomeEnemies() {
   if (!figureState || !figureState.enemies.length) return;
 
   const { rows, enemies } = figureState;
 
-  const enemy = enemies[Math.floor(Math.random() * enemies.length)];
+  // Пешка, которая уже отходила максимум ходов подряд, временно исключается
+  // из кандидатов на ход — но только если есть кем её заменить (иначе,
+  // если на доске всего одна пешка, ей всё равно придётся ходить).
+  let candidates = enemies;
+  if (figureState.lastMovedEnemy && figureState.lastMovedStreak >= HOME_ENEMY_MAX_STREAK) {
+    const others = enemies.filter(e => e !== figureState.lastMovedEnemy);
+    if (others.length) candidates = others;
+  }
+
+  const enemy = candidates[Math.floor(Math.random() * candidates.length)];
   if (!enemy) return;
+
+  if (enemy === figureState.lastMovedEnemy) {
+    figureState.lastMovedStreak += 1;
+  } else {
+    figureState.lastMovedEnemy = enemy;
+    figureState.lastMovedStreak = 1;
+  }
 
   const nextRow = enemy.row + 1;
 
   if (nextRow >= rows + 1) {
     enemy.el.remove();
     figureState.enemies = enemies.filter(e => e !== enemy);
+    if (figureState.lastMovedEnemy === enemy) {
+      figureState.lastMovedEnemy = null;
+      figureState.lastMovedStreak = 0;
+    }
     return;
   }
 
@@ -2020,29 +2246,130 @@ function buildChatSystemPrompt() {
   Если просят совета — откажи в характере. Без markdown.`;
 }
   return `Ты — шахматный ассистент внутри приложения. Общайся с игроком по-русски. ${lengthRule}
-Тебе будут присылать текущую позицию в FEN, историю ходов (PGN) и вопрос игрока. Отвечай на конкретный вопрос: подсказки по позиции, угрозы, оценка ходов, стратегические советы.
-Если игрок явно спрашивает, какой ход сделать, ты можешь назвать конкретный ход (из списка допустимых) и объяснить, почему он хорош. Не давай длинных планов — только одну-две идеи.
+Тебе будут присылать текущую позицию в FEN, историю ходов (PGN), готовый анализ Stockfish (лучший ход, оценку, глубину, варианты) и вопрос игрока.
+Stockfish — единственный источник объективно лучшего хода и оценки позиции. Ты НЕ придумываешь и не подбираешь лучший ход самостоятельно: если в сообщении есть блок STOCKFISH, при вопросах «какой ход лучше» называй именно bestMove оттуда (или один из ALTERNATIVES) и объясняй его человеческим языком. Если блока STOCKFISH нет — прямо скажи, что анализ ещё не готов, вместо того чтобы гадать самому.
+Отвечай на конкретный вопрос: подсказки по позиции, угрозы, оценка ходов, стратегические советы. Не давай длинных планов — только одну-две идеи.
 Отвечай простым текстом, без markdown-разметки (никаких **, #, списков через - или цифры).`;
 }
 
-function buildChatContextMessage(question) {
+// Возвращает объективный контекст Stockfish для текущей FEN, используя ТОЛЬКО
+// общий analysisCache/очередь (никакого параллельного независимого анализа —
+// ТЗ п.13). Если качество кэша для этой позиции недостаточное — приоритет
+// позиции в очереди поднимается, и мы дожидаемся более качественного
+// результата (через analyzePosition), вместо того чтобы сразу отдавать
+// слабый depth 7 как «финальный».
+async function getStockfishContextForChat(fen, { wantAlternatives = false } = {}) {
+  const ready = await waitForEngine(3000);
+  if (!ready || !isEngineReady) return null;
+  const weak = state.settings.analysisMode === 'weak';
+  const minDepth = weak ? ANALYSIS_TARGET.weakChatMinDepth : ANALYSIS_TARGET.chatMinDepth;
+
+  let entry = analysisCache.get(fen);
+  // Качество считается достаточным ТОЛЬКО если и глубина, и confidence в
+  // порядке (ТЗ п.4) — одного depth >= chatMinDepth недостаточно, если
+  // оценка при этом нестабильна (confidence === 'low').
+  const isGoodEnough = (e) => !!e && e.depth >= minDepth && e.confidence !== 'low';
+  if (!isGoodEnough(entry)) {
+    enqueueAnalysisTask(fen, PRIORITY.CURRENT, minDepth);
+    entry = await analyzePosition(fen, { minDepth, movetime: 700 });
+    // analyzePosition гарантирует depth >= minDepth, но confidence мог
+    // остаться low (нестабильная оценка на этой глубине) — в этом случае
+    // доуглубляем ещё немного и используем то, что получилось, не блокируя
+    // ответ чата бесконечно.
+    if (entry && entry.confidence === 'low') {
+      entry = await analyzePosition(fen, { minDepth: minDepth + 4, movetime: 700 });
+    }
+  }
+
+  let alternatives = [];
+  if (wantAlternatives && entry) {
+    const candidates = await searchTopMoves(fen, { movetime: 700, multipv: 3 });
+    if (candidates.length) {
+      // Обновляем ту же запись кэша данными top-1 из MultiPV — не создаём
+      // отдельную независимую структуру для чата.
+      mergeAnalysisResult(fen, { ...entry, bestMove: candidates[0].move, score: candidates[0].score, multipv: candidates.length });
+      entry = analysisCache.get(fen);
+    }
+    alternatives = describeCandidateMoves(fen, candidates);
+  }
+  return { entry, alternatives };
+}
+
+// Форматирует блок STOCKFISH/ALTERNATIVES для промпта нейросети (ТЗ п.12).
+function formatStockfishContextBlock(fen, sf) {
+  if (!sf || !sf.entry || sf.entry.score == null) {
+    return '\nSTOCKFISH: анализ этой позиции ещё не готов (недостаточная глубина).';
+  }
+  const { entry, alternatives } = sf;
+  let bestSan = entry.bestMove;
+  try {
+    const g = new Chess(fen);
+    const from = entry.bestMove.substring(0, 2);
+    const to = entry.bestMove.substring(2, 4);
+    const promotion = entry.bestMove.length === 5 ? entry.bestMove[4] : 'q';
+    const mv = g.move({ from, to, promotion });
+    if (mv) bestSan = mv.san;
+  } catch (e) { /* оставляем UCI, если не распарсилось */ }
+
+  let block = `\nSTOCKFISH:\nBest move: ${bestSan}\nEvaluation (centipawns, с точки зрения хода в этой FEN): ${entry.score}\nDepth: ${entry.depth}${entry.seldepth ? ` (seldepth ${entry.seldepth})` : ''}\nPV: ${entry.pv || '—'}`;
+  if (alternatives && alternatives.length) {
+    block += `\nALTERNATIVES:\n${alternatives.map((a, i) => `${i + 1}. ${a.san} (${a.score})`).join('\n')}`;
+  }
+  return block;
+}
+
+async function buildChatContextMessage(question) {
   const game = state.game;
+  const fen = game.fen();
   const sideLabel = game.turn() === 'w' ? 'белые' : 'чёрные';
   const pgn = game.pgn() || '—';
   const isCharacterMode = state.mode === 'characters';
   const asksForMove = /куда|какой ход|сходить|посоветуй ход|что делать|мой ход|подскажи|совет|как сыграть/i.test(question);
   let extra = '';
+  let sfBlock = '';
+  let lastMoveLossBlock = '';
+
+  if (!isCharacterMode) {
+    // Персонажи (п.12) — соперник, а не помощник, поэтому Stockfish-контекст
+    // ему намеренно не передаём (как и раньше — никаких подсказок).
+    const sf = await getStockfishContextForChat(fen, { wantAlternatives: asksForMove });
+    sfBlock = formatStockfishContextBlock(fen, sf);
+
+    const history = game.history({ verbose: true });
+    const lastMove = history[history.length - 1];
+    if (lastMove && state.fenHistory.length >= 2) {
+      const beforeFen = state.fenHistory[state.fenHistory.length - 2];
+      const beforeEntry = analysisCache.get(beforeFen);
+      const afterEntry = analysisCache.get(fen);
+      const weak = state.settings.analysisMode === 'weak';
+      const minDepth = weak ? ANALYSIS_TARGET.weakChatMinDepth : ANALYSIS_TARGET.chatMinDepth;
+      if (!beforeEntry || beforeEntry.depth < minDepth) {
+        // Не блокируем текущий ответ — просто повышаем приоритет этой
+        // позиции в общей очереди, чтобы в следующий раз CPL был точнее.
+        enqueueAnalysisTask(beforeFen, PRIORITY.LAST_PLAYER_MOVE, minDepth);
+      }
+      const beforeAbs = scoreAbsoluteWhite(beforeEntry, beforeFen);
+      const afterAbs = scoreAbsoluteWhite(afterEntry, fen);
+      if (beforeAbs != null && afterAbs != null) {
+        const deltaAbs = afterAbs - beforeAbs;
+        const loss = Math.max(0, lastMove.color === 'w' ? -deltaAbs : deltaAbs);
+        lastMoveLossBlock = `\nPLAYER'S LAST MOVE: ${lastMove.san}\nLAST MOVE LOSS: ${Math.round(loss)} CPL`;
+      }
+    }
+  }
+
   if (asksForMove && !isCharacterMode) {
     const moves = game.moves();
     extra = `\nСписок допустимых ходов в этой позиции (SAN): ${moves.join(', ')}. 
-Игрок просит конкретный совет по ходу. Ты МОЖЕШЬ назвать один из этих ходов, но обязательно объясни коротко, почему он хорош. Если не уверен — скажи, какой ход кажется наиболее логичным.`;
+Игрок просит конкретный совет по ходу. Называй ход из блока STOCKFISH (Best move) или из ALTERNATIVES и объясни коротко, почему он хорош.`;
   } else if (asksForMove && isCharacterMode) {
     extra = `\nИгрок просит подсказать ход, совет или оценку позиции. Помни своё строгое правило: ты соперник, а не помощник — откажи в своей манере, не называя ходов и не оценивая позицию в его пользу.`;
   }
-  return `Текущая позиция (FEN): ${game.fen()}
+  return `CURRENT POSITION:
+FEN: ${fen}
 Сейчас ходят: ${sideLabel}
-История партии (PGN): ${pgn}
-Вопрос игрока: ${question}${extra}`;
+GAME HISTORY (PGN): ${pgn}${sfBlock}${lastMoveLossBlock}
+PLAYER QUESTION: ${question}${extra}`;
 }
 
 function trimHistory(history, maxEntries = 12) {
@@ -2096,7 +2423,7 @@ async function handleAsk() {
   appendChatMessage('user', question);
   setAskLoading(true);
 
-  const contextualUser = buildChatContextMessage(question);
+  const contextualUser = await buildChatContextMessage(question);
   state.chatApiHistory.push({ role: 'user', content: contextualUser });
 
   try {
@@ -2337,9 +2664,134 @@ function stopProgress(success = true) {
 }
 
 function avg(arr) { return arr.length ? arr.reduce((a, b) => a + b, 0) / arr.length : 0; }
+function median(arr) {
+  if (!arr.length) return 0;
+  const s = [...arr].sort((a, b) => a - b);
+  const mid = Math.floor(s.length / 2);
+  return s.length % 2 ? s[mid] : (s[mid - 1] + s[mid]) / 2;
+}
 function accuracyFromCpl(cpl) { return clamp(103.1668 * Math.exp(-0.04354 * cpl) - 3.1669, 0, 100); }
 function eloFromCpl(cpl) { return Math.round(clamp(2882 - 30 * cpl, 600, 2900)); }
 
+// Пороги качества хода в centipawn loss (ТЗ п.7/8).
+const CPL_INACCURACY = 50;
+const CPL_MISTAKE = 120;
+const CPL_BLUNDER = 250;
+
+function classifyLoss(loss) {
+  if (loss >= CPL_BLUNDER) return 'blunder';
+  if (loss >= CPL_MISTAKE) return 'mistake';
+  if (loss >= CPL_INACCURACY) return 'inaccuracy';
+  return 'ok';
+}
+
+// Более информативная Accuracy: сочетание среднего/медианного/максимального
+// CPL плюс штраф за грубые ошибки с убывающей отдачей (sqrt), чтобы один
+// blunder заметно влиял, но не «убивал» точность всей партии (ТЗ п.8).
+function computeAccuracyV2({ avgCpl, medianCpl, maxCpl, blunders, mistakes, inaccuracies }) {
+  const base = accuracyFromCpl(avgCpl) * 0.55
+    + accuracyFromCpl(medianCpl) * 0.35
+    + accuracyFromCpl(maxCpl) * 0.10;
+  const penalty = Math.sqrt(blunders) * 6 + Math.sqrt(mistakes) * 2.5 + Math.sqrt(inaccuracies) * 0.8;
+  return clamp(base - penalty, 0, 100);
+}
+
+// Приблизительный Elo — качество игры В ЭТОЙ партии, не реальный рейтинг
+// (ТЗ п.9). Строится на прежней линейной базе от avgCpl, скорректированной
+// количеством серьёзных ошибок и итоговой Accuracy.
+function computeEloV2({ avgCpl, accuracy, blunders, mistakes }) {
+  let elo = eloFromCpl(avgCpl);
+  elo -= blunders * 40 + mistakes * 15;
+  elo += (accuracy - 70) * 3;
+  return Math.round(clamp(elo, 600, 2900));
+}
+
+// Счётчик запусков Review Analysis — если пользователь запустил новый анализ
+// (или он же — «Обновить анализ») пока предыдущий ещё фоново уточнялся,
+// старое фоновое уточнение узнаёт об этом (runId !== analysisRunId) и
+// прекращает себя, не затирая уже более новый результат.
+let analysisRunId = 0;
+
+// Считает moveAnalysis + агрегированную статистику (Accuracy/CPL/Elo/…) по
+// уже имеющемуся набору evaluations. Чистая функция без обращений к
+// Stockfish — используется и для быстрого предварительного прохода, и для
+// уточнённого результата после фонового доуглубления (ТЗ п.2).
+function computeGameStats(fens, moves, evaluations) {
+  const moveAnalysis = [];
+  for (let j = 0; j < moves.length; j++) {
+    const before = evaluations[j];
+    const after = evaluations[j + 1];
+    if (!before) continue;
+    // Оценки Stockfish (score cp) относительны к стороне, чей ход в данной
+    // FEN — прежде чем сравнивать «до» и «после», переводим обе в единую
+    // шкалу «с точки зрения белых» (ТЗ п.6: корректный учёт цвета/направления).
+    const evalBeforeAbs = scoreAbsoluteWhite(before, fens[j]);
+    const evalAfterAbs = scoreAbsoluteWhite(after, fens[j + 1]);
+    let loss = 0;
+    if (evalBeforeAbs != null && evalAfterAbs != null) {
+      const deltaAbs = evalAfterAbs - evalBeforeAbs; // положительно = сдвиг к белым
+      loss = Math.max(0, moves[j].color === 'w' ? -deltaAbs : deltaAbs);
+    }
+    const evalBeforeMover = evalBeforeAbs != null ? (moves[j].color === 'w' ? evalBeforeAbs : -evalBeforeAbs) : null;
+    const evalAfterMover = evalAfterAbs != null ? (moves[j].color === 'w' ? evalAfterAbs : -evalAfterAbs) : null;
+    moveAnalysis.push({
+      move: moves[j],
+      fenBefore: fens[j],
+      fenAfter: fens[j + 1],
+      bestMove: before.bestMove || null,
+      playedMove: moves[j].san,
+      evalBefore: evalBeforeMover,
+      evalAfter: evalAfterMover,
+      depth: before.depth || 0,
+      pv: before.pv || null,
+      loss,
+      delta: moves[j].color === 'w' ? -loss : loss, // сохранено для обратной совместимости
+      classification: classifyLoss(loss),
+      critical: classifyLoss(loss) === 'mistake' || classifyLoss(loss) === 'blunder',
+    });
+  }
+
+  const whiteLosses = moveAnalysis.filter(m => m.move.color === 'w').map(m => m.loss);
+  const blackLosses = moveAnalysis.filter(m => m.move.color === 'b').map(m => m.loss);
+
+  const avgCplWhite = avg(whiteLosses);
+  const avgCplBlack = avg(blackLosses);
+  const medianCplWhite = median(whiteLosses);
+  const medianCplBlack = median(blackLosses);
+  const maxCplWhite = whiteLosses.length ? Math.max(...whiteLosses) : 0;
+  const maxCplBlack = blackLosses.length ? Math.max(...blackLosses) : 0;
+
+  const countByClass = (items, color, cls) => items.filter(m => m.move.color === color && m.classification === cls).length;
+  const statsWhite = {
+    inaccuracies: countByClass(moveAnalysis, 'w', 'inaccuracy'),
+    mistakes: countByClass(moveAnalysis, 'w', 'mistake'),
+    blunders: countByClass(moveAnalysis, 'w', 'blunder'),
+  };
+  const statsBlack = {
+    inaccuracies: countByClass(moveAnalysis, 'b', 'inaccuracy'),
+    mistakes: countByClass(moveAnalysis, 'b', 'mistake'),
+    blunders: countByClass(moveAnalysis, 'b', 'blunder'),
+  };
+
+  const accuracyWhite = computeAccuracyV2({ avgCpl: avgCplWhite, medianCpl: medianCplWhite, maxCpl: maxCplWhite, ...statsWhite });
+  const accuracyBlack = computeAccuracyV2({ avgCpl: avgCplBlack, medianCpl: medianCplBlack, maxCpl: maxCplBlack, ...statsBlack });
+  const eloWhite = computeEloV2({ avgCpl: avgCplWhite, accuracy: accuracyWhite, ...statsWhite });
+  const eloBlack = computeEloV2({ avgCpl: avgCplBlack, accuracy: accuracyBlack, ...statsBlack });
+
+  let bestMoveObj = null, worstMoveObj = null;
+  let bestLoss = Infinity, worstLoss = -Infinity;
+  for (const item of moveAnalysis) {
+    const loss = item.loss;
+    if (loss < bestLoss) { bestLoss = loss; bestMoveObj = item; }
+    if (loss > worstLoss && loss > 10) { worstLoss = loss; worstMoveObj = item; }
+  }
+
+  return {
+    moveAnalysis, avgCplWhite, avgCplBlack, medianCplWhite, medianCplBlack,
+    maxCplWhite, maxCplBlack, statsWhite, statsBlack,
+    accuracyWhite, accuracyBlack, eloWhite, eloBlack, bestMoveObj, worstMoveObj,
+  };
+}
 async function requestAnalysis() {
   const btn = $id('requestAnalysisBtn');
   const loading = $id('analysisLoading');
@@ -2353,6 +2805,8 @@ async function requestAnalysis() {
 
   startProgress();
 
+  const runId = ++analysisRunId;
+
   try {
     const fens = state.fenHistory;
     const moves = state.game.history({ verbose: true });
@@ -2363,101 +2817,44 @@ async function requestAnalysis() {
 
     // Если последняя позиция партии всё ещё анализируется в фоне (Infinite
     // Analysis) — останавливаем и сохраняем в кэш то, что уже накоплено.
-    // Дальше построение анализа целиком опирается на кэш и работает
-    // практически мгновенно (см. analyzePosition — она сама берёт готовые
-    // результаты из кэша и не запускает Stockfish повторно).
     await stopBackgroundAnalysis();
 
+    const weakPc = state.settings.analysisMode === 'weak';
+    const baseDepth = weakPc ? ANALYSIS_TARGET.weakReviewBaseDepth : ANALYSIS_TARGET.reviewBaseDepth;
+    const criticalDepth = weakPc ? ANALYSIS_TARGET.weakReviewCriticalDepth : ANALYSIS_TARGET.reviewCriticalDepth;
+
+    // ФАЗА 1 (быстрая, ТЗ п.2): НЕ ждём baseDepth/criticalDepth по каждой
+    // позиции — берём то, что уже накоплено в общем кэше (в т.ч. частично из
+    // Live Analysis прямо во время партии), и только для полностью
+    // непроанализированных позиций делаем короткий разовый скан, чтобы
+    // результат вообще был. Это даёт мгновенный предварительный
+    // Accuracy/CPL без «обязательного глубокого анализа всей партии».
     const total = fens.length;
-    const evaluations = [];
+    const prelimEvaluations = [];
     for (let i = 0; i < fens.length; i++) {
-      const result = await analyzePosition(fens[i], { movetime: 400 });
-      evaluations.push(result);
+      const result = analysisCache.get(fens[i]) || await analyzePosition(fens[i], { movetime: 250 });
+      prelimEvaluations.push(result);
       updateProgress(i + 1, total, moves[i] ? moves[i].san : null);
     }
 
-    const moveAnalysis = [];
-    for (let j = 0; j < moves.length; j++) {
-      const before = evaluations[j];
-      const after = evaluations[j + 1];
-      if (!before) continue;
-      let delta = 0;
-      if (before.score !== null && after && after.score !== null) {
-        delta = moves[j].color === 'w' ? (after.score - before.score) : -(after.score - before.score);
-      }
-      moveAnalysis.push({ move: moves[j], delta, fenBefore: fens[j] });
-    }
-
-    const whiteLosses = moveAnalysis.filter(m => m.move.color === 'w').map(m => Math.max(0, -m.delta));
-    const blackLosses = moveAnalysis.filter(m => m.move.color === 'b').map(m => Math.max(0, -m.delta));
-
-    const avgCplWhite = avg(whiteLosses);
-    const avgCplBlack = avg(blackLosses);
-    const maxCplWhite = whiteLosses.length ? Math.max(...whiteLosses) : 0;
-    const maxCplBlack = blackLosses.length ? Math.max(...blackLosses) : 0;
-    const seriousWhite = whiteLosses.filter(l => l > 100).length;
-    const seriousBlack = blackLosses.filter(l => l > 100).length;
-
-    function computeAccuracy(avgCpl, maxCpl, serious) {
-      let acc = 100 - (avgCpl * 0.5 + maxCpl * 0.2 + serious * 3);
-      return clamp(acc, 0, 100);
-    }
-    function computeElo(avgCpl, serious) {
-      let elo = 2882 - 30 * avgCpl - serious * 15;
-      return clamp(elo, 600, 2900);
-    }
-
-    const accuracyWhite = computeAccuracy(avgCplWhite, maxCplWhite, seriousWhite);
-    const accuracyBlack = computeAccuracy(avgCplBlack, maxCplBlack, seriousBlack);
-    const eloWhite = computeElo(avgCplWhite, seriousWhite);
-    const eloBlack = computeElo(avgCplBlack, seriousBlack);
-
-    let bestMoveObj = null, worstMoveObj = null;
-    let bestLoss = Infinity, worstLoss = -Infinity;
-    for (const item of moveAnalysis) {
-      const loss = Math.max(0, -item.delta);
-      // лучший ход – минимальная потеря (0 – идеально)
-      if (loss < bestLoss) { bestLoss = loss; bestMoveObj = item; }
-      // худший – максимальная потеря, но только если потеря > 10 cp (игнорируем незначительные)
-      if (loss > worstLoss && loss > 10) { worstLoss = loss; worstMoveObj = item; }
-    }
-
-    const pgn = state.game.pgn();
-    let comment = 'Комментарий недоступен.';
-    try {
-      const prompt = `Партия в шахматы (PGN): ${pgn}
-Точность белых (расчёт движка): ${accuracyWhite.toFixed(1)}%, средняя потеря centipawn: ${avgCplWhite.toFixed(0)}.
-Точность чёрных: ${accuracyBlack.toFixed(1)}%, средняя потеря centipawn: ${avgCplBlack.toFixed(0)}.
-Лучший ход партии: ${bestMoveObj ? bestMoveObj.move.san : '—'}.
-Худший ход партии: ${worstMoveObj ? worstMoveObj.move.san : '—'}.
-Дай короткий (2-3 предложения) комментарий о партии простым текстом, без markdown-разметки.`;
-      const raw = await provodChat([{ role: 'user', content: prompt }], { temperature: 0.4 });
-      comment = stripMarkdown(raw) || comment;
-    } catch (e) {
-      console.error('Ошибка комментария ИИ:', e);
-    }
-
+    const prelimStats = computeGameStats(fens, moves, prelimEvaluations);
     stopProgress(true);
     renderAnalysis({
       totalPly: moves.length,
       totalFullMoves: Math.ceil(moves.length / 2),
-      accuracyWhite, accuracyBlack, eloWhite, eloBlack, avgCplWhite, avgCplBlack,
-      bestMoveObj, worstMoveObj, comment,
-    });
+      accuracyWhite: prelimStats.accuracyWhite, accuracyBlack: prelimStats.accuracyBlack,
+      eloWhite: prelimStats.eloWhite, eloBlack: prelimStats.eloBlack,
+      avgCplWhite: prelimStats.avgCplWhite, avgCplBlack: prelimStats.avgCplBlack,
+      bestMoveObj: prelimStats.bestMoveObj, worstMoveObj: prelimStats.worstMoveObj,
+      comment: 'Уточняю анализ партии в фоне…',
+    }, { refining: true });
     hideConnectionBanner();
 
-    if (window.Achievements) {
-      const evaluationsAbsoluteWhite = fens.map((fen, i) => {
-        const ev = evaluations[i];
-        if (!ev || ev.score === null) return null;
-        const turn = fen.split(' ')[1];
-        return turn === 'w' ? ev.score : -ev.score;
-      });
-      window.Achievements.trackAnalysis({
-        accuracyWhite, accuracyBlack, eloWhite, eloBlack, moveAnalysis, evaluationsAbsoluteWhite,
-      });
-    }
-    updateAccountEloFromGame(state.playerColor === 'w' ? eloWhite : eloBlack);
+    // ФАЗА 2 (фоновая, ТЗ п.2): обычные позиции доуглубляются до baseDepth,
+    // критические — до criticalDepth с MultiPV 2–3; когда результат готов,
+    // Accuracy/CPL/Elo пересчитываются и отображение обновляется. Не ждём
+    // (не await) — интерфейс уже разблокирован в finally ниже.
+    refineGameAnalysis(runId, fens, moves, weakPc, baseDepth, criticalDepth);
   } catch (error) {
     console.error('Ошибка анализа:', error);
     stopProgress(false);
@@ -2470,7 +2867,95 @@ async function requestAnalysis() {
   }
 }
 
-function renderAnalysis(data) {
+// Фоновое углубление уже показанного предварительного результата (ТЗ п.2).
+// Ничего не блокирует — интерфейс к этому моменту уже разблокирован в
+// requestAnalysis. Проверяет runId на каждом шаге, чтобы не затереть более
+// новый запуск анализа, если пользователь нажал «Обновить анализ» повторно.
+async function refineGameAnalysis(runId, fens, moves, weakPc, baseDepth, criticalDepth) {
+  try {
+    // Дренируем то, что уже накопилось в приоритетной очереди отложенного
+    // анализа (быстрые ходы партии) — подтягиваем их к базовой глубине.
+    while (analysisQueue.length) {
+      if (runId !== analysisRunId) return;
+      await processAnalysisQueueOnce();
+    }
+    if (runId !== analysisRunId) return;
+
+    const evaluations = [];
+    for (let i = 0; i < fens.length; i++) {
+      if (runId !== analysisRunId) return;
+      const result = await analyzePosition(fens[i], { minDepth: baseDepth });
+      evaluations.push(result);
+    }
+    if (runId !== analysisRunId) return;
+
+    let stats = computeGameStats(fens, moves, evaluations);
+
+    // Критические ходы (ТЗ п.5/11): доанализируем позицию ДО хода глубже и
+    // с MultiPV 2-3. Ограничиваем число доанализов, чтобы не перегрузить
+    // слабый ПК.
+    const criticalItems = stats.moveAnalysis.filter(m => m.critical).sort((a, b) => b.loss - a.loss).slice(0, weakPc ? 3 : 8);
+    for (const item of criticalItems) {
+      if (runId !== analysisRunId) return;
+      try {
+        const deep = await analyzePosition(item.fenBefore, { minDepth: criticalDepth });
+        if (deep) { item.depth = deep.depth; item.bestMove = deep.bestMove; item.pv = deep.pv; }
+        const candidates = await searchTopMoves(item.fenBefore, { movetime: weakPc ? 500 : 900, multipv: weakPc ? 2 : 3 });
+        item.alternatives = describeCandidateMoves(item.fenBefore, candidates);
+      } catch (e) { /* если доанализ не удался — оставляем базовый результат */ }
+    }
+    if (runId !== analysisRunId) return;
+
+    // Пересчитываем финальную статистику на доуглублённых evaluations и
+    // переносим уточнённые depth/bestMove/PV/alternatives критических ходов.
+    stats = computeGameStats(fens, moves, evaluations);
+    stats.moveAnalysis.forEach((m) => {
+      const refined = criticalItems.find(c => c.fenBefore === m.fenBefore && c.move.san === m.move.san);
+      if (refined) { m.depth = refined.depth; m.bestMove = refined.bestMove; m.pv = refined.pv; m.alternatives = refined.alternatives; }
+    });
+
+    const pgn = state.game.pgn();
+    let comment = 'Комментарий недоступен.';
+    try {
+      const prompt = `Партия в шахматы (PGN): ${pgn}
+Точность белых (расчёт движка): ${stats.accuracyWhite.toFixed(1)}%, средняя потеря centipawn: ${stats.avgCplWhite.toFixed(0)}.
+Точность чёрных: ${stats.accuracyBlack.toFixed(1)}%, средняя потеря centipawn: ${stats.avgCplBlack.toFixed(0)}.
+Лучший ход партии: ${stats.bestMoveObj ? stats.bestMoveObj.move.san : '—'}.
+Худший ход партии: ${stats.worstMoveObj ? stats.worstMoveObj.move.san : '—'}.
+Дай короткий (2-3 предложения) комментарий о партии простым текстом, без markdown-разметки.`;
+      const raw = await provodChat([{ role: 'user', content: prompt }], { temperature: 0.4 });
+      comment = stripMarkdown(raw) || comment;
+    } catch (e) {
+      console.error('Ошибка комментария ИИ:', e);
+    }
+
+    if (runId !== analysisRunId) return; // пользователь успел запустить новый анализ — не затираем его результат
+
+    renderAnalysis({
+      totalPly: moves.length,
+      totalFullMoves: Math.ceil(moves.length / 2),
+      accuracyWhite: stats.accuracyWhite, accuracyBlack: stats.accuracyBlack,
+      eloWhite: stats.eloWhite, eloBlack: stats.eloBlack,
+      avgCplWhite: stats.avgCplWhite, avgCplBlack: stats.avgCplBlack,
+      bestMoveObj: stats.bestMoveObj, worstMoveObj: stats.worstMoveObj,
+      comment,
+    });
+
+    if (window.Achievements) {
+      const evaluationsAbsoluteWhite = fens.map((fen, i) => scoreAbsoluteWhite(evaluations[i], fen));
+      window.Achievements.trackAnalysis({
+        accuracyWhite: stats.accuracyWhite, accuracyBlack: stats.accuracyBlack,
+        eloWhite: stats.eloWhite, eloBlack: stats.eloBlack,
+        moveAnalysis: stats.moveAnalysis, evaluationsAbsoluteWhite,
+      });
+    }
+    updateAccountEloFromGame(state.playerColor === 'w' ? stats.eloWhite : stats.eloBlack);
+  } catch (error) {
+    console.error('Ошибка фонового уточнения анализа:', error);
+  }
+}
+
+function renderAnalysis(data, { refining = false } = {}) {
   const {
     totalPly, totalFullMoves, accuracyWhite, accuracyBlack,
     eloWhite, eloBlack, avgCplWhite, avgCplBlack, bestMoveObj, worstMoveObj, comment,
@@ -2494,6 +2979,11 @@ function renderAnalysis(data) {
   }
 
   html += `<p class="analysis-comment">${escapeHtml(comment)}</p>`;
+  if (refining) {
+    // Предварительный результат (ТЗ п.2) — сообщаем, что цифры ещё уточняются
+    // в фоне; переиспользуем существующий класс, новых стилей не требуется.
+    html += `<p class="analysis-disclaimer">⏳ Быстрый предварительный результат — Stockfish продолжает углублять анализ в фоне, значения скоро уточнятся.</p>`;
+  }
   html += `<p class="analysis-disclaimer">Точность, CPL и Elo рассчитаны Stockfish; Elo — грубая оценка, не официальный рейтинг.</p>`;
   content.innerHTML = html;
 
@@ -2935,14 +3425,46 @@ async function syncProfileToSupabase(userId, patch) {
   if (error) console.error('Не удалось сохранить профиль в Supabase:', error);
 }
 
+const ELO_HISTORY_LIMIT = 200;
+
+// Гарантирует наличие eloHistory у старых аккаунтов (первая точка = стартовый Elo).
+function ensureEloHistory(acc) {
+  if (!Array.isArray(acc.eloHistory) || !acc.eloHistory.length) {
+    acc.eloHistory = [{ n: 0, elo: Number.isFinite(acc.elo) ? acc.elo : 1200, delta: 0, ts: Date.now() }];
+  }
+  return acc.eloHistory;
+}
+
 // Обновляем рейтинг аккаунта после анализа партии (плавное скользящее среднее)
 async function updateAccountEloFromGame(playerElo) {
+  // «На одном ПК» (friend) не участвует в рейтинге: не начисляем и не пишем в историю.
+  if (state.mode === 'friend') return;
+
   const acc = getAccount();
   if (!acc || !Number.isFinite(playerElo)) return;
+
+  const history = ensureEloHistory(acc);
+
+  // Защита от дублей: повторный вызов для той же партии (например, повторное
+  // «Обновить анализ») не должен добавлять вторую точку в историю.
+  const gameKey = (state.game && typeof state.game.pgn === 'function') ? state.game.pgn() : null;
+  if (gameKey && acc.lastEloGameKey === gameKey) return;
+
   const base = Number.isFinite(acc.elo) ? acc.elo : 1200;
-  acc.elo = Math.round(base * 0.7 + playerElo * 0.3);
+  const newElo = Math.round(base * 0.7 + playerElo * 0.3);
+  const delta = newElo - base;
+  acc.elo = newElo;
+
+  const lastPoint = history[history.length - 1];
+  history.push({ n: lastPoint.n + 1, elo: newElo, delta, ts: Date.now() });
+  if (history.length > ELO_HISTORY_LIMIT) {
+    acc.eloHistory = [history[0], ...history.slice(-(ELO_HISTORY_LIMIT - 1))];
+  }
+  if (gameKey) acc.lastEloGameKey = gameKey;
+
   saveAccount(acc);
   renderMenuProfile();
+  if (getCurrentView() === 'stats') renderStatsView();
 
   const { data: { user } } = await sb.auth.getUser();
   if (user) syncProfileToSupabase(user.id, { elo: acc.elo });
@@ -3112,6 +3634,12 @@ function renderAchievementsGrid() {
       ${unlocked ? `<div class="achv-card-date">Получено: ${dateStr}</div>` : ''}
     </div>`;
   }).join('');
+
+  // Применяем эффект "колеса" сразу же, не дожидаясь первого скролла —
+  // ждём кадр отрисовки, чтобы карточки успели встать на свои места.
+  if (typeof applySpinEffect === 'function') {
+    requestAnimationFrame(() => requestAnimationFrame(applySpinEffect));
+  }
 }
 // Переход вперёд — кладём новый view на вершину стека.
 function navigateTo(view) {
@@ -3254,6 +3782,7 @@ function renderStatsView() {
   const body = $id('statsViewBody');
   const acc = getAccount();
   if (eloEl) eloEl.textContent = acc && Number.isFinite(acc.elo) ? acc.elo : '—';
+  renderEloChartCard(acc);
   if (body) {
     const stats = window.Achievements?.getStats?.();
     // getStats() всегда возвращает объект с нулевыми значениями по умолчанию,
@@ -3295,6 +3824,46 @@ function renderStatsAsList(stats) {
     }
   });
   return rows.length ? rows.join('') : '<p class="modal-sub">Пока нет данных.</p>';
+}
+
+/* ---- Мини-график Elo (SVG, раскрывается под ELO-хиро) ---- */
+function buildEloChartSvg(history) {
+  const W = 300, H = 120, padX = 10, padY = 14;
+  const elos = history.map(p => p.elo);
+  let min = Math.min(...elos), max = Math.max(...elos);
+  if (min === max) { min -= 10; max += 10; }
+  const span = max - min;
+  const stepX = history.length > 1 ? (W - padX * 2) / (history.length - 1) : 0;
+
+  const points = history.map((p, i) => ({
+    ...p,
+    x: padX + i * stepX,
+    y: padY + (H - padY * 2) * (1 - (p.elo - min) / span),
+  }));
+
+  const linePoints = points.map(p => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ');
+  const dots = points.map(p => `
+    <g class="elo-point" tabindex="0" data-n="${p.n}" data-elo="${p.elo}" data-delta="${p.delta}"
+       transform="translate(${p.x.toFixed(1)},${p.y.toFixed(1)})">
+      <circle class="elo-point-hit" r="9"></circle>
+      <circle class="elo-point-dot" r="3"></circle>
+    </g>`).join('');
+
+  return `<svg class="stats-elo-svg" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">
+    <polyline class="elo-line" points="${linePoints}" fill="none"></polyline>
+    ${dots}
+  </svg>`;
+}
+
+function renderEloChartCard(acc) {
+  const wrap = $id('statsEloChartInner');
+  if (!wrap) return;
+  const history = acc ? ensureEloHistory(acc) : null;
+  if (!history || history.length < 2) {
+    wrap.innerHTML = '<p class="modal-sub stats-elo-chart-empty">График появится после первой рейтинговой партии.</p>';
+    return;
+  }
+  wrap.innerHTML = buildEloChartSvg(history) + '<div class="elo-tooltip" id="statsEloTooltip" hidden></div>';
 }
 
 /* ---- О приложении ---- */
@@ -3594,7 +4163,221 @@ function initProfileEditView() {
 function initAchievementsView() { /* без собственных обработчиков — только рендер данных в renderAchievementsGrid() */ }
 
 /* ---- Статистика (view внутри панели) ---- */
-function initStatsView() { /* без собственных обработчиков — только рендер данных в renderStatsView() */ }
+function initStatsView() {
+  const hero = $id('statsEloHero');
+  const wrap = $id('statsEloChartWrap');
+  if (!hero || !wrap || hero.dataset.bound) return;
+  hero.dataset.bound = '1';
+
+  const toggleChart = () => {
+    const isOpen = wrap.classList.toggle('is-open');
+    hero.classList.toggle('is-open', isOpen);
+    hero.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+    wrap.setAttribute('aria-hidden', isOpen ? 'false' : 'true');
+  };
+  hero.addEventListener('click', toggleChart);
+  hero.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleChart(); }
+  });
+
+  // Делегирование событий на точки графика: hover — для десктопа,
+  // click/touch — для мобильных устройств (без зависимости от hover).
+  const inner = $id('statsEloChartInner');
+  if (!inner) return;
+  const showTip = (pointEl) => {
+    const tip = $id('statsEloTooltip');
+    const svg = pointEl.closest('svg');
+    if (!tip || !svg) return;
+    const { n, elo, delta } = pointEl.dataset;
+    const d = Number(delta);
+    const sign = d > 0 ? '+' : (d < 0 ? '' : '±');
+    tip.innerHTML = `Партия #${n}<br>${elo} Elo<br>${sign}${d}`;
+    tip.hidden = false;
+    const match = pointEl.getAttribute('transform').match(/[-\d.]+/g);
+    const cx = parseFloat(match[0]);
+    const ratio = svg.clientWidth / 300;
+    tip.style.left = `${cx * ratio}px`;
+  };
+  const hideTip = () => { const tip = $id('statsEloTooltip'); if (tip) tip.hidden = true; };
+
+  inner.addEventListener('mouseover', (e) => {
+    const pt = e.target.closest('.elo-point');
+    if (pt) showTip(pt);
+  });
+  inner.addEventListener('mouseleave', hideTip);
+  inner.addEventListener('click', (e) => {
+    const pt = e.target.closest('.elo-point');
+    if (pt) { showTip(pt); e.stopPropagation(); } else { hideTip(); }
+  });
+}
+
+/* ---- Обратная связь (модалка поверх Side Panel, insert в Supabase) ---- */
+let feedbackModalInitialized = false;
+let feedbackSubmitting = false;
+let feedbackReturnFocusEl = null;
+const FEEDBACK_TYPES = ['bug', 'suggestion', 'question', 'other'];
+
+// Только неигровые/нечувствительные данные — без FEN, истории партии или чата.
+function collectFeedbackMetadata() {
+  return {
+    theme: document.documentElement.classList.contains('dark') ? 'dark' : 'light',
+    language: 'ru',
+    accent: state.settings.accent,
+    boardStyle: state.settings.boardStyle,
+    mode: state.mode || null,
+    userAgent: navigator.userAgent,
+    viewport: `${window.innerWidth}x${window.innerHeight}`,
+  };
+}
+
+function clearFeedbackErrors() {
+  ['feedbackMessageError', 'feedbackContactError'].forEach((id) => {
+    const el = $id(id);
+    if (el) el.textContent = '';
+  });
+  const formErr = $id('feedbackFormError');
+  if (formErr) { formErr.hidden = true; formErr.textContent = ''; }
+}
+
+function showFeedbackError(message) {
+  const formErr = $id('feedbackFormError');
+  if (formErr) { formErr.textContent = message; formErr.hidden = false; }
+}
+
+function setFeedbackLoading(loading) {
+  feedbackSubmitting = loading;
+  const btn = $id('feedbackSubmitBtn');
+  if (!btn) return;
+  btn.disabled = loading;
+  btn.textContent = loading ? 'Отправка…' : 'Отправить';
+}
+
+function resetFeedbackForm() {
+  const form = $id('feedbackForm');
+  if (form) form.reset();
+  clearFeedbackErrors();
+  const counter = $id('feedbackMessageCounter');
+  if (counter) counter.textContent = '0 / 2000';
+  const fieldsGroup = $id('feedbackFieldsGroup');
+  const success = $id('feedbackSuccess');
+  if (fieldsGroup) fieldsGroup.classList.remove('hidden');
+  if (success) success.classList.add('hidden');
+  setFeedbackLoading(false);
+}
+
+function openFeedbackModal() {
+  feedbackReturnFocusEl = document.activeElement;
+  resetFeedbackForm();
+  showModal('feedbackModal');
+  const typeSelect = $id('feedbackType');
+  if (typeSelect) typeSelect.focus();
+}
+
+function closeFeedbackModal() {
+  if (feedbackSubmitting) return; // не закрываем модалку посреди отправки
+  hideModal('feedbackModal');
+  if (feedbackReturnFocusEl && typeof feedbackReturnFocusEl.focus === 'function') {
+    feedbackReturnFocusEl.focus();
+  }
+  feedbackReturnFocusEl = null;
+}
+
+async function submitFeedback() {
+  if (feedbackSubmitting) return; // защита от двойной отправки
+  clearFeedbackErrors();
+
+  const typeEl = $id('feedbackType');
+  const messageEl = $id('feedbackMessage');
+  const contactEl = $id('feedbackContact');
+  if (!typeEl || !messageEl || !contactEl) return;
+
+  const type = FEEDBACK_TYPES.includes(typeEl.value) ? typeEl.value : 'other';
+  const message = (messageEl.value || '').trim();
+  const contact = (contactEl.value || '').trim();
+
+  if (!message) {
+    showFeedbackFieldError('feedbackMessageError', 'Опишите проблему, предложение или вопрос.');
+    messageEl.focus();
+    return;
+  }
+  if (message.length > 2000) {
+    showFeedbackFieldError('feedbackMessageError', 'Сообщение слишком длинное (максимум 2000 символов).');
+    messageEl.focus();
+    return;
+  }
+  if (contact.length > 120) {
+    showFeedbackFieldError('feedbackContactError', 'Слишком длинный контакт (максимум 120 символов).');
+    contactEl.focus();
+    return;
+  }
+
+  setFeedbackLoading(true);
+  try {
+    const { data: { user } } = await sb.auth.getUser();
+    const { error } = await sb.from('feedback').insert({
+      user_id: user ? user.id : null,
+      type,
+      message,
+      contact: contact || null,
+      app_version: APP_VERSION,
+      metadata: collectFeedbackMetadata(),
+    });
+    if (error) throw error;
+
+    const fieldsGroup = $id('feedbackFieldsGroup');
+    const success = $id('feedbackSuccess');
+    if (fieldsGroup) fieldsGroup.classList.add('hidden');
+    if (success) success.classList.remove('hidden');
+    setFeedbackLoading(false);
+
+    setTimeout(() => {
+      const overlay = $id('feedbackModal');
+      if (overlay && !overlay.classList.contains('hidden')) closeFeedbackModal();
+    }, 3000);
+  } catch (err) {
+    console.error('Не удалось отправить обратную связь:', err);
+    showFeedbackError('Не удалось отправить сообщение. Попробуйте ещё раз.');
+    setFeedbackLoading(false);
+  }
+}
+function showFeedbackFieldError(id, message) {
+  const el = $id(id);
+  if (el) el.textContent = message;
+}
+
+function initFeedbackModal() {
+  if (feedbackModalInitialized) return;
+  feedbackModalInitialized = true;
+
+  const overlay = $id('feedbackModal');
+  const form = $id('feedbackForm');
+  const closeBtn = $id('feedbackCloseBtn');
+  const cancelBtn = $id('feedbackCancelBtn');
+  const successCloseBtn = $id('feedbackSuccessCloseBtn');
+  const messageEl = $id('feedbackMessage');
+  const counter = $id('feedbackMessageCounter');
+
+  if (form) form.addEventListener('submit', (e) => { e.preventDefault(); submitFeedback(); });
+  if (closeBtn) closeBtn.addEventListener('click', () => closeFeedbackModal());
+  if (cancelBtn) cancelBtn.addEventListener('click', () => closeFeedbackModal());
+  if (successCloseBtn) successCloseBtn.addEventListener('click', () => closeFeedbackModal());
+
+  if (messageEl && counter) {
+    messageEl.addEventListener('input', () => {
+      counter.textContent = `${messageEl.value.length} / 2000`;
+    });
+  }
+
+  // Клик по фону (вне .modal) закрывает модалку — как у остальных modal-overlay.
+  if (overlay) overlay.addEventListener('click', (e) => { if (e.target === overlay) closeFeedbackModal(); });
+
+  // Escape закрывает feedbackModal, если она открыта.
+  document.addEventListener('keydown', (e) => {
+    if (e.key !== 'Escape') return;
+    if (!overlay || overlay.classList.contains('hidden')) return;
+    closeFeedbackModal();
+  });
+}
 
 /* ---- О приложении (view внутри панели) ---- */
 let aboutViewInitialized = false;
@@ -3602,12 +4385,20 @@ function initAboutView() {
   if (aboutViewInitialized) return;
   aboutViewInitialized = true;
 
+  const versionEl = $id('aboutHeroVersion');
+  if (versionEl) versionEl.textContent = `v${APP_VERSION}`;
+
   const licensesLink = $id('aboutLicensesLinkMenu');
   if (licensesLink) {
     licensesLink.addEventListener('click', (e) => {
       e.preventDefault();
       showToast('chessboard.js, chess.js и Stockfish распространяются по своим open-source лицензиям (MIT/GPL)');
     });
+  }
+
+  const feedbackBtn = $id('aboutFeedbackBtn');
+  if (feedbackBtn) {
+    feedbackBtn.addEventListener('click', () => openFeedbackModal());
   }
 }
 
@@ -3626,6 +4417,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initAchievementsView();
   initStatsView();
   initAboutView();
+  initFeedbackModal();
   showHomeScreen();
   initSupabaseSession();
   if (window.Achievements) window.Achievements.init();

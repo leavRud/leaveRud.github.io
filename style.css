@@ -1184,73 +1184,6 @@ textarea, input {
 }
 
 /* =========================================================================
-   КАПСУЛА ДОСТИЖЕНИЙ — акцентный "язычок", вытекающий из-под "Играть"
-   ========================================================================= */
-.home-achv-btn {
-  position: relative;
-  z-index: 1;
-  margin-top: -22px;
-  padding: 30px 34px 12px;
-  min-width: 260px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  border: none;
-  border-radius: 0 0 120px 120px;
-  background-color: var(--accent-soft);
-  cursor: pointer;
-  font-family: var(--font-body);
-  transition: transform 0.25s cubic-bezier(0.22, 0.9, 0.24, 1), box-shadow 0.25s ease, filter 0.2s ease;
-  box-shadow:
-    0 18px 30px -14px rgba(0, 0, 0, 0.5),
-    inset 0 1px 0 rgba(255, 255, 255, 0.25),
-    inset 0 -10px 14px -8px rgba(0, 0, 0, 0.2);
-}
-.home-achv-btn::before {
-  /* тонкий блик сверху, продолжающий отблеск капсулы "Играть" */
-  content: '';
-  position: absolute;
-  top: 25px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 40%;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.5), transparent);
-  pointer-events: none;
-}
-.home-achv-btn:hover {
-  transform: translateY(5px);
-  filter: brightness(1.06);
-  box-shadow:
-    0 10px 22px -12px rgba(0, 0, 0, 0.55),
-    inset 0 1px 0 rgba(255, 255, 255, 0.3),
-    inset 0 -10px 14px -8px rgba(0, 0, 0, 0.2),
-    0 0 28px var(--accent-soft);
-}
-.home-achv-btn:active { transform: translateY(1px); filter: brightness(0.97); }
-
-.home-achv-icon { font-size: 15px; line-height: 1; filter: drop-shadow(0 1px 1px rgba(0,0,0,0.25)); }
-.home-achv-text {
-  color: #F4EFE4;
-  font-weight: 700;
-  font-size: 12.5px;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  white-space: nowrap;
-}
-.home-achv-count {
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.02em;
-  color: #F4EFE4;
-  background: rgba(255, 255, 255, 0.2);
-  padding: 3px 9px;
-  border-radius: 999px;
-  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.2);
-}
-
-/* =========================================================================
    ИКОНКА НАСТРОЕК (2D, белая на главном экране / контурная в приложении)
    ========================================================================= */
 .settings-icon-btn {
@@ -1615,16 +1548,6 @@ html.dark .settings-panel { background: rgba(10, 10, 10, 0.78); }
   .home-oval::after {
     display: none;   /* на малых экранах отблески убираем */
   }
-
-  /* Капсула достижений на мобильных */
-  .home-achv-btn {
-    min-width: unset;
-    width: 78vw;
-    margin-top: -16px;
-    padding: 24px 20px 10px;
-    border-radius: 0 0 60px 60px;
-  }
-  .home-achv-text { font-size: 11.5px; letter-spacing: 0.12em; }
 }
 
 /* =========================================================================
@@ -1818,18 +1741,6 @@ html.dark .settings-panel { background: rgba(10, 10, 10, 0.78); }
    ДОСТИЖЕНИЯ (Achievements)
    ========================================================================= */
 
-/* Кнопка в тулбаре партии — рядом с кнопкой настроек (на главном экране используется .home-achv-btn) */
-.appSettingsBtnAchvBtn { margin-left: 8px; }
-#appSettingsBtnAchvBtn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  margin-left: 8px;
-  font-size: 18px;
-  line-height: 1;
-}
-.achv-btn-emoji { display: inline-block; transform: translateY(-1px); }
-
 /* Toast-очередь */
 #achvToastContainer {
   position: fixed;
@@ -1913,59 +1824,6 @@ html.dark .achv-modal-overlay .achv-modal {
 .achv-modal-overlay .settings-close-btn { background: rgba(244, 239, 228, 0.1); }
 .achv-modal-overlay .settings-close-btn:hover { background: rgba(244, 239, 228, 0.2); }
 
-/* Общий прогресс */
-.achv-overall-bar {
-  width: 100%;
-  height: 5px;
-  border-radius: 4px;
-  background: rgba(244, 239, 228, 0.12);
-  overflow: hidden;
-  margin: -8px 0 18px;
-}
-.achv-overall-fill {
-  height: 100%;
-  width: 0%;
-  border-radius: 4px;
-  background: linear-gradient(90deg, var(--gold), var(--accent));
-  transition: width 0.5s ease;
-}
-
-.achv-filters {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin: 10px 0 16px;
-}
-.achv-filter-chip {
-  border: 1px solid rgba(244, 239, 228, 0.12);
-  cursor: pointer;
-  padding: 7px 14px;
-  border-radius: 999px;
-  background: rgba(244, 239, 228, 0.06);
-  box-shadow: none;
-  color: rgba(244, 239, 228, 0.65);
-  font-family: var(--font-body);
-  font-size: 12.5px;
-  font-weight: 600;
-  transition: all 0.15s ease;
-}
-.achv-filter-chip:hover { color: #F4EFE4; background: rgba(244, 239, 228, 0.11); }
-.achv-filter-chip.is-active {
-  background: var(--accent);
-  border-color: transparent;
-  color: #fff;
-  box-shadow: 0 4px 12px -4px rgba(0, 0, 0, 0.4);
-}
-
-.achv-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
-  gap: 14px;
-  overflow-y: auto;
-  padding: 4px 2px 10px;
-  flex: 0 1 auto; 
-  min-height: 0;
-}
 .achv-modal-overlay ::-webkit-scrollbar-thumb { background: rgba(244, 239, 228, 0.22); }
 
 .achv-card {
@@ -2017,12 +1875,7 @@ html.dark .achv-modal-overlay .achv-modal {
 }
 .achv-progress-label { font-size: 10.5px; color: rgba(244, 239, 228, 0.5); margin-top: 2px; }
 
-.achv-overall-bar,
-.achv-filters {
-  flex-shrink: 0; /* не даём сжиматься */
-}
 @media (max-width: 640px) {
-  .achv-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
   #achvToastContainer { left: 12px; right: 12px; top: 12px; }
   .achv-toast { max-width: none; }
 }
@@ -2186,6 +2039,43 @@ html.dark .achv-modal-overlay .achv-modal {
 .menu-stats-hero-value { font-family: var(--font-display); font-size: 42px; font-weight: 700; color: #F4EFE4; line-height: 1; }
 .menu-stats-hero-label { margin-top: 4px; font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--gold); }
 
+/* Раскрывающийся график Elo под ELO-хиро в Stats View */
+#statsEloHero { cursor: pointer; user-select: none; border-radius: var(--radius-sm); transition: background 0.15s ease; }
+#statsEloHero:hover, #statsEloHero:focus-visible { background: rgba(244, 239, 228, 0.06); outline: none; }
+#statsEloHero::after {
+  content: '▾'; display: block; margin-top: 6px; font-size: 11px; color: rgba(244,239,228,0.4);
+  transition: transform 0.3s ease;
+}
+#statsEloHero.is-open::after { transform: rotate(180deg); }
+
+.stats-elo-chart-wrap {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.35s ease;
+  margin: 0 0 10px;
+}
+.stats-elo-chart-wrap.is-open { grid-template-rows: 1fr; }
+.stats-elo-chart-inner { overflow: hidden; min-height: 0; position: relative; padding: 0 2px; }
+.stats-elo-chart-wrap.is-open .stats-elo-chart-inner { padding: 6px 2px 16px; }
+
+.stats-elo-chart-empty { text-align: center; padding: 10px 0; }
+
+.stats-elo-svg { width: 100%; height: auto; display: block; overflow: visible; }
+.elo-line { stroke: var(--gold); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+.elo-point-dot { fill: var(--gold); }
+.elo-point-hit { fill: transparent; cursor: pointer; }
+.elo-point:hover .elo-point-dot, .elo-point:focus-visible .elo-point-dot { r: 4.5; }
+.elo-point:focus-visible .elo-point-hit { outline: none; }
+
+.elo-tooltip {
+  position: absolute; top: -4px; transform: translate(-50%, -100%);
+  background: rgba(20, 18, 14, 0.92); color: #F4EFE4;
+  font-size: 11.5px; line-height: 1.35; text-align: center;
+  padding: 6px 9px; border-radius: 8px; white-space: nowrap;
+  pointer-events: none; box-shadow: var(--sd-sm); z-index: 2;
+}
+.elo-tooltip[hidden] { display: none; }
+
 /* Сводка прогресса в Achievements View */
 .menu-achv-summary { text-align: center; padding: 10px 0 26px; }
 .menu-achv-summary-count { font-family: var(--font-display); font-size: 30px; font-weight: 700; color: var(--gold); }
@@ -2200,6 +2090,101 @@ html.dark .achv-modal-overlay .achv-modal {
 
 .menu-about { text-align: left; }
 .menu-about p { margin: 0 0 8px; color: #F4EFE4; }
+
+/* ---- Раздел "О приложении" (view-about) ---- */
+.about-hero { text-align: center; padding: 4px 0 20px; }
+.about-hero-icon {
+  width: 52px; height: 52px; margin: 0 auto 10px;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 50%; font-size: 24px; color: var(--gold);
+  background: rgba(244, 239, 228, 0.06);
+  box-shadow: inset 0 0 0 1px rgba(244, 239, 228, 0.1);
+}
+.about-hero-name { font-family: var(--font-display); font-size: 22px; font-weight: 700; color: #F4EFE4; }
+.about-hero-tagline { font-size: 12.5px; color: var(--gold); margin-top: 2px; }
+.about-hero-version { font-size: 11px; color: rgba(244, 239, 228, 0.4); margin-top: 6px; }
+
+.about-section { margin-bottom: 20px; }
+.about-section-title {
+  font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
+  color: rgba(244, 239, 228, 0.45); margin-bottom: 8px;
+}
+.about-section-text { font-size: 12.5px; line-height: 1.6; color: rgba(244, 239, 228, 0.75); margin: 0; }
+
+.about-feature-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.about-feature {
+  display: flex; align-items: center; gap: 8px;
+  padding: 9px 10px; border-radius: var(--radius-sm);
+  background: rgba(244, 239, 228, 0.05);
+  font-size: 12px; color: #F4EFE4;
+  transition: background 0.15s ease;
+}
+.about-feature:hover { background: rgba(244, 239, 228, 0.09); }
+.about-feature-icon { font-size: 15px; line-height: 1; flex-shrink: 0; }
+
+.about-ai-row { display: flex; justify-content: space-between; gap: 10px; align-items: baseline; }
+.about-ai-desc { font-size: 11.5px; color: rgba(244, 239, 228, 0.55); text-align: right; }
+
+.about-tech-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+.about-tech-tag {
+  font-size: 11px; padding: 5px 10px; border-radius: 999px;
+  background: rgba(244, 239, 228, 0.06); color: rgba(244, 239, 228, 0.7);
+  box-shadow: inset 0 0 0 1px rgba(244, 239, 228, 0.08);
+}
+
+.about-link-row {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 12px 4px; font-size: 13px; color: #F4EFE4; text-decoration: none;
+  border-bottom: 1px solid rgba(244, 239, 228, 0.08);
+  transition: color 0.15s ease;
+}
+.about-link-row:last-child { border-bottom: none; }
+.about-link-row:hover { color: var(--gold); }
+.about-link-arrow { color: rgba(244, 239, 228, 0.4); }
+
+.about-dev-name { font-size: 14px; font-weight: 700; color: #F4EFE4; }
+.about-dev-sub { font-size: 11.5px; color: rgba(244, 239, 228, 0.5); margin-top: 2px; }
+
+#aboutFeedbackBtn { width: 100%; }
+
+/* ---- Модалка "Обратная связь" ---- */
+.feedback-modal { max-width: 420px; width: 100%; }
+.feedback-form { display: flex; flex-direction: column; }
+.feedback-field { margin-bottom: 16px; }
+.feedback-field .settings-row-label { display: block; margin-bottom: 8px; }
+.feedback-field .settings-select,
+.feedback-field .menu-text-input { width: 100%; box-sizing: border-box; }
+.feedback-textarea { resize: vertical; min-height: 96px; max-width: 100%; font-family: var(--font-body); }
+
+.feedback-char-counter {
+  margin-top: 4px; text-align: right; font-size: 11px; color: var(--text-muted);
+}
+
+.feedback-error {
+  display: block; margin-top: 6px; font-size: 12px; color: var(--danger); min-height: 0;
+}
+.feedback-error:empty { display: none; }
+.feedback-form-error {
+  padding: 10px 12px; border-radius: var(--radius-sm);
+  background: rgba(161, 69, 61, 0.12); margin-bottom: 14px; min-height: 0;
+}
+.feedback-form-error[hidden] { display: none; }
+
+.feedback-privacy-note { margin: -4px 0 16px; }
+
+.feedback-success { text-align: center; padding: 12px 0 4px; }
+.feedback-success-icon {
+  width: 48px; height: 48px; margin: 0 auto 12px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 22px; color: var(--accent); background: var(--accent-soft);
+}
+.feedback-success-title { font-family: var(--font-display); font-size: 18px; font-weight: 700; color: #F4EFE4; margin-bottom: 4px; }
+.feedback-success .btn { margin-top: 16px; width: 100%; }
+
+@media (max-width: 480px) {
+  .feedback-modal { max-width: 100%; }
+  .feedback-textarea { width: 100%; }
+}
 
 /* Кнопки и тексты внутри тёмной боковой панели и тёмных модалок бургер-меню —
    светлее ghost, мягче тени у accent, приглушённый текст modal-sub */
@@ -2220,6 +2205,9 @@ html.dark .achv-modal-overlay .achv-modal {
 /* Модалка входа открывается из бургер-меню — должна быть поверх боковой
    панели, даже пока та ещё доигрывает анимацию закрытия */
 #authModal {
+  z-index: 260;
+}
+#feedbackModal {
   z-index: 260;
 }
 .achv-modal-overlay .achv-modal.auth-modal {

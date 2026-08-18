@@ -302,6 +302,61 @@
   </div>
 </div>
 
+<!-- ============ МОДАЛКА: ОБРАТНАЯ СВЯЗЬ (Supabase, доступна из "О приложении") ============ -->
+<div id="feedbackModal" class="modal-overlay achv-modal-overlay hidden">
+  <div class="modal neumorphic-raised achv-modal feedback-modal" role="dialog" aria-modal="true" aria-labelledby="feedbackModalTitle">
+    <div class="achv-modal-header">
+      <h2 id="feedbackModalTitle">Обратная связь</h2>
+      <button id="feedbackCloseBtn" class="settings-close-btn" type="button" aria-label="Закрыть">✕</button>
+    </div>
+
+    <form id="feedbackForm" class="feedback-form" novalidate>
+      <div id="feedbackFieldsGroup">
+        <div class="feedback-field">
+          <label class="settings-row-label" for="feedbackType">Тип обращения</label>
+          <select id="feedbackType" class="settings-select">
+            <option value="bug">Ошибка</option>
+            <option value="suggestion">Предложение</option>
+            <option value="question">Вопрос</option>
+            <option value="other">Другое</option>
+          </select>
+        </div>
+
+        <div class="feedback-field">
+          <label class="settings-row-label" for="feedbackMessage">Сообщение</label>
+          <textarea id="feedbackMessage" class="menu-text-input feedback-textarea" rows="4" maxlength="2000"
+                    placeholder="Опишите проблему, предложение или вопрос…" required
+                    aria-describedby="feedbackMessageCounter feedbackMessageError"></textarea>
+          <div class="feedback-char-counter" id="feedbackMessageCounter">0 / 2000</div>
+          <span class="feedback-error" id="feedbackMessageError" role="alert"></span>
+        </div>
+
+        <div class="feedback-field">
+          <label class="settings-row-label" for="feedbackContact">Контакт (необязательно)</label>
+          <input id="feedbackContact" type="text" class="menu-text-input" maxlength="120" placeholder="Email или другой способ связи">
+          <span class="feedback-error" id="feedbackContactError" role="alert"></span>
+        </div>
+
+        <p class="settings-row-desc feedback-privacy-note">Не указывайте пароли и другую конфиденциальную информацию.</p>
+
+        <div class="feedback-error feedback-form-error" id="feedbackFormError" role="alert" hidden></div>
+
+        <div class="modal-actions">
+          <button type="submit" id="feedbackSubmitBtn" class="btn btn-accent">Отправить</button>
+          <button type="button" id="feedbackCancelBtn" class="btn btn-ghost">Отмена</button>
+        </div>
+      </div>
+
+      <div id="feedbackSuccess" class="feedback-success hidden">
+        <div class="feedback-success-icon">✓</div>
+        <div class="feedback-success-title">Спасибо!</div>
+        <p class="modal-sub">Сообщение успешно отправлено.</p>
+        <button type="button" id="feedbackSuccessCloseBtn" class="btn btn-accent">Закрыть</button>
+      </div>
+    </form>
+  </div>
+</div>
+
 <!-- ============================================================================
      ПРАВАЯ БОКОВАЯ ПАНЕЛЬ (Side Panel) — единая система навигации приложения.
      Открывается кнопкой ☰ (справа), выезжает СПРАВА НАЛЕВО.
@@ -596,8 +651,8 @@
           <div class="settings-group-title">О программе</div>
           <div class="settings-about">
             Версия Stockfish: <b>18 lite (single-thread)</b><br>
-            Модель ИИ: <b>google/gemini-3.1-flash-lite</b><br>
-            <a href="#" id="aboutLicensesLink">Лицензии</a> · <a href="https://github.com" target="_blank" rel="noopener">GitHub</a>
+            Модель ИИ: <b>deepseek/deepseek_v4_pro</b><br>
+            <a href="#" id="aboutLicensesLink">Лицензии</a> · <a href="https://github.com/leavRud/leaveRud.github.io/" target="_blank" rel="noopener">GitHub</a>
           </div>
         </div>
 
@@ -624,9 +679,14 @@
       <!-- ===================== VIEW: СТАТИСТИКА ===================== -->
       <div id="view-stats" class="side-view">
 
-        <div class="menu-stats-hero">
+        <div class="menu-stats-hero" id="statsEloHero" role="button" tabindex="0"
+             aria-expanded="false" aria-controls="statsEloChartWrap">
           <div id="statsViewElo" class="menu-stats-hero-value">—</div>
           <div class="menu-stats-hero-label">ELO</div>
+        </div>
+
+        <div class="stats-elo-chart-wrap" id="statsEloChartWrap" aria-hidden="true">
+          <div class="stats-elo-chart-inner" id="statsEloChartInner"></div>
         </div>
 
         <div id="statsViewBody" class="menu-stats-list">
@@ -636,12 +696,76 @@
 
       <!-- ===================== VIEW: О ПРИЛОЖЕНИИ ===================== -->
       <div id="view-about" class="side-view">
-        <div class="settings-about menu-about">
-          <p><b>chessai</b> — игра в шахматы против нейросети.</p>
-          Версия Stockfish: <b>18 lite (single-thread)</b><br>
-          Модель ИИ: <b>google/gemini-3.1-flash-lite</b><br>
-          <a href="#" id="aboutLicensesLinkMenu">Лицензии</a> · <a href="https://github.com" target="_blank" rel="noopener">GitHub</a>
+        <div class="about-hero">
+          <div class="about-hero-icon">♞</div>
+          <div class="about-hero-name">chessai</div>
+          <div class="about-hero-tagline">Шахматы с характером</div>
+          <div class="about-hero-version" id="aboutHeroVersion">v1.0.0</div>
         </div>
+
+        <div class="about-section">
+          <div class="about-section-title">Что такое chessai</div>
+          <p class="about-section-text">Игра против Stockfish и против персонажей с собственным характером, разбор партий, статистика, рейтинг Elo и достижения.</p>
+        </div>
+
+        <div class="about-section">
+          <div class="about-section-title">Возможности</div>
+          <div class="about-feature-grid">
+            <div class="about-feature"><span class="about-feature-icon">♟</span><span>Против Stockfish</span></div>
+            <div class="about-feature"><span class="about-feature-icon">🎭</span><span>Против персонажей</span></div>
+            <div class="about-feature"><span class="about-feature-icon">👥</span><span>На одном ПК</span></div>
+            <div class="about-feature"><span class="about-feature-icon">🔍</span><span>Анализ партий</span></div>
+            <div class="about-feature"><span class="about-feature-icon">📊</span><span>Статистика и Elo</span></div>
+            <div class="about-feature"><span class="about-feature-icon">🏆</span><span>Достижения</span></div>
+            <div class="about-feature"><span class="about-feature-icon">🎨</span><span>Настройки внешнего вида</span></div>
+            <div class="about-feature"><span class="about-feature-icon">🔊</span><span>Звуки и интерфейс</span></div>
+          </div>
+        </div>
+
+        <div class="about-section">
+          <div class="about-section-title">Как работает ИИ</div>
+          <div class="settings-row about-ai-row">
+            <span class="settings-row-label">Stockfish</span>
+            <span class="about-ai-desc">Анализ позиций и поиск ходов</span>
+          </div>
+          <div class="settings-row about-ai-row">
+            <span class="settings-row-label">Нейросеть</span>
+            <span class="about-ai-desc">Диалог, комментарии, характер персонажей</span>
+          </div>
+          <div class="settings-row-desc">Анализ партий использует общий кэш и фоновое доуглубление Stockfish.</div>
+        </div>
+
+        <div class="about-section">
+          <div class="about-section-title">Технологии</div>
+          <div class="about-tech-tags">
+            <span class="about-tech-tag">Stockfish</span>
+            <span class="about-tech-tag">chess.js</span>
+            <span class="about-tech-tag">chessboard.js</span>
+            <span class="about-tech-tag">Supabase</span>
+            <span class="about-tech-tag">Provod.ai</span>
+            <span class="about-tech-tag">JS / HTML / CSS</span>
+          </div>
+        </div>
+
+        <div class="about-section">
+          <a href="#" id="aboutLicensesLinkMenu" class="about-link-row">
+            <span>Открытые лицензии и сторонние компоненты</span>
+            <span class="about-link-arrow">›</span>
+          </a>
+          <a href="https://github.com/leavRud/leaveRud.github.io/" target="_blank" rel="noopener" class="about-link-row">
+            <span>GitHub</span>
+            <span class="about-link-arrow">↗</span>
+          </a>
+        </div>
+
+        <div class="about-section">
+          <div class="about-section-title">Разработчик</div>
+          <div class="about-dev-name">Максим Чебаков</div>
+          <div class="about-dev-sub">Создано для любителей шахмат и экспериментов с ИИ</div>
+        </div>
+
+        <button type="button" id="aboutFeedbackBtn" class="btn menu-view-actions">Обратная связь</button>
+
       </div>
 
     </div>
